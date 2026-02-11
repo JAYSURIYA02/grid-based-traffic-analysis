@@ -152,11 +152,17 @@ def process_grid(roi_x, roi_y, grid_width, grid_height, result_matrix, channels_
             if all(detection_flags):
                 result_matrix[row, col] = 1
 
-def process_roi(frame1,roi_x, roi_y,roi_width,roi_height,channels_data,current_centroids):
+vechicles = {}
+next_vehicle_id = 0
+
+def process_roi(frame1,roi_x, roi_y,roi_width,roi_height,channels_data,frame_count):
     centroid_votes = {}
-    global previous_centroids
     global vechicle_count
     global vehicle_count_history
+    global next_vehicle_id
+    threshold = max(50,1.5*grid_height1)
+    matched_vechicle_ids = set()
+    keys_to_remove = []
 
     roi_frame = frame1[roi_y:roi_y + roi_height, roi_x:roi_x + roi_width]
     for channel in channels_data:
@@ -173,37 +179,67 @@ def process_roi(frame1,roi_x, roi_y,roi_width,roi_height,channels_data,current_c
 
     for centroid , count in centroid_votes.items():
         if (count == len(channels_data)):
-            current_centroids.append(centroid)
-    temp_count =0 
-    for (x,y) in current_centroids:
-        for (px ,py) in previous_centroids:
-            if abs(x-px)<30 and abs(y-py)<30 and py <COUNT_LINE_Y and y >= COUNT_LINE_Y  :
-                vechicle_count +=1
-                temp_count+=1
-                break
+            best_match = None
+            min_distance = threshold
+            for key in list(vechicles.keys()):
+                if key in matched_vechicle_ids:
+                    continue
+                value = vechicles[key]
+                distance = np.sqrt((centroid[0] - value['centroid'][0])**2 + (centroid[1] - value['centroid'][1])**2)
+                if distance < min_distance and (0<= abs(centroid[1]-value['prev_centroid'][1]) <threshold):
+                    min_distance = distance
+                    best_match = key
+            if best_match is not None:
+                v = vechicles[best_match]
+                v['prev_centroid'] = v['centroid']
+                v['centroid'] = centroid
+                v['last_seen'] = frame_count
+                v['age'] = v.get('age', 0) + 1
+                matched_vechicle_ids.add(best_match)
+                cv2.putText(frame1,f"ID:{best_match}",(centroid[0],centroid[1]-5),cv2.FONT_HERSHEY_SIMPLEX,1,(32,224,255),2)
+
+            else:
+                vechicles[next_vehicle_id] = {'centroid': centroid, 'counted': False, 'prev_centroid':centroid, 'last_seen':frame_count, 'age': 1}
+                cv2.putText(frame1,f"ID:{next_vehicle_id}",(centroid[0],centroid[1]-5),cv2.FONT_HERSHEY_SIMPLEX,1,(32,224,255),2)
+                next_vehicle_id += 1
+
+
+    temp_count =0
+    for key in list(vechicles.keys()):
+        value = vechicles[key]
+        if not value['counted'] and value['age'] >= 3 and value['prev_centroid'][1] < COUNT_LINE_Y and value['centroid'][1] >= COUNT_LINE_Y:
+            vechicle_count += 1
+            temp_count += 1
+            vechicles[key]['counted'] = True
+            vechicles[key]['last_seen'] = frame_count 
 
     vehicle_count_history.append(temp_count)    
-    previous_centroids = current_centroids.copy()
     cv2.putText(frame1,f"Vehicles Passed: {vechicle_count}",(10, 100),cv2.FONT_HERSHEY_SIMPLEX,1,(0, 255, 255),3)
+    
+    for key in list(vechicles.keys()):
+        value = vechicles[key]
+        if frame_count - value['last_seen'] >FPS * 2: 
+            keys_to_remove.append(key)
 
-
+    for key in keys_to_remove:
+        del vechicles[key]
 
 def density_calculation(result_matrix):
     density = np.sum(result_matrix==1) / (num_rows * num_cols)
     density_values.append(density)
 
-    FLOW_WINDOW = FPS  # 1 second
+    FLOW_WINDOW = 2 *FPS  # 1 second
     vehicles_last_1s = sum(vehicle_count_history[-FLOW_WINDOW:])
     WINDOW = FPS
     smoothed_density = np.mean(density_values[-WINDOW:])
-    MAX_FLOW = 5  # max vehicles/sec expected for this ROI
+    MAX_FLOW = 8  # max vehicles/sec expected for this ROI
     flow_score = min(vehicles_last_1s / MAX_FLOW, 1.0)
 
-    combined_density = smoothed_density*0.7 + flow_score*0.3
-
-    if len(density_values) > 50:
-        p33 = np.percentile(density_values, 33)
-        p66 = np.percentile(density_values, 66)
+    combined_density = 0.7 * smoothed_density + 0.3 * flow_score
+    combined_density_values.append(combined_density)
+    if len(combined_density_values) > 50:
+        p33 = np.percentile(combined_density_values, 33)
+        p66 = np.percentile(combined_density_values, 66)
 
         delta_low = p33 - BASE_LOW
         delta_high = p66 - BASE_HIGH
@@ -212,7 +248,9 @@ def density_calculation(result_matrix):
         delta_high = np.clip(delta_high,-0.1,0.1)
 
         low_th = BASE_LOW + delta_low
-        high_th = BASE_HIGH + delta_high                
+        high_th = BASE_HIGH + delta_high    
+        if low_th >= high_th:
+            high_th = low_th + 0.05            
     else:
         low_th, high_th = 0.3, 0.6
 
@@ -243,11 +281,11 @@ frame_times = []
 memory_usages = []
 density_values = []
 vehicle_count_history =[]
+combined_density_values = []
 
 ## find the number of vechicles 
 COUNT_LINE_Y = roi1_y + roi1_height // 2
 vechicle_count = 0
-previous_centroids = []
 BASE_LOW =0.25
 BASE_HIGH =0.55
 FPS = 30
@@ -280,8 +318,7 @@ def main():
             process_grid(roi1_x, roi1_y, grid_width1, grid_height1, result_matrix1, channels_data)
             # process_grid(roi2_x, roi2_y, grid_width2, grid_height2, result_matrix2, channels_data, frame_count)
             
-            current_centroids =[]
-            process_roi(frame1,roi1_x,roi1_y,roi1_width,roi1_height,channels_data,current_centroids)
+            process_roi(frame1,roi1_x,roi1_y,roi1_width,roi1_height,channels_data,frame_count)
 
             # append_to_excel(result_matrix1)
 
@@ -359,3 +396,4 @@ if __name__ == '__main__':
     stats = pstats.Stats(profiler).sort_stats('cumtime')
     stats.print_stats(10)  # Print the top 10 functions by cumulative time
 
+#
