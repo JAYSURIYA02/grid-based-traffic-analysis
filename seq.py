@@ -71,7 +71,7 @@ def append_to_excel(result_matrix):
     workbook.save(excel_file_path)
 
 def process_channel(channel):
-    blur = cv2.GaussianBlur(channel, (5, 5), 0)
+    blur = cv2.GaussianBlur(channel, (5,5), 0)
     _, thresh = cv2.threshold(blur, 20, 255, cv2.THRESH_BINARY)
     dilated = cv2.dilate(thresh, None, iterations=3)
     contours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -156,12 +156,15 @@ def process_roi(frame1,roi_x, roi_y,roi_width,roi_height,channels_data,current_c
     centroid_votes = {}
     global previous_centroids
     global vechicle_count
+    global vehicle_count_history
 
+    roi_frame = frame1[roi_y:roi_y + roi_height, roi_x:roi_x + roi_width]
     for channel in channels_data:
         roi_channel = channel[roi_y:roi_y+roi_height , roi_x: roi_x +roi_width]
         countours_roi = process_channel(roi_channel)
         for contour in countours_roi:
             if cv2.contourArea(contour) > 500:  # vehicle-sized
+                cv2.drawContours(roi_frame, [contour], -1, (255,0,0), 2)
                 centroid = get_centroid(contour)
                 if centroid:
                     cx,cy = centroid 
@@ -171,15 +174,55 @@ def process_roi(frame1,roi_x, roi_y,roi_width,roi_height,channels_data,current_c
     for centroid , count in centroid_votes.items():
         if (count == len(channels_data)):
             current_centroids.append(centroid)
-    
+    temp_count =0 
     for (x,y) in current_centroids:
         for (px ,py) in previous_centroids:
-            if abs(x-px)<30 and abs(y-py)<30:
-                if py <COUNT_LINE_Y and y >= COUNT_LINE_Y : 
-                    vechicle_count +=1
+            if abs(x-px)<30 and abs(y-py)<30 and py <COUNT_LINE_Y and y >= COUNT_LINE_Y  :
+                vechicle_count +=1
+                temp_count+=1
+                break
+
+    vehicle_count_history.append(temp_count)    
     previous_centroids = current_centroids.copy()
     cv2.putText(frame1,f"Vehicles Passed: {vechicle_count}",(10, 100),cv2.FONT_HERSHEY_SIMPLEX,1,(0, 255, 255),3)
 
+
+
+def density_calculation(result_matrix):
+    density = np.sum(result_matrix==1) / (num_rows * num_cols)
+    density_values.append(density)
+
+    FLOW_WINDOW = FPS  # 1 second
+    vehicles_last_1s = sum(vehicle_count_history[-FLOW_WINDOW:])
+    WINDOW = FPS
+    smoothed_density = np.mean(density_values[-WINDOW:])
+    MAX_FLOW = 5  # max vehicles/sec expected for this ROI
+    flow_score = min(vehicles_last_1s / MAX_FLOW, 1.0)
+
+    combined_density = smoothed_density*0.7 + flow_score*0.3
+
+    if len(density_values) > 50:
+        p33 = np.percentile(density_values, 33)
+        p66 = np.percentile(density_values, 66)
+
+        delta_low = p33 - BASE_LOW
+        delta_high = p66 - BASE_HIGH
+
+        delta_low = np.clip(delta_low,-0.1,0.1)
+        delta_high = np.clip(delta_high,-0.1,0.1)
+
+        low_th = BASE_LOW + delta_low
+        high_th = BASE_HIGH + delta_high                
+    else:
+        low_th, high_th = 0.3, 0.6
+
+    if combined_density > high_th:
+        state = "High"
+    elif combined_density > low_th:
+        state = "Medium"
+    else:
+        state = "Low"
+    cv2.putText(frame1, f"Density: {combined_density:.2f} ({state})", (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 3)
 
 user_choice = color_channel  # This can be 'H', 'S', 'V', or 'gray'
 he_choice = 'V'  # User's choice for histogram equalization
@@ -199,12 +242,15 @@ channels = choices[user_choice]
 frame_times = []
 memory_usages = []
 density_values = []
+vehicle_count_history =[]
 
 ## find the number of vechicles 
 COUNT_LINE_Y = roi1_y + roi1_height // 2
 vechicle_count = 0
 previous_centroids = []
-
+BASE_LOW =0.25
+BASE_HIGH =0.55
+FPS = 30
 
 def get_centroid(contour):
     M = cv2.moments(contour)
@@ -216,7 +262,7 @@ def get_centroid(contour):
 def main():
     global frame1, frame2, ret, frame_count
     while cap.isOpened():
-        if not ret or frame_count >= 1000:  # Process only up to frame 100
+        if not ret : 
             break
         frame_count += 1
 
@@ -262,23 +308,9 @@ def main():
 
 
             #density calculation and display
+            density_calculation(result_matrix1)
 
-            density = np.sum(result_matrix1==1) / (num_rows * num_cols)
-            density_values.append(density)
-
-            WINDOW = 30 # 1 sec
-            if len(density_values) >= WINDOW:                
-                smoothed_density = np.mean(density_values[-WINDOW:])
-            else :
-                smoothed_density = np.mean(density_values)
-
-            if smoothed_density > 0.6:
-                state = "High"
-            elif smoothed_density > 0.3:
-                state = "Medium"
-            else:
-                state = "Low"   
-            cv2.putText(frame1, f"Traffic Density: {state}", (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 3)    
+            cv2.line(frame1,(roi1_x,COUNT_LINE_Y),(roi1_x+roi1_width,COUNT_LINE_Y),(255,255,255),2)
 
             # for row in range(num_rows):
             #     for col in range(num_cols):
@@ -299,11 +331,11 @@ def main():
 
             output_filename = f'output_seq/frame_{frame_count:04d}.jpg'
             cv2.imwrite(output_filename, frame1)
-
+            cv2.imshow('Frame', frame1)
             frame1 = frame2
             ret, frame2 = cap.read()
 
-        if cv2.waitKey(1) == 27:  # Reduce delay
+        if (cv2.waitKey(1) & 0xFF == ord('q')) or (cv2.waitKey(1) & 0xFF == ord('Q')):  # Reduce delay
             break
 
     end_time = time.time()
