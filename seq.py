@@ -152,6 +152,34 @@ def process_grid(roi_x, roi_y, grid_width, grid_height, result_matrix, channels_
             if all(detection_flags):
                 result_matrix[row, col] = 1
 
+def process_roi(frame1,roi_x, roi_y,roi_width,roi_height,channels_data,current_centroids):
+    centroid_votes = {}
+    global previous_centroids
+    global vechicle_count
+
+    for channel in channels_data:
+        roi_channel = channel[roi_y:roi_y+roi_height , roi_x: roi_x +roi_width]
+        countours_roi = process_channel(roi_channel)
+        for contour in countours_roi:
+            if cv2.contourArea(contour) > 500:  # vehicle-sized
+                centroid = get_centroid(contour)
+                if centroid:
+                    cx,cy = centroid 
+                    centroid =( cx + roi_x , cy +roi_y)
+                    centroid_votes[centroid] = centroid_votes.get(centroid,0) +1
+
+    for centroid , count in centroid_votes.items():
+        if (count == len(channels_data)):
+            current_centroids.append(centroid)
+    
+    for (x,y) in current_centroids:
+        for (px ,py) in previous_centroids:
+            if abs(x-px)<30 and abs(y-py)<30:
+                if py <COUNT_LINE_Y and y >= COUNT_LINE_Y : 
+                    vechicle_count +=1
+    previous_centroids = current_centroids.copy()
+    cv2.putText(frame1,f"Vehicles Passed: {vechicle_count}",(10, 100),cv2.FONT_HERSHEY_SIMPLEX,1,(0, 255, 255),3)
+
 
 user_choice = color_channel  # This can be 'H', 'S', 'V', or 'gray'
 he_choice = 'V'  # User's choice for histogram equalization
@@ -170,11 +198,25 @@ choices = {
 channels = choices[user_choice]
 frame_times = []
 memory_usages = []
+density_values = []
+
+## find the number of vechicles 
+COUNT_LINE_Y = roi1_y + roi1_height // 2
+vechicle_count = 0
+previous_centroids = []
+
+
+def get_centroid(contour):
+    M = cv2.moments(contour)
+    if M["m00"] == 0:
+        return None
+    return int(M['m10']/M['m00']),int(M['m01']/M['m00'])
+
 
 def main():
     global frame1, frame2, ret, frame_count
     while cap.isOpened():
-        if not ret or frame_count >= 400:  # Process only up to frame 100
+        if not ret or frame_count >= 1000:  # Process only up to frame 100
             break
         frame_count += 1
 
@@ -191,6 +233,9 @@ def main():
 
             process_grid(roi1_x, roi1_y, grid_width1, grid_height1, result_matrix1, channels_data)
             # process_grid(roi2_x, roi2_y, grid_width2, grid_height2, result_matrix2, channels_data, frame_count)
+            
+            current_centroids =[]
+            process_roi(frame1,roi1_x,roi1_y,roi1_width,roi1_height,channels_data,current_centroids)
 
             # append_to_excel(result_matrix1)
 
@@ -214,6 +259,26 @@ def main():
                         grid_x = roi1_x + col * grid_width1
                         grid_y = roi1_y + row * grid_height1
                         cv2.rectangle(frame1, (grid_x, grid_y), (grid_x + grid_width1, grid_y + grid_height1), (0, 255, 0), 2)
+
+
+            #density calculation and display
+
+            density = np.sum(result_matrix1==1) / (num_rows * num_cols)
+            density_values.append(density)
+
+            WINDOW = 30 # 1 sec
+            if len(density_values) >= WINDOW:                
+                smoothed_density = np.mean(density_values[-WINDOW:])
+            else :
+                smoothed_density = np.mean(density_values)
+
+            if smoothed_density > 0.6:
+                state = "High"
+            elif smoothed_density > 0.3:
+                state = "Medium"
+            else:
+                state = "Low"   
+            cv2.putText(frame1, f"Traffic Density: {state}", (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 3)    
 
             # for row in range(num_rows):
             #     for col in range(num_cols):
@@ -262,4 +327,3 @@ if __name__ == '__main__':
     stats = pstats.Stats(profiler).sort_stats('cumtime')
     stats.print_stats(10)  # Print the top 10 functions by cumulative time
 
-    
