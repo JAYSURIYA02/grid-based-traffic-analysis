@@ -51,25 +51,6 @@ ret, frame2 = cap.read()
 
 excel_file_path = 'result_matrix1.xlsx'
 
-def append_to_excel(result_matrix):
-    try:
-        workbook = load_workbook(excel_file_path)
-        sheet = workbook.active
-    except Exception as e:
-        print(f"Error loading workbook: {e}. Creating a new one.")
-        workbook = Workbook()
-        sheet = workbook.active
-
-    result_df = pd.DataFrame(result_matrix)
-
-    next_row = sheet.max_row + 2 if sheet.max_row > 1 else 1 
-
-    for row_index, row in enumerate(result_df.values):
-        for col_index, value in enumerate(row):
-            sheet.cell(row=next_row + row_index, column=col_index + 1, value=value)
-
-    workbook.save(excel_file_path)
-
 def process_channel(channel):
     blur = cv2.GaussianBlur(channel, (5,5), 0)
     _, thresh = cv2.threshold(blur, 20, 255, cv2.THRESH_BINARY)
@@ -289,6 +270,7 @@ vechicle_count = 0
 BASE_LOW =0.25
 BASE_HIGH =0.55
 FPS = 30
+all_frames_data = []
 
 def get_centroid(contour):
     M = cv2.moments(contour)
@@ -320,7 +302,7 @@ def main():
             
             process_roi(frame1,roi1_x,roi1_y,roi1_width,roi1_height,channels_data,frame_count)
 
-            # append_to_excel(result_matrix1)
+            all_frames_data.append((frame_count, result_matrix1.copy()))
 
             for row in range(num_rows):
                 for col in range(num_cols):
@@ -396,4 +378,19 @@ if __name__ == '__main__':
     stats = pstats.Stats(profiler).sort_stats('cumtime')
     stats.print_stats(10)  # Print the top 10 functions by cumulative time
 
-#
+def save_all_to_excel():
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Grid Data"
+
+    for frame_number, matrix in all_frames_data:
+        sheet.append([f"Frame {frame_number}"])
+        for row in matrix:
+            sheet.append(list(row))
+        sheet.append([])
+
+    workbook.save(excel_file_path)
+
+save_all_to_excel()
+
+####################################################################

@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from unittest import result
 import cv2
 from PIL import Image, ImageTk
 import subprocess
@@ -167,8 +166,13 @@ class VideoProcessor(tk.Tk):
                 command = ['python', 'seq.py']
 
             print(command)
-            result = subprocess.run(command, capture_output=True, text=True)           
-            self.destroy()
+            result =subprocess.run(command)
+            if result.returncode == 0:
+                messagebox.showinfo("Success", "Video processed successfully!")
+                print("Output:", result.stdout)
+            else:
+                messagebox.showerror("Error", f"Processing failed:\n{result.stderr}")
+                print("Error:", result.stderr)
             # self.run_processing_script(self.video_path, rows, cols, user_choice, seq_par_choice)
         else:
             messagebox.showerror("Error", "Please select a location to save the processed video.")

@@ -1,9 +1,9 @@
 {
-    "video": "C:/Users/jaysu/OneDrive/Desktop/PROJECTS/BTP/56310-479197605_small.mp4",
+    "video": "C:/Users/jaysu/OneDrive/Desktop/PROJECTS/BTP/5927704-sd_640_360_30fps.mp4",
     "color_channel": "V",
     "grids": {
-        "rows": 10,
-        "cols": 10
+        "rows": 6,
+        "cols": 6
     },
     "execution_mode": "Sequential"
 }
