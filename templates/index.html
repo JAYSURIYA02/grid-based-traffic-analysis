@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Traffic AI Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark text-light">
+
+<div class="container mt-5">
+
+    <h1 class="text-center mb-4"> Traffic Density Analysis</h1>
+
+    <div class="card bg-secondary p-4">
+
+        <div class="mb-3">
+            <label class="form-label">Upload Video</label>
+            <input class="form-control" type="file" id="videoInput">
+            <video id="preview" class="mt-3 w-100" controls></video>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <label>Rows: <span id="rowsValue">6</span></label>
+                <input type="range" min="1" max="20" value="6" class="form-range" id="rows">
+            </div>
+
+            <div class="col-md-6">
+                <label>Columns: <span id="colsValue">6</span></label>
+                <input type="range" min="1" max="20" value="6" class="form-range" id="cols">
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <label>Color Channel</label>
+            <select class="form-select" id="channel">
+                <option>H</option>
+                <option>S</option>
+                <option selected>V</option>
+                <option>H+S</option>
+                <option>H+V</option>
+                <option>S+V</option>
+                <option>H+S+V</option>
+                <option>gray</option>
+            </select>
+        </div>
+
+        <div class="mt-3">
+            <label>Execution Mode</label>
+            <select class="form-select" id="mode">
+                <option>Sequential</option>
+                <option>Parallel</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary mt-4 w-100" onclick="processVideo()">
+             Start Processing
+        </button>
+
+        <div class="progress mt-3">
+            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                 style="width: 0%"></div>
+        </div>
+
+        <div id="status" class="mt-3"></div>
+
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
