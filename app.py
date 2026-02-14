@@ -38,16 +38,23 @@ def process_video():
     with open("user_input_data.json", "w") as f:
         json.dump(config, f, indent=4)
 
-    def run_script():
-        if mode == "Parallel":
-            subprocess.run(["python", "rparallel_he3.py"])
-        else:
-            subprocess.run(["python", "seq.py"])
+    # Run synchronously (wait until finished)
+    if mode == "Parallel":
+        subprocess.run(["python", "rparallel_he3.py"])
+        output_file = "test_output1.mp4"
+    else:
+        subprocess.run(["python", "seq.py"])
+        output_file = "seq_output.mp4"
 
-    threading.Thread(target=run_script).start()
+    # Move output to static folder
+    static_output = os.path.join("static", output_file)
+    os.replace(output_file, static_output)
+    print("Returning video:", f"/static/{output_file}")
+    return jsonify({
+        "status": "Completed",
+        "video_url": f"/static/{output_file}"
+    })
 
-    return jsonify({"status": "Processing started"})
-    
 
 if __name__ == "__main__":
     app.run(debug=True)

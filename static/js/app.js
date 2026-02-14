@@ -1,12 +1,22 @@
-const rowsSlider = document.getElementById("rows");
-const colsSlider = document.getElementById("cols");
+let selectedMode = "Sequential";
 
-rowsSlider.oninput = () => {
-    document.getElementById("rowsValue").innerText = rowsSlider.value;
-}
+// Highlight selected mode
+function setMode(mode) {
+    selectedMode = mode;
 
-colsSlider.oninput = () => {
-    document.getElementById("colsValue").innerText = colsSlider.value;
+    document.getElementById("seqBtn").classList.remove("btn-light");
+    document.getElementById("parBtn").classList.remove("btn-light");
+
+    document.getElementById("seqBtn").classList.add("btn-outline-light");
+    document.getElementById("parBtn").classList.add("btn-outline-light");
+
+    if (mode === "Sequential") {
+        document.getElementById("seqBtn").classList.remove("btn-outline-light");
+        document.getElementById("seqBtn").classList.add("btn-light");
+    } else {
+        document.getElementById("parBtn").classList.remove("btn-outline-light");
+        document.getElementById("parBtn").classList.add("btn-light");
+    }
 }
 
 document.getElementById("videoInput").onchange = function(event) {
@@ -18,20 +28,23 @@ document.getElementById("videoInput").onchange = function(event) {
 function processVideo() {
 
     const video = document.getElementById("videoInput").files[0];
-    const rows = rowsSlider.value;
-    const cols = colsSlider.value;
+    const rows = document.getElementById("rows").value;
+    const cols = document.getElementById("cols").value;
     const channel = document.getElementById("channel").value;
-    const mode = document.getElementById("mode").value;
+
+    if (!video) {
+        alert("Please upload a video");
+        return;
+    }
 
     const formData = new FormData();
     formData.append("video", video);
     formData.append("rows", rows);
     formData.append("cols", cols);
     formData.append("channel", channel);
-    formData.append("mode", mode);
+    formData.append("mode", selectedMode);
 
-    document.getElementById("progressBar").style.width = "50%";
-    document.getElementById("status").innerText = "Processing started...";
+    document.getElementById("status").innerText = "Process started";
 
     fetch("/process", {
         method: "POST",
@@ -39,7 +52,7 @@ function processVideo() {
     })
     .then(response => response.json())
     .then(data => {
-        document.getElementById("progressBar").style.width = "100%";
-        document.getElementById("status").innerText = "Processing running in background.";
+        document.getElementById("status").innerText = "Processing completed";
+        document.getElementById("preview").src = data.video_url;
     });
 }

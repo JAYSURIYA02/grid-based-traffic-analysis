@@ -8,28 +8,42 @@
 
 <div class="container mt-5">
 
-    <h1 class="text-center mb-4"> Traffic Density Analysis</h1>
+    <h1 class="text-center mb-4">Traffic Density Analysis</h1>
 
     <div class="card bg-secondary p-4">
 
+        <!-- Execution Mode at Top -->
+        <div class="mb-4 text-center">
+            <label class="form-label d-block">Execution Mode</label>
+            <button class="btn btn-outline-light me-2" onclick="setMode('Sequential')" id="seqBtn">
+                Sequential
+            </button>
+            <button class="btn btn-outline-light" onclick="setMode('Parallel')" id="parBtn">
+                Parallel
+            </button>
+        </div>
+
+        <!-- Upload -->
         <div class="mb-3">
             <label class="form-label">Upload Video</label>
             <input class="form-control" type="file" id="videoInput">
             <video id="preview" class="mt-3 w-100" controls></video>
         </div>
 
+        <!-- Rows & Columns as Textbox -->
         <div class="row">
             <div class="col-md-6">
-                <label>Rows: <span id="rowsValue">6</span></label>
-                <input type="range" min="1" max="20" value="6" class="form-range" id="rows">
+                <label>Rows</label>
+                <input type="number" min="1" max="20" value="6" class="form-control" id="rows">
             </div>
 
             <div class="col-md-6">
-                <label>Columns: <span id="colsValue">6</span></label>
-                <input type="range" min="1" max="20" value="6" class="form-range" id="cols">
+                <label>Columns</label>
+                <input type="number" min="1" max="20" value="6" class="form-control" id="cols">
             </div>
         </div>
 
+        <!-- Color Channel -->
         <div class="mt-3">
             <label>Color Channel</label>
             <select class="form-select" id="channel">
@@ -44,24 +58,11 @@
             </select>
         </div>
 
-        <div class="mt-3">
-            <label>Execution Mode</label>
-            <select class="form-select" id="mode">
-                <option>Sequential</option>
-                <option>Parallel</option>
-            </select>
-        </div>
-
         <button class="btn btn-primary mt-4 w-100" onclick="processVideo()">
-             Start Processing
+             Start
         </button>
 
-        <div class="progress mt-3">
-            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated"
-                 style="width: 0%"></div>
-        </div>
-
-        <div id="status" class="mt-3"></div>
+        <div id="status" class="mt-3 text-center"></div>
 
     </div>
 </div>

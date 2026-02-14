@@ -1,9 +1,9 @@
 {
-    "video": "static/uploads\\56310-479197605_small.mp4",
+    "video": "static/uploads\\seq_output.mp4",
     "color_channel": "V",
     "grids": {
-        "rows": 3,
-        "cols": 3
+        "rows": 6,
+        "cols": 6
     },
     "execution_mode": "Sequential"
 }
