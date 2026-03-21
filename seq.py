@@ -11,6 +11,8 @@ from concurrent.futures import ThreadPoolExecutor
 import matplotlib.pyplot as plt
 
 import json
+from collections import Counter
+
 
 # Load configuration from JSON file
 with open("user_input_data.json", "r") as file:
@@ -51,11 +53,18 @@ ret, frame2 = cap.read()
 
 excel_file_path = 'result_matrix1.xlsx'
 
+def process_grid_channel(channel):
+    blur = cv2.GaussianBlur(channel, (5,5), 1) 
+    _, thresh = cv2.threshold(blur,50, 255, cv2.THRESH_BINARY)
+    dilated = cv2.dilate(thresh, None, iterations=5)
+    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    return contours
+
 def process_channel(channel):
-    blur = cv2.GaussianBlur(channel, (5,5), 0)
-    _, thresh = cv2.threshold(blur, 20, 255, cv2.THRESH_BINARY)
-    dilated = cv2.dilate(thresh, None, iterations=3)
-    contours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    blur = cv2.GaussianBlur(channel, (11,11),1) 
+    _, thresh = cv2.threshold(blur,120, 255, cv2.THRESH_BINARY)
+    dilated = cv2.dilate(thresh, None, iterations=20)
+    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     return contours
 
 def apply_histogram_equalization(frame, roi_x, roi_y, roi_width, roi_height, channel_choice):
@@ -85,8 +94,10 @@ def process_hsv(frame1, frame2, channels, channel_choice):
     frame2 = apply_histogram_equalization(frame2, roi1_x, roi1_y, roi1_width, roi1_height, channel_choice)
     # frame1 = apply_histogram_equalization(frame1, roi2_x, roi2_y, roi2_width, roi2_height, channel_choice)
     # frame2 = apply_histogram_equalization(frame2, roi2_x, roi2_y, roi2_width, roi2_height, channel_choice)
-    
-    diff = cv2.absdiff(frame1, frame2)
+    frame1_blur = cv2.GaussianBlur(frame1, (7,7), 0)
+    frame2_blur = cv2.GaussianBlur(frame2, (7,7), 0)
+
+    diff = cv2.absdiff(frame1_blur, frame2_blur)
     hsv = cv2.cvtColor(diff, cv2.COLOR_BGR2HSV)
     channels_data = [cv2.split(hsv)[i] for i in channels]
     return channels_data
@@ -97,8 +108,9 @@ def process_grayscale(frame1, frame2, channel_choice):
     frame2 = apply_histogram_equalization(frame2, roi1_x, roi1_y, roi1_width, roi1_height, channel_choice)
     # frame1 = apply_histogram_equalization(frame1, roi2_x, roi2_y, roi2_width, roi2_height, channel_choice)
     # frame2 = apply_histogram_equalization(frame2, roi2_x, roi2_y, roi2_width, roi2_height, channel_choice)
-    
-    diff = cv2.absdiff(frame1, frame2)
+    frame1_blur = cv2.GaussianBlur(frame1, (7,7), 0)
+    frame2_blur = cv2.GaussianBlur(frame2, (7,7), 0)
+    diff = cv2.absdiff(frame1_blur, frame2_blur)
     gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
     return [gray]
 
@@ -108,7 +120,7 @@ def process_grid_cell(args):
     detection_flags = []
     for channel in channels_data:
         grid_channel = channel[roi_y:roi_y + grid_height, roi_x:roi_x + grid_width]
-        contours = process_channel(grid_channel)
+        contours = process_grid_channel(grid_channel)
         detection_flags.append(any(cv2.contourArea(contour) >= 100 for contour in contours))
     if all(detection_flags):
         result = 1
@@ -127,7 +139,7 @@ def process_grid(roi_x, roi_y, grid_width, grid_height, result_matrix, channels_
             detection_flags = []
             for channel in channels_data:
                 grid_channel = channel[grid_y:grid_y + grid_height, grid_x:grid_x + grid_width]
-                contours = process_channel(grid_channel)
+                contours = process_grid_channel(grid_channel)
                 detection_flags.append(any(cv2.contourArea(contour) >= 100 for contour in contours))
             # AND
             if all(detection_flags):
@@ -135,6 +147,31 @@ def process_grid(roi_x, roi_y, grid_width, grid_height, result_matrix, channels_
 
 vechicles = {}
 next_vehicle_id = 0
+
+def Classify_vechicle(contour):
+
+    area = cv2.contourArea(contour)
+    if area < 800:
+        return None, "Unknown"
+
+    x, y, w, h = cv2.boundingRect(contour)
+    aspect_ratio = w / float(h) if h > 0 else 0
+
+    label = "Unknown"
+    # Bike
+    if w < 40 and area < 3500:
+        label = "Bike"
+    # Car
+    elif 40 <= w < 150:
+        label = "Car"
+    # Bus
+    elif w >= 200 and aspect_ratio > 3:
+        label = "Bus"
+    # Truck
+    elif w >= 150:
+        label = "TRUCK"
+    return label, (x, y, w, h)
+
 
 def process_roi(frame1,roi_x, roi_y,roi_width,roi_height,channels_data,frame_count):
     centroid_votes = {}
@@ -156,10 +193,17 @@ def process_roi(frame1,roi_x, roi_y,roi_width,roi_height,channels_data,frame_cou
                 if centroid:
                     cx,cy = centroid 
                     centroid =( cx + roi_x , cy +roi_y)
-                    centroid_votes[centroid] = centroid_votes.get(centroid,0) +1
+                    if centroid not in centroid_votes:
+                        centroid_votes[centroid] = {
+                            "count": 1,
+                            "contour": contour
+                        }
+                    else:
+                        centroid_votes[centroid]["count"] += 1
 
-    for centroid , count in centroid_votes.items():
-        if (count == len(channels_data)):
+    for centroid , values in centroid_votes.items():
+        count = values["count"]
+        if (count <= len(channels_data)):
             best_match = None
             min_distance = threshold
             for key in list(vechicles.keys()):
@@ -172,16 +216,31 @@ def process_roi(frame1,roi_x, roi_y,roi_width,roi_height,channels_data,frame_cou
                     best_match = key
             if best_match is not None:
                 v = vechicles[best_match]
+                v['contour'] = values['contour']
+                label, bbox = Classify_vechicle(v['contour'])
+                v.setdefault('labels', [])
+                if bbox is not None and label is not None:
+                    x, y, w, h = bbox
+                    v['bbox'] = (x + roi_x, y + roi_y, w, h)
+                    v['labels'].append(label)
+                    if len(v['labels']) > 10:
+                        v['labels'].pop(0)
+                    votes = Counter(v['labels'])
+                    v['final_label'] = votes.most_common(1)[0][0]
                 v['prev_centroid'] = v['centroid']
                 v['centroid'] = centroid
                 v['last_seen'] = frame_count
                 v['age'] = v.get('age', 0) + 1
                 matched_vechicle_ids.add(best_match)
-                cv2.putText(frame1,f"ID:{best_match}",(centroid[0],centroid[1]-5),cv2.FONT_HERSHEY_SIMPLEX,1,(32,224,255),2)
+                cv2.putText(frame1,f"ID:{best_match}",(centroid[0],centroid[1]-5),cv2.FONT_HERSHEY_SIMPLEX,1,(0, 0, 255),2)
+                if v.get('bbox') is not None:
+                    x,y,w,h = v['bbox']
+                    cv2.rectangle(frame1,(x,y),(x+w,y+h),(0,0,0),2)
+                    cv2.putText(frame1,f"{v['final_label']}",(centroid[0],centroid[1]+20),cv2.FONT_HERSHEY_SIMPLEX,1,(255, 0, 255),2)
 
             else:
-                vechicles[next_vehicle_id] = {'centroid': centroid, 'counted': False, 'prev_centroid':centroid, 'last_seen':frame_count, 'age': 1}
-                cv2.putText(frame1,f"ID:{next_vehicle_id}",(centroid[0],centroid[1]-5),cv2.FONT_HERSHEY_SIMPLEX,1,(32,224,255),2)
+                vechicles[next_vehicle_id] = {'centroid': centroid, 'counted': False, 'prev_centroid':centroid, 'last_seen':frame_count, 'age': 1 , 'contour': values['contour']}
+                cv2.putText(frame1,f"ID:{next_vehicle_id}",(centroid[0],centroid[1]-5),cv2.FONT_HERSHEY_SIMPLEX,1,(0, 0, 255),2)
                 next_vehicle_id += 1
 
 
