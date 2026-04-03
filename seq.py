@@ -9,7 +9,6 @@ import cProfile
 import pstats
 from concurrent.futures import ThreadPoolExecutor
 import matplotlib.pyplot as plt
-
 import json
 from collections import Counter
 
@@ -114,6 +113,7 @@ def process_grayscale(frame1, frame2, channel_choice):
     gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
     return [gray]
 
+'''
 def process_grid_cell(args):
     roi_x, roi_y, grid_width, grid_height, frame, channels_data = args
     result = 0
@@ -125,8 +125,11 @@ def process_grid_cell(args):
     if all(detection_flags):
         result = 1
     return result
+'''
 
+'''
 def process_grid(roi_x, roi_y, grid_width, grid_height, result_matrix, channels_data):
+
     for row in range(num_rows):
         for col in range(num_cols):
             grid_x = roi_x + col * grid_width
@@ -144,6 +147,38 @@ def process_grid(roi_x, roi_y, grid_width, grid_height, result_matrix, channels_
             # AND
             if all(detection_flags):
                 result_matrix[row, col] = 1
+'''
+
+def process_grid(roi_x, roi_y, grid_width, grid_height, result_matrix, channels_data):
+    combined_contours = []
+
+    for row in range(num_rows):
+        for col in range(num_cols):
+            grid_x = roi_x + col * grid_width
+            grid_y = roi_y + row * grid_height
+
+            grid_frame = frame1[grid_y:grid_y + grid_height, grid_x:grid_x + grid_width]
+            if grid_frame.size == 0:
+                continue
+
+            detection_flags = []
+            cell_contours = []
+
+            for channel in channels_data:
+                grid_channel = channel[grid_y:grid_y + grid_height, grid_x:grid_x + grid_width]
+                contours = process_grid_channel(grid_channel)
+
+                # filter valid contours
+                valid_contour = [c for c in contours if cv2.contourArea(c) > 250]
+
+                detection_flags.append(len(valid_contour) > 0)
+                cell_contours.extend(valid_contour)
+
+            if all(detection_flags):
+                result_matrix[row, col] = 1
+                combined_contours.append((row, col, cell_contours))
+
+    return combined_contours
 
 vechicles = {}
 next_vehicle_id = 0
@@ -171,9 +206,9 @@ def Classify_vechicle(contour):
     elif w >= 150:
         label = "TRUCK"
     return label, (x, y, w, h)
-
-
-def process_roi(frame1,roi_x, roi_y,roi_width,roi_height,channels_data,frame_count):
+    
+'''
+def process_tracking_counting(frame1,roi_x, roi_y,roi_width,roi_height,channels_data,frame_count):
     centroid_votes = {}
     global vechicle_count
     global vehicle_count_history
@@ -261,6 +296,213 @@ def process_roi(frame1,roi_x, roi_y,roi_width,roi_height,channels_data,frame_cou
         if frame_count - value['last_seen'] >FPS * 2: 
             keys_to_remove.append(key)
 
+    for key in keys_to_remove:
+        del vechicles[key]
+'''
+TOTAL_CELLS = num_rows * num_cols
+
+def classify_by_grid(vehicle_cells):
+    normalized = vehicle_cells / TOTAL_CELLS
+    if normalized < 0.08:      # ~1-2 cells → Bike
+        return "Bike"
+    elif normalized < 0.20:    # ~3-5 cells → Car
+        return "Car"
+    else:                      # 6+ cells → Truck
+        return "Truck"
+
+def process_tracking_counting(frame1, roi_x, roi_y, frame_count, cell_contours):
+    global vechicle_count, vehicle_count_history, next_vehicle_id
+
+    matched_vechicle_ids = set()
+    keys_to_remove = []
+
+    #max pixel the vehicle can move in 2 frames 
+    MATCH_THRESHOLD = roi1_height // 3
+
+    cv2.putText(frame1, f"Vehicles Passed: {vechicle_count}",(10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 3)
+
+
+    if not cell_contours:
+        vehicle_count_history.append(0)
+        for key in list(vechicles.keys()):
+            if frame_count - vechicles[key]['last_seen'] > FPS * 2:
+                keys_to_remove.append(key)
+        for key in keys_to_remove:
+            del vechicles[key]
+        return
+
+
+    raw_detections = []
+    for (row, col, contours) in cell_contours:
+        grid_x = roi_x + col * grid_width1
+        grid_y = roi_y + row * grid_height1
+        for contour in contours:
+            centroid = get_centroid(contour)
+            if centroid is None:
+                continue
+            cx = centroid[0] + grid_x
+            cy = centroid[1] + grid_y
+            raw_detections.append((cx, cy, contour))
+
+
+    # No of vehicle can be present in the same lane in a frame
+    MAX_VEHICLES_IN_LANE = 2
+    # more the vehicle less the merge radius 
+    MERGE_RADIUS = roi1_width // (MAX_VEHICLES_IN_LANE * 2)
+    merged = []
+    used = [False] * len(raw_detections)
+
+    for i, (cx, cy, contour) in enumerate(raw_detections):
+        if used[i]:
+            continue
+        cluster_cx = [cx]
+        cluster_cy = [cy]
+        cluster_size =1
+        best_contour = contour
+        best_area = cv2.contourArea(contour)
+        used[i] = True
+
+        for j, (cx2, cy2, contour2) in enumerate(raw_detections):
+            if used[j]:
+                continue
+            dist = np.sqrt((cx - cx2)**2 + (cy - cy2)**2)
+            if dist < MERGE_RADIUS:
+                cluster_cx.append(cx2)
+                cluster_cy.append(cy2)
+                cluster_size +=1
+                area2 = cv2.contourArea(contour2)
+                if area2 > best_area:
+                    best_area = area2
+                    best_contour = contour2
+                used[j] = True
+
+        # representative centroid = mean of cluster
+        merged.append((
+            int(np.mean(cluster_cx)),
+            int(np.mean(cluster_cy)),
+            best_contour,
+            cluster_size
+        ))
+
+    # tracking same logic, now operates on merged detections
+    vehicle_cell_counts = {}
+    # --- tracking ---
+    for cx, cy, contour, cluster_size in merged:
+        best_match = None
+        min_distance = MATCH_THRESHOLD
+
+        for key in list(vechicles.keys()):
+            if key in matched_vechicle_ids:
+                continue
+            value = vechicles[key]
+            px, py = value['centroid']
+            distance = np.sqrt((cx - px)**2 + (cy - py)**2)
+            if distance < min_distance and abs(cy - py) < 2 * MATCH_THRESHOLD:
+                min_distance = distance
+                best_match = key
+
+        if best_match is not None:
+            v = vechicles[best_match]
+            v['prev_centroid'] = v['centroid']
+            v['centroid'] = (cx, cy)
+            v['contour'] = contour
+            v['last_seen'] = frame_count
+            v['age'] = v.get('age', 0) + 1
+            matched_vechicle_ids.add(best_match)
+        else:
+            vechicles[next_vehicle_id] = {
+                'centroid': (cx, cy),
+                'prev_centroid': (cx, cy),
+                'last_seen': frame_count,
+                'age': 1,
+                'counted': False,
+                'contour': contour,
+                'cell_count': 1,
+                'final_label': 'Unknown',
+                'bbox': None
+            }
+            next_vehicle_id += 1
+            matched_vechicle_ids.add(next_vehicle_id)
+
+
+    # Reset cell counts for all active vehicles this frame
+    for key in vechicles:
+        vechicles[key]['frame_cell_count'] = 0
+        vechicles[key]['cell_pts'] = []   
+
+    for (row, col, contours) in cell_contours:
+        grid_x = roi_x + col * grid_width1
+        grid_y = roi_y + row * grid_height1
+        cell_cx = grid_x + grid_width1 // 2
+        cell_cy = grid_y + grid_height1 // 2
+
+        best_vid = None
+        best_dist = MATCH_THRESHOLD * 2
+        for key, v in vechicles.items():
+            if frame_count - v['last_seen'] > 1: 
+                continue
+            px, py = v['centroid']
+            d = np.sqrt((cell_cx - px)**2 + (cell_cy - py)**2)
+            if d < best_dist:
+                best_dist = d
+                best_vid = key
+
+        if best_vid is not None:
+            vechicles[best_vid]['frame_cell_count'] += 1
+    
+            vechicles[best_vid]['cell_pts'].extend([
+                (grid_x, grid_y),
+                (grid_x + grid_width1, grid_y + grid_height1)
+            ])
+
+
+    for key, v in vechicles.items():
+        if frame_count - v['last_seen'] > 1:
+            continue   # skip stale vehicles
+
+        fc = v.get('frame_cell_count', 0)
+        if fc > 0:
+            prev = v.get('cell_count', fc)
+            v['cell_count'] = int(0.6 * prev + 0.4 * fc) 
+
+           
+            pts = v.get('cell_pts', [])
+            if pts:
+                xs = [p[0] for p in pts]
+                ys = [p[1] for p in pts]
+                bx, by = min(xs), min(ys)
+                bw = max(xs) - bx
+                bh = max(ys) - by
+                v['bbox'] = (bx, by, bw, bh)
+
+        v['final_label'] = classify_by_grid(v.get('cell_count', 1))
+
+        # draw bbox + label
+        if v.get('bbox') is not None:
+            bx, by, bw, bh = v['bbox']
+            cx, cy = v['centroid']
+            cv2.rectangle(frame1, (bx, by), (bx + bw, by + bh), (0, 255, 255), 2)
+            text_y = max(by - 5, 15)
+            cv2.putText(frame1, f"ID:{key} | {v['final_label']} | cells:{v['cell_count']}",(bx, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+
+    
+    temp_count = 0
+    for key in list(vechicles.keys()):
+        value = vechicles[key]
+        if (not value['counted'] and value['age'] >= 2 and
+                value['prev_centroid'][1] < COUNT_LINE_Y and
+                value['centroid'][1] >= COUNT_LINE_Y):
+            vechicle_count += 1
+            temp_count += 1
+            vechicles[key]['counted'] = True
+            vechicles[key]['last_seen'] = frame_count
+
+    vehicle_count_history.append(temp_count)
+
+    # cleanup  
+    for key in list(vechicles.keys()):
+        if frame_count - vechicles[key]['last_seen'] > FPS * 2:
+            keys_to_remove.append(key)
     for key in keys_to_remove:
         del vechicles[key]
 
@@ -356,10 +598,10 @@ def main():
             result_matrix1.fill(0)
             # result_matrix2.fill(0)
 
-            process_grid(roi1_x, roi1_y, grid_width1, grid_height1, result_matrix1, channels_data)
+            cell_contours = process_grid(roi1_x, roi1_y, grid_width1, grid_height1, result_matrix1, channels_data)
             # process_grid(roi2_x, roi2_y, grid_width2, grid_height2, result_matrix2, channels_data, frame_count)
             
-            process_roi(frame1,roi1_x,roi1_y,roi1_width,roi1_height,channels_data,frame_count)
+            process_tracking_counting(frame1,roi1_x,roi1_y,frame_count,cell_contours)
 
             all_frames_data.append((frame_count, result_matrix1.copy()))
 
@@ -451,5 +693,3 @@ def save_all_to_excel():
     workbook.save(excel_file_path)
 
 save_all_to_excel()
-
-####################################################################

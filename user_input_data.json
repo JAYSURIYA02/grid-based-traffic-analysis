@@ -1,9 +1,9 @@
 {
-    "video": "static/uploads\\seq_output.mp4",
+    "video": "static/uploads\\MVI_40191.mp4",
     "color_channel": "V",
     "grids": {
-        "rows": 6,
-        "cols": 6
+        "rows": 10,
+        "cols": 10
     },
     "execution_mode": "Sequential"
 }
