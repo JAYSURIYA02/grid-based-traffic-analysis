@@ -1,4 +1,5 @@
 let selectedMode = "Sequential";
+let selectedVideoObjectUrl = null;
 
 // Highlight selected mode
 function setMode(mode) {
@@ -22,12 +23,34 @@ function setMode(mode) {
 document.getElementById("videoInput").onchange = function(event) {
     const file = event.target.files[0];
     const preview = document.getElementById("preview");
-    preview.src = URL.createObjectURL(file);
-}
+
+    if (!file) {
+        preview.removeAttribute("src");
+        preview.load();
+        return;
+    }
+
+    if (!file.type || !file.type.startsWith("video/")) {
+        alert("Please select a valid video file");
+        event.target.value = "";
+        preview.removeAttribute("src");
+        preview.load();
+        return;
+    }
+
+    if (selectedVideoObjectUrl) {
+        URL.revokeObjectURL(selectedVideoObjectUrl);
+    }
+
+    selectedVideoObjectUrl = URL.createObjectURL(file);
+    preview.src = selectedVideoObjectUrl;
+    preview.load();
+};
 
 function processVideo() {
 
     const video = document.getElementById("videoInput").files[0];
+    const xmlFile = document.getElementById("xmlInput").files[0];
     const rows = document.getElementById("rows").value;
     const cols = document.getElementById("cols").value;
     const channel = document.getElementById("channel").value;
@@ -37,8 +60,16 @@ function processVideo() {
         return;
     }
 
+    if (xmlFile && !xmlFile.name.toLowerCase().endsWith(".xml")) {
+        alert("Please upload a valid XML file");
+        return;
+    }
+
     const formData = new FormData();
     formData.append("video", video);
+    if (xmlFile) {
+        formData.append("xml_file", xmlFile);
+    }
     formData.append("rows", rows);
     formData.append("cols", cols);
     formData.append("channel", channel);
@@ -50,9 +81,23 @@ function processVideo() {
         method: "POST",
         body: formData
     })
-    .then(response => response.json())
+    .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || "Processing failed");
+        }
+        return data;
+    })
     .then(data => {
         document.getElementById("status").innerText = "Processing completed";
-        document.getElementById("preview").src = data.video_url;
+        const preview = document.getElementById("preview");
+        const cacheBustedUrl = `${data.video_url}?t=${Date.now()}`;
+        preview.src = cacheBustedUrl;
+        preview.load();
+    })
+    .catch(error => {
+        document.getElementById("status").innerText = `Error: ${error.message}`;
     });
 }
+
+setMode(selectedMode);

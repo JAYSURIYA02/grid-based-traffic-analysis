@@ -26,8 +26,13 @@
         <!-- Upload -->
         <div class="mb-3">
             <label class="form-label">Upload Video</label>
-            <input class="form-control" type="file" id="videoInput">
-            <video id="preview" class="mt-3 w-100" controls></video>
+            <input class="form-control" type="file" id="videoInput" accept="video/*">
+            <video id="preview" class="mt-3 w-100" controls preload="metadata" playsinline></video>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Upload XML file </label>
+            <input class="form-control" type="file" id="xmlInput" accept=".xml">
         </div>
 
         <!-- Rows & Columns as Textbox -->
