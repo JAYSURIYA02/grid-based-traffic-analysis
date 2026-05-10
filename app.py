@@ -7,10 +7,14 @@ import threading
 app = Flask(__name__)
 
 UPLOAD_FOLDER = "static/uploads"
+XML_UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, "xml")
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["XML_UPLOAD_FOLDER"] = XML_UPLOAD_FOLDER
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
+if not os.path.exists(XML_UPLOAD_FOLDER):
+    os.makedirs(XML_UPLOAD_FOLDER)
 
 @app.route("/")
 def index():
@@ -19,20 +23,32 @@ def index():
 @app.route("/process", methods=["POST"])
 def process_video():
 
-    video = request.files["video"]
+    video = request.files.get("video")
+    if video is None or video.filename == "":
+        return jsonify({"status": "Error", "message": "Video file is required"}), 400
+
+    xml_file = request.files.get("xml_file")
     rows = int(request.form["rows"])
     cols = int(request.form["cols"])
     channel = request.form["channel"]
     mode = request.form["mode"]
 
-    video_path = os.path.join(app.config["UPLOAD_FOLDER"], video.filename)
+    video_filename = os.path.basename(video.filename)
+    video_path = os.path.join(app.config["UPLOAD_FOLDER"], video_filename)
     video.save(video_path)
 
+    xml_path = ""
+    if xml_file and xml_file.filename:
+        xml_filename = os.path.basename(xml_file.filename)
+        xml_path = os.path.join(app.config["XML_UPLOAD_FOLDER"], xml_filename)
+        xml_file.save(xml_path)
+
     config = {
-        "video": video_path,
+        "video": os.path.abspath(video_path),
         "color_channel": channel,
         "grids": {"rows": rows, "cols": cols},
-        "execution_mode": mode
+        "execution_mode": mode,
+        "xml_path": os.path.abspath(xml_path) if xml_path else ""
     }
 
     with open("user_input_data.json", "w") as f:

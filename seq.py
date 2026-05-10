@@ -9,8 +9,11 @@ import cProfile
 import pstats
 from concurrent.futures import ThreadPoolExecutor
 import matplotlib.pyplot as plt
+import seaborn as sns
 import json
+import xml.etree.ElementTree as ET
 from collections import Counter
+
 
 
 # Load configuration from JSON file
@@ -21,9 +24,10 @@ with open("user_input_data.json", "r") as file:
 video_path = config["video"]
 color_channel = config["color_channel"]
 rows, cols = config["grids"]["rows"], config["grids"]["cols"]
+xml_path = config.get("xml_path", "")
 
 roi1_x, roi1_y, roi1_width, roi1_height = 47, 202, 441, 141
-# roi2_x, roi2_y, roi2_width, roi2_height = 360, 250, 200, 180
+#roi1_x, roi1_y, roi1_width, roi1_height = 360, 250, 400, 200
 
 num_rows, num_cols = rows, cols
 
@@ -54,8 +58,9 @@ excel_file_path = 'result_matrix1.xlsx'
 
 def process_grid_channel(channel):
     blur = cv2.GaussianBlur(channel, (5,5), 1) 
-    _, thresh = cv2.threshold(blur,50, 255, cv2.THRESH_BINARY)
-    dilated = cv2.dilate(thresh, None, iterations=5)
+    _, thresh = cv2.threshold(blur,60, 255, cv2.THRESH_BINARY)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (grid_width1, grid_height1 // 2))
+    dilated = cv2.dilate(thresh, kernel, iterations=5)
     contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     return contours
 
@@ -169,7 +174,7 @@ def process_grid(roi_x, roi_y, grid_width, grid_height, result_matrix, channels_
                 contours = process_grid_channel(grid_channel)
 
                 # filter valid contours
-                valid_contour = [c for c in contours if cv2.contourArea(c) > 250]
+                valid_contour = [c for c in contours if cv2.contourArea(c) > 100]
 
                 detection_flags.append(len(valid_contour) > 0)
                 cell_contours.extend(valid_contour)
@@ -182,7 +187,7 @@ def process_grid(roi_x, roi_y, grid_width, grid_height, result_matrix, channels_
 
 vechicles = {}
 next_vehicle_id = 0
-
+'''
 def Classify_vechicle(contour):
 
     area = cv2.contourArea(contour)
@@ -206,7 +211,8 @@ def Classify_vechicle(contour):
     elif w >= 150:
         label = "TRUCK"
     return label, (x, y, w, h)
-    
+''' 
+
 '''
 def process_tracking_counting(frame1,roi_x, roi_y,roi_width,roi_height,channels_data,frame_count):
     centroid_votes = {}
@@ -299,28 +305,200 @@ def process_tracking_counting(frame1,roi_x, roi_y,roi_width,roi_height,channels_
     for key in keys_to_remove:
         del vechicles[key]
 '''
-TOTAL_CELLS = num_rows * num_cols
 
-def classify_by_grid(vehicle_cells):
-    normalized = vehicle_cells / TOTAL_CELLS
-    if normalized < 0.08:      # ~1-2 cells → Bike
-        return "Bike"
-    elif normalized < 0.20:    # ~3-5 cells → Car
+def group_cells(cell_contours):
+    """
+    4-connected flood-fill grouping of hot grid cells.
+    Returns a list of clusters, each cluster = list of (row, col) tuples.
+    This replaces the old distance-based merge and gives accurate col_span/row_span.
+    """
+    grid = np.zeros((num_rows, num_cols), dtype=int)
+    for (r, c, _) in cell_contours:
+        grid[r][c] = 1
+
+    visited = np.zeros_like(grid)
+    clusters = []
+
+    for r in range(num_rows):
+        for c in range(num_cols):
+            if grid[r][c] == 1 and visited[r][c] == 0:
+                stack = [(r, c)]
+                cluster = []
+                while stack:
+                    rr, cc = stack.pop()
+                    if rr < 0 or rr >= num_rows or cc < 0 or cc >= num_cols:
+                        continue
+                    if visited[rr][cc] or grid[rr][cc] == 0:
+                        continue
+                    visited[rr][cc] = 1
+                    cluster.append((rr, cc))
+                    # Only allow horizontal OR vertical continuity, not zig-zag.
+                    if (rr, cc) in cluster:
+                        stack.extend([
+                            (rr + 1, cc),
+                            (rr - 1, cc),
+                            (rr, cc + 1),
+                            (rr, cc - 1)
+                        ])
+                clusters.append(cluster)
+
+    return clusters
+
+
+def split_cluster_by_columns(cluster):
+    from collections import defaultdict
+
+    col_groups = defaultdict(list)
+
+    for r, c in cluster:
+        col_groups[c].append((r, c))
+
+    sorted_cols = sorted(col_groups.keys())
+
+    clusters = []
+    current_cluster = []
+
+    prev_col = None
+    for col in sorted_cols:
+        if prev_col is None or col - prev_col <= 1:
+            current_cluster.extend(col_groups[col])
+        else:
+            clusters.append(current_cluster)
+            current_cluster = col_groups[col]
+
+        prev_col = col
+
+    if current_cluster:
+        clusters.append(current_cluster)
+
+    return clusters
+
+
+def cluster_to_object(cluster, roi_x, roi_y):
+    """Convert a cell cluster into a vehicle object dict with bbox, centroid, col/row span."""
+    cols = [c for (_, c) in cluster]
+    rows = [r for (r, _) in cluster]
+
+    col_span = len(set(cols))
+    row_span = len(set(rows))
+
+    xs, ys = [], []
+    for r, c in cluster:
+        gx = roi_x + c * grid_width1
+        gy = roi_y + r * grid_height1
+        xs.extend([gx, gx + grid_width1])
+        ys.extend([gy, gy + grid_height1])
+
+    bx, by = min(xs), min(ys)
+    bw = max(xs) - bx
+    bh = max(ys) - by
+    cx = bx + bw // 2
+    cy = by + bh // 2
+
+    return {
+        "centroid": (cx, cy),
+        "bbox": (bx, by, bw, bh),
+        "col_span": col_span,
+        "row_span": row_span,
+        "cell_count": len(cluster),
+    }
+
+'''
+def classify_by_grid(col_span, row_span):
+    norm_col = col_span / num_cols
+    norm_row = row_span / num_rows
+
+    size_score = 0.6 * norm_col + 0.4 * norm_row
+
+    if size_score > 0.60:
+        return "Bus"
+    elif size_score > 0.35:
+        return "Van"
+    else:
         return "Car"
-    else:                      # 6+ cells → Truck
-        return "Truck"
+'''
+
+def classify_by_grid(col_span, row_span):
+    norm_col = col_span / num_cols
+    norm_row = row_span / num_rows
+
+    # Bus: wide OR very large overall
+    if norm_col > 0.75 or (norm_col > 0.55 and norm_row > 0.55):
+        return "Bus"
+
+    # Van: long but not too wide
+    if norm_row > 0.45 :
+        return "Van"
+
+    return "Car"
+
+def is_duplicate_crossing(cx, frame_count):
+    """Return True if a nearby crossing was already counted recently."""
+    for past_frame, past_cx in recent_crossings:
+        if (frame_count - past_frame) < CROSS_COOLDOWN_FRAMES and abs(cx - past_cx) < CROSS_COOLDOWN_PX:
+            return True
+    return False
+
+
+def prune_crossings(frame_count):
+    """Keep only recent crossings within cooldown window."""
+    recent_crossings[:] = [
+        (f, cx) for (f, cx) in recent_crossings
+        if (frame_count - f) < CROSS_COOLDOWN_FRAMES
+    ]
+
+
+def suppress_duplicate_tracks(frame_count):
+    """Suppress duplicate active tracks that overlap heavily in the same frame."""
+    active = {
+        k: v for k, v in vechicles.items()
+        if v.get('last_seen') == frame_count and v.get('bbox') is not None
+    }
+    keys = list(active.keys())
+    suppressed = set()
+
+    for i in range(len(keys)):
+        for j in range(i + 1, len(keys)):
+            ka, kb = keys[i], keys[j]
+            if ka in suppressed or kb in suppressed:
+                continue
+
+            ax, ay, aw, ah = active[ka]['bbox']
+            bx, by, bw, bh = active[kb]['bbox']
+
+            ix = max(0, min(ax + aw, bx + bw) - max(ax, bx))
+            iy = max(0, min(ay + ah, by + bh) - max(ay, by))
+            inter = ix * iy
+            union = aw * ah + bw * bh - inter
+            iou = inter / union if union > 0 else 0
+
+            if iou > 0.40:
+                age_a = active[ka].get('age', 0)
+                age_b = active[kb].get('age', 0)
+                if age_a > age_b:
+                    loser = kb
+                elif age_b > age_a:
+                    loser = ka
+                else:
+                    loser = max(ka, kb)
+
+                suppressed.add(loser)
+                vechicles[loser]['counted'] = True
+                vechicles[loser]['last_seen'] = -1
+
+    return suppressed
+
 
 def process_tracking_counting(frame1, roi_x, roi_y, frame_count, cell_contours):
     global vechicle_count, vehicle_count_history, next_vehicle_id
 
-    matched_vechicle_ids = set()
     keys_to_remove = []
+    MATCH_THRESHOLD = roi1_height // 2
 
-    #max pixel the vehicle can move in 2 frames 
-    MATCH_THRESHOLD = roi1_height // 3
+    cv2.putText(frame1, f"Vehicles Passed: {vechicle_count}", (10, 100),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 3)
 
-    cv2.putText(frame1, f"Vehicles Passed: {vechicle_count}",(10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 3)
-
+    prune_crossings(frame_count)
 
     if not cell_contours:
         vehicle_count_history.append(0)
@@ -331,177 +509,131 @@ def process_tracking_counting(frame1, roi_x, roi_y, frame_count, cell_contours):
             del vechicles[key]
         return
 
+    # ── STEP 1: group hot cells into spatially-connected clusters ──────────────
+    clusters = group_cells(cell_contours)
 
-    raw_detections = []
-    for (row, col, contours) in cell_contours:
-        grid_x = roi_x + col * grid_width1
-        grid_y = roi_y + row * grid_height1
-        for contour in contours:
-            centroid = get_centroid(contour)
-            if centroid is None:
-                continue
-            cx = centroid[0] + grid_x
-            cy = centroid[1] + grid_y
-            raw_detections.append((cx, cy, contour))
+    # Split each connected component by column continuity to avoid lane merges.
+    new_clusters = []
+    for cl in clusters:
+        split = split_cluster_by_columns(cl)
+        new_clusters.extend(split)
+    clusters = new_clusters
 
+    # ── STEP 2: convert each cluster → object dict ─────────────────────────────
+    objects = [cluster_to_object(cl, roi_x, roi_y) for cl in clusters]
 
-    # No of vehicle can be present in the same lane in a frame
-    MAX_VEHICLES_IN_LANE = 2
-    # more the vehicle less the merge radius 
-    MERGE_RADIUS = roi1_width // (MAX_VEHICLES_IN_LANE * 2)
-    merged = []
-    used = [False] * len(raw_detections)
+    # ── STEP 3: match each object to an existing track (nearest centroid) ──────
+    matched_track_ids = set()
 
-    for i, (cx, cy, contour) in enumerate(raw_detections):
-        if used[i]:
-            continue
-        cluster_cx = [cx]
-        cluster_cy = [cy]
-        cluster_size =1
-        best_contour = contour
-        best_area = cv2.contourArea(contour)
-        used[i] = True
-
-        for j, (cx2, cy2, contour2) in enumerate(raw_detections):
-            if used[j]:
-                continue
-            dist = np.sqrt((cx - cx2)**2 + (cy - cy2)**2)
-            if dist < MERGE_RADIUS:
-                cluster_cx.append(cx2)
-                cluster_cy.append(cy2)
-                cluster_size +=1
-                area2 = cv2.contourArea(contour2)
-                if area2 > best_area:
-                    best_area = area2
-                    best_contour = contour2
-                used[j] = True
-
-        # representative centroid = mean of cluster
-        merged.append((
-            int(np.mean(cluster_cx)),
-            int(np.mean(cluster_cy)),
-            best_contour,
-            cluster_size
-        ))
-
-    # tracking same logic, now operates on merged detections
-    vehicle_cell_counts = {}
-    # --- tracking ---
-    for cx, cy, contour, cluster_size in merged:
+    for obj in objects:
+        cx, cy = obj["centroid"]
         best_match = None
-        min_distance = MATCH_THRESHOLD
+        min_dist = MATCH_THRESHOLD
 
-        for key in list(vechicles.keys()):
-            if key in matched_vechicle_ids:
+        for vid, v in vechicles.items():
+            if vid in matched_track_ids:
                 continue
-            value = vechicles[key]
-            px, py = value['centroid']
-            distance = np.sqrt((cx - px)**2 + (cy - py)**2)
-            if distance < min_distance and abs(cy - py) < 2 * MATCH_THRESHOLD:
-                min_distance = distance
-                best_match = key
+            px, py = v["centroid"]
+            d = np.sqrt((cx - px) ** 2 + (cy - py) ** 2)
+            if d < min_dist:
+                min_dist = d
+                best_match = vid
 
         if best_match is not None:
             v = vechicles[best_match]
-            v['prev_centroid'] = v['centroid']
-            v['centroid'] = (cx, cy)
-            v['contour'] = contour
-            v['last_seen'] = frame_count
-            v['age'] = v.get('age', 0) + 1
-            matched_vechicle_ids.add(best_match)
+            v["prev_centroid"] = v["centroid"]
+            v["centroid"]  = obj["centroid"]
+            v["bbox"]      = obj["bbox"]
+            v["col_span"]  = obj["col_span"]
+            v["row_span"]  = obj["row_span"]
+            v["cell_count"] = obj["cell_count"]
+            v["last_seen"] = frame_count
+            v["age"]       = v.get("age", 0) + 1
+            matched_track_ids.add(best_match)
         else:
             vechicles[next_vehicle_id] = {
-                'centroid': (cx, cy),
-                'prev_centroid': (cx, cy),
-                'last_seen': frame_count,
-                'age': 1,
-                'counted': False,
-                'contour': contour,
-                'cell_count': 1,
-                'final_label': 'Unknown',
-                'bbox': None
+                "centroid":      obj["centroid"],
+                "prev_centroid": obj["centroid"],
+                "bbox":          obj["bbox"],
+                "col_span":      obj["col_span"],
+                "row_span":      obj["row_span"],
+                "cell_count":    obj["cell_count"],
+                "last_seen":     frame_count,
+                "age":           1,
+                "counted":       False,
+                "frame_age":     0,
+                "recent_labels": [],
+                "label_votes":   Counter(),
+                "weighted_votes": {"Car": 0.0, "Van": 0.0, "Bus": 0.0},
+                "final_label":   "Unknown",
+                "display_label": "Unknown",
             }
+            matched_track_ids.add(next_vehicle_id)
             next_vehicle_id += 1
-            matched_vechicle_ids.add(next_vehicle_id)
 
-
-    # Reset cell counts for all active vehicles this frame
-    for key in vechicles:
-        vechicles[key]['frame_cell_count'] = 0
-        vechicles[key]['cell_pts'] = []   
-
-    for (row, col, contours) in cell_contours:
-        grid_x = roi_x + col * grid_width1
-        grid_y = roi_y + row * grid_height1
-        cell_cx = grid_x + grid_width1 // 2
-        cell_cy = grid_y + grid_height1 // 2
-
-        best_vid = None
-        best_dist = MATCH_THRESHOLD * 2
-        for key, v in vechicles.items():
-            if frame_count - v['last_seen'] > 1: 
-                continue
-            px, py = v['centroid']
-            d = np.sqrt((cell_cx - px)**2 + (cell_cy - py)**2)
-            if d < best_dist:
-                best_dist = d
-                best_vid = key
-
-        if best_vid is not None:
-            vechicles[best_vid]['frame_cell_count'] += 1
-    
-            vechicles[best_vid]['cell_pts'].extend([
-                (grid_x, grid_y),
-                (grid_x + grid_width1, grid_y + grid_height1)
-            ])
-
-
+    # ── STEP 4: classify each active track ─────────────────────────────────────
     for key, v in vechicles.items():
-        if frame_count - v['last_seen'] > 1:
-            continue   # skip stale vehicles
+        if v["last_seen"] != frame_count:
+            continue
 
-        fc = v.get('frame_cell_count', 0)
-        if fc > 0:
-            prev = v.get('cell_count', fc)
-            v['cell_count'] = int(0.6 * prev + 0.4 * fc) 
+        v["frame_age"] = v.get("frame_age", 0) + 1
+        raw_label = classify_by_grid(v["col_span"], v["row_span"])
 
-           
-            pts = v.get('cell_pts', [])
-            if pts:
-                xs = [p[0] for p in pts]
-                ys = [p[1] for p in pts]
-                bx, by = min(xs), min(ys)
-                bw = max(xs) - bx
-                bh = max(ys) - by
-                v['bbox'] = (bx, by, bw, bh)
+        # Combine vertical position confidence with temporal exponential weighting.
+        wv = v.setdefault("weighted_votes", {"Car": 0.0, "Van": 0.0, "Bus": 0.0})
+        cy = v["centroid"][1]
+        pos_weight = cy / max(1, frame1.shape[0])
+        time_weight = (1 + LABEL_EWA_ALPHA) ** v["frame_age"]
+        weight = pos_weight * time_weight
+        wv[raw_label] = wv.get(raw_label, 0.0) + weight
+        v["final_label"] = max(wv, key=wv.get)
 
-        v['final_label'] = classify_by_grid(v.get('cell_count', 1))
+        labels = v.setdefault("recent_labels", [])
+        labels.append(raw_label)
+        if len(labels) > 10:
+            labels.pop(0)
+        v["display_label"] = max(set(labels), key=labels.count)
 
         # draw bbox + label
-        if v.get('bbox') is not None:
-            bx, by, bw, bh = v['bbox']
-            cx, cy = v['centroid']
+        if v.get("bbox") is not None:
+            bx, by, bw, bh = v["bbox"]
+            status = v["display_label"]
             cv2.rectangle(frame1, (bx, by), (bx + bw, by + bh), (0, 255, 255), 2)
-            text_y = max(by - 5, 15)
-            cv2.putText(frame1, f"ID:{key} | {v['final_label']} | cells:{v['cell_count']}",(bx, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+            label_y = max(by - 5 - (key % 3) * 16, 12)
+            cv2.putText(
+                frame1,
+                f"ID:{key} | {status} | cols:{v['col_span']}",
+                (bx, label_y),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2,
+            )
 
-    
+    suppress_duplicate_tracks(frame_count)
+
+    # ── STEP 5: count vehicles crossing the line ────────────────────────────────
     temp_count = 0
     for key in list(vechicles.keys()):
         value = vechicles[key]
-        if (not value['counted'] and value['age'] >= 2 and
-                value['prev_centroid'][1] < COUNT_LINE_Y and
-                value['centroid'][1] >= COUNT_LINE_Y):
+        if (not value["counted"]
+                and value["age"] >= 2
+                and value["prev_centroid"][1] < COUNT_LINE_Y
+                and value["centroid"][1] >= COUNT_LINE_Y):
+
+            cx = value["centroid"][0]
+            if is_duplicate_crossing(cx, frame_count):
+                vechicles[key]["counted"] = True
+                continue
+
             vechicle_count += 1
             temp_count += 1
-            vechicles[key]['counted'] = True
-            vechicles[key]['last_seen'] = frame_count
+            vechicles[key]["counted"] = True
+            recent_crossings.append((frame_count, cx))
+            vechicles[key]["last_seen"] = frame_count
 
     vehicle_count_history.append(temp_count)
 
-    # cleanup  
+    # ── cleanup stale tracks ────────────────────────────────────────────────────
     for key in list(vechicles.keys()):
-        if frame_count - vechicles[key]['last_seen'] > FPS * 2:
+        if frame_count - vechicles[key]["last_seen"] > FPS * 2:
             keys_to_remove.append(key)
     for key in keys_to_remove:
         del vechicles[key]
@@ -571,13 +703,145 @@ vechicle_count = 0
 BASE_LOW =0.25
 BASE_HIGH =0.55
 FPS = 30
+CROSS_COOLDOWN_FRAMES = 30
+CROSS_COOLDOWN_PX = 60
+LABEL_EWA_ALPHA = 0.15
+MIN_FRAMES_FOR_LABEL = 5
+recent_crossings = []
 all_frames_data = []
+all_frames_vehicle_data = []
 
 def get_centroid(contour):
     M = cv2.moments(contour)
     if M["m00"] == 0:
         return None
     return int(M['m10']/M['m00']),int(M['m01']/M['m00'])
+
+
+def map_detrac_label(vehicle_type):
+    mapping = {
+        'car': 'Car',
+        'van': 'Van',
+        'bus': 'Bus',
+        'others': 'Unknown'
+    }
+    return mapping.get(vehicle_type.lower(), 'Unknown')
+
+
+def load_detrac(xml_file):
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+    gt_data = {}
+
+    for frame in root.findall('frame'):
+        frame_id = int(frame.get('num'))
+        gt_data[frame_id] = []
+
+        target_list = frame.find('target_list')
+        if target_list is None:
+            continue
+
+        for target in target_list.findall('target'):
+            box = target.find('box')
+            attr = target.find('attribute')
+
+            if box is None or attr is None:
+                continue
+
+            x = float(box.get('left'))
+            y = float(box.get('top'))
+            w = float(box.get('width'))
+            h = float(box.get('height'))
+
+            label = map_detrac_label(attr.get('vehicle_type', 'others'))
+            obj_id = int(target.get('id', -1))
+
+            gt_data[frame_id].append({
+                "id": obj_id,
+                "bbox": (x, y, w, h),
+                "label": label
+            })
+
+    return gt_data
+
+
+def create_gt_label_grid(gt_boxes):
+    grid = np.full((num_rows, num_cols), "Empty", dtype=object)
+
+    for obj in gt_boxes:
+        x, y, w, h = obj["bbox"]
+        label = obj["label"]
+
+        # ignore unknown classes
+        if label not in ["Car", "Van", "Bus"]:
+            continue
+
+        # 👉 center of bounding box
+        cx = x + w / 2
+        cy = y + h / 2
+
+        # 👉 map center to grid cell
+        col = int((cx - roi1_x) / grid_width1)
+        row = int((cy - roi1_y) / grid_height1)
+
+        # check bounds
+        if 0 <= row < num_rows and 0 <= col < num_cols:
+            grid[row][col] = label
+
+    return grid
+
+
+def match_vehicle(pred_bbox, gt_boxes):
+    best_id = None
+    max_iou = 0
+
+    px, py, pw, ph = pred_bbox
+
+    for obj in gt_boxes:
+        gx, gy, gw, gh = obj["bbox"]
+
+        ix = max(0, min(px + pw, gx + gw) - max(px, gx))
+        iy = max(0, min(py + ph, gy + gh) - max(py, gy))
+        inter = ix * iy
+
+        union = pw * ph + gw * gh - inter
+        iou = inter / union if union > 0 else 0
+
+        if iou > max_iou:
+            max_iou = iou
+            best_id = obj.get("id")
+
+    return best_id if max_iou > 0.1 else None
+
+
+def compute_vehicle_metrics(cm):
+    metrics = {}
+    classes = ["Car", "Van", "Bus"]
+
+    for i, cls in enumerate(classes):
+        tp = cm[i][i]
+        fp = cm[:, i].sum() - tp
+        fn = cm[i, :].sum() - tp
+
+        precision = tp / (tp + fp + 1e-6)
+        recall = tp / (tp + fn + 1e-6)
+        f1 = 2 * precision * recall / (precision + recall + 1e-6)
+
+        metrics[cls] = (precision, recall, f1)
+
+    return metrics
+
+
+def filter_gt_boxes_to_roi(gt_boxes):
+    return [
+        obj for obj in gt_boxes
+        if not (
+            obj["bbox"][0] + obj["bbox"][2] < roi1_x or
+            obj["bbox"][0] > roi1_x + roi1_width or
+            obj["bbox"][1] + obj["bbox"][3] < roi1_y or
+            obj["bbox"][1] > roi1_y + roi1_height
+        )
+    ]
 
 
 def main():
@@ -603,7 +867,50 @@ def main():
             
             process_tracking_counting(frame1,roi1_x,roi1_y,frame_count,cell_contours)
 
-            all_frames_data.append((frame_count, result_matrix1.copy()))
+            label_matrix = np.full((num_rows, num_cols), "Empty", dtype=object)
+            for r in range(num_rows):
+                for c in range(num_cols):
+                    if result_matrix1[r, c] == 0:
+                        continue
+
+                    gx = roi1_x + c * grid_width1
+                    gy = roi1_y + r * grid_height1
+
+                    best_label = "Empty"
+                    max_overlap = 0
+
+                    for v in vechicles.values():
+                        if v.get('bbox') is None:
+                            continue
+
+                        bx, by, bw, bh = v['bbox']
+                        label = v.get('final_label', "Unknown")
+
+                        overlap_x = max(0, min(bx + bw, gx + grid_width1) - max(bx, gx))
+                        overlap_y = max(0, min(by + bh, gy + grid_height1) - max(by, gy))
+                        overlap_area = overlap_x * overlap_y
+
+                        if overlap_area > max_overlap:
+                            max_overlap = overlap_area
+                            best_label = label
+
+                    if max_overlap > 0:
+                        label_matrix[r][c] = best_label
+
+            all_frames_data.append((frame_count, result_matrix1.copy(), label_matrix.copy()))
+
+            frame_vehicle_preds = {}
+            for vid, v in vechicles.items():
+                if v.get('last_seen') != frame_count or v.get('bbox') is None:
+                    continue
+                pred_label = v.get('final_label') if v.get('frame_age', 0) >= MIN_FRAMES_FOR_LABEL else None
+                if pred_label not in ["Car", "Van", "Bus"]:
+                    pred_label = None
+                frame_vehicle_preds[vid] = {
+                    "bbox": v['bbox'],
+                    "label": pred_label
+                }
+            all_frames_vehicle_data.append((frame_count, frame_vehicle_preds))
 
             for row in range(num_rows):
                 for col in range(num_cols):
@@ -679,14 +986,187 @@ if __name__ == '__main__':
     stats = pstats.Stats(profiler).sort_stats('cumtime')
     stats.print_stats(10)  # Print the top 10 functions by cumulative time
 
+    # Evaluation runs only after processing has completed.
+    XML_PATH = xml_path.strip()
+    if XML_PATH and not os.path.isabs(XML_PATH):
+        XML_PATH = os.path.abspath(XML_PATH)
+
+    if XML_PATH and os.path.exists(XML_PATH):
+        gt_data = load_detrac(XML_PATH)
+        DEBUG_GRID_METRICS = False
+        SHOW_GRID_HEATMAP = True
+        conf_matrix = None
+
+        # Vehicle counts must be ID-based (grid-independent).
+        unique_gt_ids = set()
+        for _frame_id, objs in gt_data.items():
+            roi_gt_boxes = filter_gt_boxes_to_roi(objs)
+            for obj in roi_gt_boxes:
+                obj_id = obj.get("id", -1)
+                if obj_id >= 0:
+                    unique_gt_ids.add(obj_id)
+
+        unique_pred_track_ids = set()
+        for _frame_id, pred_vehicles in all_frames_vehicle_data:
+            unique_pred_track_ids.update(pred_vehicles.keys())
+
+        print("\n-- Vehicle Count Summary (Grid-Independent) --")
+        print(f"Actual vehicles (unique GT IDs): {len(unique_gt_ids)}")
+        print(f"Predicted vehicles (unique tracker IDs): {len(unique_pred_track_ids)}")
+
+        gt_vehicle_labels = {}
+        for frame_id, objs in gt_data.items():
+            roi_gt_boxes = filter_gt_boxes_to_roi(objs)
+            for obj in roi_gt_boxes:
+                vid = obj.get("id", -1)
+                label = obj.get("label", "Car")
+                if label not in ["Car", "Van", "Bus"]:
+                    continue
+                gt_vehicle_labels[vid] = label
+
+        if DEBUG_GRID_METRICS or SHOW_GRID_HEATMAP:
+            classes = ["Empty", "Car", "Van", "Bus"]
+            class_to_idx = {c: i for i, c in enumerate(classes)}
+            conf_matrix = np.zeros((4, 4), dtype=int)
+
+            for frame_id, _binary_grid, pred_grid in all_frames_data:
+                gt_boxes = gt_data.get(frame_id + 1, [])
+                gt_boxes = filter_gt_boxes_to_roi(gt_boxes)
+                gt_grid = create_gt_label_grid(gt_boxes)
+
+                for i in range(num_rows):
+                    for j in range(num_cols):
+                        gt_label = gt_grid[i][j]
+                        pred_label = pred_grid[i][j]
+
+                        gt_idx = class_to_idx.get(gt_label, 0)
+                        pred_idx = class_to_idx.get(pred_label, 0)
+
+                        conf_matrix[gt_idx][pred_idx] += 1
+
+
+        # 2) Vehicle-level evaluation (bbox vs XML only; not grid-based)
+        vehicle_classes = ["Car", "Van", "Bus"]
+        vehicle_idx = {c: i for i, c in enumerate(vehicle_classes)}
+        conf_matrix_vehicle = np.zeros((3, 3), dtype=int)
+        pred_vehicle_labels = {}
+        matched_pred_track_ids = set()
+
+        for frame_id, pred_vehicles in all_frames_vehicle_data:
+            gt_boxes = gt_data.get(frame_id + 1, [])
+            gt_boxes = filter_gt_boxes_to_roi(gt_boxes)
+            # print(f"Frame {frame_id} -> GT objects: {len(gt_boxes)}")
+
+            for vid, pred_obj in pred_vehicles.items():
+                pred_label = pred_obj.get("label")
+                if pred_label is None or pred_label not in vehicle_idx:
+                    continue
+
+                gt_id = match_vehicle(pred_obj["bbox"], gt_boxes)
+                if gt_id is None:
+                    continue
+
+                pred_vehicle_labels.setdefault(gt_id, []).append(pred_label)
+                matched_pred_track_ids.add(vid)
+
+        for gt_id, pred_list in pred_vehicle_labels.items():
+            pred_label = Counter(pred_list).most_common(1)[0][0]
+            gt_label = gt_vehicle_labels.get(gt_id, "Car")
+            if gt_label not in vehicle_idx:
+                gt_label = "Car"
+
+            i = vehicle_idx[gt_label]
+            j = vehicle_idx[pred_label]
+            conf_matrix_vehicle[i][j] += 1
+
+        matched_gt_ids = set(pred_vehicle_labels.keys())
+        unmatched_gt_ids = unique_gt_ids - matched_gt_ids
+        unmatched_pred_track_ids = unique_pred_track_ids - matched_pred_track_ids
+
+        print("\n-- Vehicle Matching Summary (Unique IDs) --")
+        print(f"Matched GT vehicles: {len(matched_gt_ids)}")
+        print(f"Unmatched GT vehicles: {len(unmatched_gt_ids)}")
+        print(f"Matched predicted tracks: {len(matched_pred_track_ids)}")
+        print(f"Unmatched predicted tracks: {len(unmatched_pred_track_ids)}")
+
+        print("\n-- DEBUG INFO --")
+        print(f"Total GT vehicles: {len(unique_gt_ids)}")
+        print(f"Total predicted vehicles: {len(unique_pred_track_ids)}")
+        print(f"Matched GT vehicles: {len(matched_gt_ids)}")
+        print(f"Unmatched GT vehicles: {len(unmatched_gt_ids)}")
+        print(f"Unmatched predicted vehicles: {len(unmatched_pred_track_ids)}")
+        if DEBUG_GRID_METRICS and conf_matrix is not None:
+            print("\n-- DEBUG: Grid Confusion Matrix (Empty-grid heatmap) --")
+            print(conf_matrix)
+
+        print("\n-- Vehicle-Level Confusion Matrix --")
+        print(conf_matrix_vehicle)
+
+        metrics = compute_vehicle_metrics(conf_matrix_vehicle)
+        print("\n-- Vehicle-Level Metrics --")
+        for cls in ["Car", "Van", "Bus"]:
+            precision, recall, f1 = metrics[cls]
+            print(f"\nClass: {cls}")
+            print(f"Precision: {precision:.3f}")
+            print(f"Recall   : {recall:.3f}")
+            print(f"F1 Score : {f1:.3f}")
+
+        if SHOW_GRID_HEATMAP and conf_matrix is not None:
+            plt.figure(1, figsize=(8, 6))
+            sns.heatmap(
+                conf_matrix,
+                annot=True,
+                fmt="d",
+                cmap="Blues",
+                xticklabels=classes,
+                yticklabels=classes
+            )
+            plt.title("Multi-Class Confusion Matrix")
+            plt.xlabel("Predicted")
+            plt.ylabel("Actual")
+
+        classes_vehicle = ["Car", "Van", "Bus"]
+
+        fig, ax = plt.subplots(figsize=(5, 4))
+        sns.heatmap(
+            conf_matrix_vehicle,
+            annot=True,
+            fmt="d",
+            cmap="viridis",
+            xticklabels=classes_vehicle,
+            yticklabels=classes_vehicle,
+            ax=ax,
+        )
+        ax.set_title("Vehicle-Level Confusion Matrix")
+        ax.set_xlabel("Predicted")
+        ax.set_ylabel("Actual")
+
+        fig.subplots_adjust(bottom=0.28)
+        metrics_text = "\n".join([
+            f"{cls}: P={metrics[cls][0]:.3f}  R={metrics[cls][1]:.3f}  F1={metrics[cls][2]:.3f}"
+            for cls in classes_vehicle
+        ])
+        fig.text(0.5, 0.02, metrics_text, ha="center", va="bottom", fontsize=9)
+
+        plt.show()
+    elif XML_PATH:
+        print(f"Skipping evaluation: XML file not found at {XML_PATH}")
+    else:
+        print("Skipping evaluation: XML path not provided in user_input_data.json")
+
 def save_all_to_excel():
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Grid Data"
 
-    for frame_number, matrix in all_frames_data:
-        sheet.append([f"Frame {frame_number}"])
-        for row in matrix:
+    for frame_number, binary_matrix, label_matrix in all_frames_data:
+        sheet.append([f"Frame {frame_number} - Binary"])
+        for row in binary_matrix:
+            sheet.append(list(row))
+        sheet.append([])
+
+        sheet.append([f"Frame {frame_number} - Label"])
+        for row in label_matrix:
             sheet.append(list(row))
         sheet.append([])
 

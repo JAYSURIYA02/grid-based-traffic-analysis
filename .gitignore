@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data, outputs, and large media
+DETRAC-Annotations/
+DETRAC_VIDEOS/
+DETRAC_VIDEOS_eval/
+combined_matrices/
+final_report_2/
+final_report_3/
+final_reports/
+heatmaps/
+plots/
+JAYSURIYA_BTP_Output Folder/
+output_MVI_40771/
+static/uploads/
+
+# Media and result artifacts
+**/*.mp4
+**/*.mov
+**/*.avi
+**/*.mkv
+**/*.xlsx
+**/*.csv
+**/*.xml
+**/*.npy
+**/*.npz
