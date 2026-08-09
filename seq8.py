@@ -25,7 +25,6 @@ video_path = config["video"]
 color_channel = config["color_channel"]
 rows, cols = config["grids"]["rows"], config["grids"]["cols"]
 xml_path = config.get("xml_path", "")
-pixels_per_meter = config.get("pixels_per_meter", 0)  # falls back to 0 if not calibrated yet
 
 roi1_x, roi1_y, roi1_width, roi1_height = 47, 202, 441, 141
 #roi1_x, roi1_y, roi1_width, roi1_height = 360, 250, 400, 200
@@ -61,7 +60,7 @@ def process_grid_channel(channel):
     blur = cv2.GaussianBlur(channel, (5,5), 1) 
     _, thresh = cv2.threshold(blur,60, 255, cv2.THRESH_BINARY)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (grid_width1, grid_height1 // 2))
-    dilated = cv2.dilate(thresh, kernel, iterations=5)
+    dilated = cv2.dilate(thresh, kernel, iterations=3)
     contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     return contours
 
@@ -345,13 +344,8 @@ def group_cells(cell_contours):
 
     return clusters
 
-'''
-def split_cluster_by_columns(cluster):
-    """Legacy lane-splitting helper.
 
-    This is currently disabled at the call site so raw connected components
-    from group_cells() are used directly.
-    """
+def split_cluster_by_columns(cluster):
     from collections import defaultdict
 
     col_groups = defaultdict(list)
@@ -378,7 +372,6 @@ def split_cluster_by_columns(cluster):
         clusters.append(current_cluster)
 
     return clusters
-'''
 
 
 def cluster_to_object(cluster, roi_x, roi_y):
@@ -519,6 +512,13 @@ def process_tracking_counting(frame1, roi_x, roi_y, frame_count, cell_contours):
     # ── STEP 1: group hot cells into spatially-connected clusters ──────────────
     clusters = group_cells(cell_contours)
 
+    # Split each connected component by column continuity to avoid lane merges.
+    new_clusters = []
+    for cl in clusters:
+        split = split_cluster_by_columns(cl)
+        new_clusters.extend(split)
+    clusters = new_clusters
+
     # ── STEP 2: convert each cluster → object dict ─────────────────────────────
     objects = [cluster_to_object(cl, roi_x, roi_y) for cl in clusters]
 
@@ -541,43 +541,14 @@ def process_tracking_counting(frame1, roi_x, roi_y, frame_count, cell_contours):
 
         if best_match is not None:
             v = vechicles[best_match]
-            old_centroid = v["centroid"]
-            new_centroid = obj["centroid"]
-
-            # ── speed estimation (accumulate until displacement ≥ threshold) ──
-            new_age = v.get("age", 0) + 1
-            if new_age > 1:
-                last_sc = v.get("last_speed_centroid", new_centroid)
-                if new_centroid != last_sc:
-                    dx = new_centroid[0] - last_sc[0]
-                    dy = new_centroid[1] - last_sc[1]
-                    dist_px = np.hypot(dx, dy)
-                    if dist_px >= MIN_SPEED_DIST_PX:
-                        dt = (frame_count - v.get("last_speed_frame", frame_count)) / FPS
-                        if dt > 0:
-                            speed_kmph = (dist_px / PIXELS_PER_METER) / dt * 3.6
-                            hist = v.setdefault("speed_history", [])
-                            hist.append(speed_kmph)
-                            if len(hist) > 15:
-                                hist.pop(0)
-                            v["speed_kmph"] = round(float(np.mean(hist)), 1)
-                            v["speed_initialized"] = True
-                        # Reset reference only after a sample is taken
-                        v["last_speed_centroid"] = new_centroid
-                        v["last_speed_frame"] = frame_count
-                    # else: displacement too small — keep accumulating
-                # else: centroid unchanged — keep accumulating dt
-
-            # ── update tracking state ──
-            v["prev_centroid"] = old_centroid
-            v["centroid"]  = new_centroid
+            v["prev_centroid"] = v["centroid"]
+            v["centroid"]  = obj["centroid"]
             v["bbox"]      = obj["bbox"]
             v["col_span"]  = obj["col_span"]
             v["row_span"]  = obj["row_span"]
             v["cell_count"] = obj["cell_count"]
             v["last_seen"] = frame_count
-            v["age"]       = new_age
-
+            v["age"]       = v.get("age", 0) + 1
             matched_track_ids.add(best_match)
         else:
             vechicles[next_vehicle_id] = {
@@ -596,11 +567,6 @@ def process_tracking_counting(frame1, roi_x, roi_y, frame_count, cell_contours):
                 "weighted_votes": {"Car": 0.0, "Van": 0.0, "Bus": 0.0},
                 "final_label":   "Unknown",
                 "display_label": "Unknown",
-                "last_speed_centroid": obj["centroid"],
-                "last_speed_frame": frame_count,
-                "speed_history": [],
-                "speed_kmph": 0.0,
-                "speed_initialized": False,
             }
             matched_track_ids.add(next_vehicle_id)
             next_vehicle_id += 1
@@ -634,16 +600,9 @@ def process_tracking_counting(frame1, roi_x, roi_y, frame_count, cell_contours):
             status = v["display_label"]
             cv2.rectangle(frame1, (bx, by), (bx + bw, by + bh), (0, 255, 255), 2)
             label_y = max(by - 5 - (key % 3) * 16, 12)
-            if v.get('frame_age', 0) >= MIN_FRAMES_FOR_LABEL:
-                if v.get('speed_initialized', False):
-                    speed_str = f" | {v['speed_kmph']} km/h"
-                else:
-                    speed_str = " | Measuring..."
-            else:
-                speed_str = ""
             cv2.putText(
                 frame1,
-                f"ID:{key} | {status} | cols:{v['col_span']}" + speed_str,
+                f"ID:{key} | {status} | cols:{v['col_span']}",
                 (bx, label_y),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2,
             )
@@ -683,9 +642,9 @@ def density_calculation(result_matrix):
     density = np.sum(result_matrix==1) / (num_rows * num_cols)
     density_values.append(density)
 
-    FLOW_WINDOW = max(1, int(round(2 * FPS)))  # 1 second
+    FLOW_WINDOW = 2 *FPS  # 1 second
     vehicles_last_1s = sum(vehicle_count_history[-FLOW_WINDOW:])
-    WINDOW = max(1, int(round(FPS)))
+    WINDOW = FPS
     smoothed_density = np.mean(density_values[-WINDOW:])
     MAX_FLOW = 8  # max vehicles/sec expected for this ROI
     flow_score = min(vehicles_last_1s / MAX_FLOW, 1.0)
@@ -743,15 +702,7 @@ COUNT_LINE_Y = roi1_y + roi1_height // 2
 vechicle_count = 0
 BASE_LOW =0.25
 BASE_HIGH =0.55
-# Read actual FPS from the video; fall back to 30 if unavailable
-_raw_fps = cap.get(cv2.CAP_PROP_FPS)
-FPS = _raw_fps if _raw_fps and _raw_fps > 0 else 30
-PIXELS_PER_METER = pixels_per_meter
-# Minimum displacement (pixels) before a speed sample is computed.
-# Uses 2× grid cell height so the measurement baseline spans multiple
-# grid jumps, reducing noise from grid-quantized centroids.
-MIN_SPEED_GRID_CELLS = 3
-MIN_SPEED_DIST_PX = MIN_SPEED_GRID_CELLS * grid_height1
+FPS = 30
 CROSS_COOLDOWN_FRAMES = 30
 CROSS_COOLDOWN_PX = 60
 LABEL_EWA_ALPHA = 0.15
@@ -759,7 +710,6 @@ MIN_FRAMES_FOR_LABEL = 5
 recent_crossings = []
 all_frames_data = []
 all_frames_vehicle_data = []
-all_frames_speed_data = []
 
 def get_centroid(contour):
     M = cv2.moments(contour)
@@ -821,22 +771,17 @@ def create_gt_label_grid(gt_boxes):
     for obj in gt_boxes:
         x, y, w, h = obj["bbox"]
         label = obj["label"]
-
-        # ignore unknown classes
         if label not in ["Car", "Van", "Bus"]:
-            continue
+            label = "Empty"
 
-        # 👉 center of bounding box
-        cx = x + w / 2
-        cy = y + h / 2
+        for r in range(num_rows):
+            for c in range(num_cols):
+                gx = roi1_x + c * grid_width1
+                gy = roi1_y + r * grid_height1
 
-        # 👉 map center to grid cell
-        col = int((cx - roi1_x) / grid_width1)
-        row = int((cy - roi1_y) / grid_height1)
-
-        # check bounds
-        if 0 <= row < num_rows and 0 <= col < num_cols:
-            grid[row][col] = label
+                if not (x + w < gx or x > gx + grid_width1 or
+                        y + h < gy or y > gy + grid_height1):
+                    grid[r][c] = label
 
     return grid
 
@@ -862,24 +807,6 @@ def match_vehicle(pred_bbox, gt_boxes):
             best_id = obj.get("id")
 
     return best_id if max_iou > 0.1 else None
-
-
-def compute_vehicle_metrics(cm):
-    metrics = {}
-    classes = ["Car", "Van", "Bus"]
-
-    for i, cls in enumerate(classes):
-        tp = cm[i][i]
-        fp = cm[:, i].sum() - tp
-        fn = cm[i, :].sum() - tp
-
-        precision = tp / (tp + fp + 1e-6)
-        recall = tp / (tp + fn + 1e-6)
-        f1 = 2 * precision * recall / (precision + recall + 1e-6)
-
-        metrics[cls] = (precision, recall, f1)
-
-    return metrics
 
 
 def filter_gt_boxes_to_roi(gt_boxes):
@@ -962,19 +889,6 @@ def main():
                 }
             all_frames_vehicle_data.append((frame_count, frame_vehicle_preds))
 
-            # ── collect speed data for export ──
-            for vid, v in vechicles.items():
-                if v.get('last_seen') != frame_count:
-                    continue
-                all_frames_speed_data.append({
-                    "frame": frame_count,
-                    "vehicle_id": vid,
-                    "label": v.get("final_label", "Unknown"),
-                    "speed_kmph": v.get("speed_kmph", 0),
-                    "centroid_x": v["centroid"][0],
-                    "centroid_y": v["centroid"][1],
-                })
-
             for row in range(num_rows):
                 for col in range(num_cols):
                     if result_matrix1[row, col] == 0:
@@ -1056,9 +970,6 @@ if __name__ == '__main__':
 
     if XML_PATH and os.path.exists(XML_PATH):
         gt_data = load_detrac(XML_PATH)
-        DEBUG_GRID_METRICS = False
-        SHOW_GRID_HEATMAP = True
-        conf_matrix = None
 
         # Vehicle counts must be ID-based (grid-independent).
         unique_gt_ids = set()
@@ -1087,26 +998,44 @@ if __name__ == '__main__':
                     continue
                 gt_vehicle_labels[vid] = label
 
-        if DEBUG_GRID_METRICS or SHOW_GRID_HEATMAP:
-            classes = ["Empty", "Car", "Van", "Bus"]
-            class_to_idx = {c: i for i, c in enumerate(classes)}
-            conf_matrix = np.zeros((4, 4), dtype=int)
+        # 1) Grid-level evaluation (for occupancy/density behavior)
+        classes = ["Empty", "Car","Van","Bus"]
+        class_to_idx = {c: i for i, c in enumerate(classes)}
+        conf_matrix = np.zeros((4, 4), dtype=int)
 
-            for frame_id, _binary_grid, pred_grid in all_frames_data:
-                gt_boxes = gt_data.get(frame_id + 1, [])
-                gt_boxes = filter_gt_boxes_to_roi(gt_boxes)
-                gt_grid = create_gt_label_grid(gt_boxes)
+        for frame_id, _binary_grid, pred_grid in all_frames_data:
+            gt_boxes = gt_data.get(frame_id + 1, [])
+            gt_boxes = filter_gt_boxes_to_roi(gt_boxes)
+            gt_grid = create_gt_label_grid(gt_boxes)
 
-                for i in range(num_rows):
-                    for j in range(num_cols):
-                        gt_label = gt_grid[i][j]
-                        pred_label = pred_grid[i][j]
+            for i in range(num_rows):
+                for j in range(num_cols):
+                    gt_label = gt_grid[i][j]
+                    pred_label = pred_grid[i][j]
 
-                        gt_idx = class_to_idx.get(gt_label, 0)
-                        pred_idx = class_to_idx.get(pred_label, 0)
+                    gt_idx = class_to_idx.get(gt_label, 0)
+                    pred_idx = class_to_idx.get(pred_label, 0)
 
-                        conf_matrix[gt_idx][pred_idx] += 1
+                    conf_matrix[gt_idx][pred_idx] += 1
 
+        print("\n-- Multi-Class Grid Detection Metrics --")
+        print("Confusion Matrix (rows=GT, cols=Pred):")
+        print(conf_matrix)
+
+        for i, cls in enumerate(classes):
+            TP = conf_matrix[i][i]
+            FP = conf_matrix[:, i].sum() - TP
+            FN = conf_matrix[i, :].sum() - TP
+
+            precision = TP / (TP + FP) if (TP + FP) > 0 else 0
+            recall = TP / (TP + FN) if (TP + FN) > 0 else 0
+            f1 = (2 * precision * recall / (precision + recall)
+                  if (precision + recall) > 0 else 0)
+
+            print(f"\nClass: {cls}")
+            print(f"Precision: {precision:.3f}")
+            print(f"Recall   : {recall:.3f}")
+            print(f"F1 Score : {f1:.3f}")
 
         # 2) Vehicle-level evaluation (bbox vs XML only; not grid-based)
         vehicle_classes = ["Car", "Van", "Bus"]
@@ -1158,59 +1087,43 @@ if __name__ == '__main__':
         print(f"Matched GT vehicles: {len(matched_gt_ids)}")
         print(f"Unmatched GT vehicles: {len(unmatched_gt_ids)}")
         print(f"Unmatched predicted vehicles: {len(unmatched_pred_track_ids)}")
-        if DEBUG_GRID_METRICS and conf_matrix is not None:
-            print("\n-- DEBUG: Grid Confusion Matrix (Empty-grid heatmap) --")
-            print(conf_matrix)
 
         print("\n-- Vehicle-Level Confusion Matrix --")
         print(conf_matrix_vehicle)
 
-        metrics = compute_vehicle_metrics(conf_matrix_vehicle)
-        print("\n-- Vehicle-Level Metrics --")
-        for cls in ["Car", "Van", "Bus"]:
-            precision, recall, f1 = metrics[cls]
-            print(f"\nClass: {cls}")
-            print(f"Precision: {precision:.3f}")
-            print(f"Recall   : {recall:.3f}")
-            print(f"F1 Score : {f1:.3f}")
-
-        if SHOW_GRID_HEATMAP and conf_matrix is not None:
-            plt.figure(1, figsize=(8, 6))
-            sns.heatmap(
-                conf_matrix,
-                annot=True,
-                fmt="d",
-                cmap="Blues",
-                xticklabels=classes,
-                yticklabels=classes
-            )
-            plt.title("Multi-Class Confusion Matrix")
-            plt.xlabel("Predicted")
-            plt.ylabel("Actual")
+        plt.figure(1, figsize=(8, 6))
+        sns.heatmap(
+            conf_matrix,
+            annot=True,
+            fmt="d",
+            cmap="Blues",
+            xticklabels=classes,
+            yticklabels=classes
+        )
+        plt.title("Multi-Class Confusion Matrix")
+        plt.xlabel("Predicted")
+        plt.ylabel("Actual")
 
         classes_vehicle = ["Car", "Van", "Bus"]
 
-        fig, ax = plt.subplots(figsize=(5, 4))
-        sns.heatmap(
-            conf_matrix_vehicle,
-            annot=True,
-            fmt="d",
-            cmap="viridis",
-            xticklabels=classes_vehicle,
-            yticklabels=classes_vehicle,
-            ax=ax,
-        )
-        ax.set_title("Vehicle-Level Confusion Matrix")
-        ax.set_xlabel("Predicted")
-        ax.set_ylabel("Actual")
+        plt.figure(2, figsize=(5, 4))
+        plt.imshow(conf_matrix_vehicle, interpolation='nearest')
+        plt.title("Vehicle-Level Confusion Matrix")
+        plt.colorbar()
 
-        fig.subplots_adjust(bottom=0.28)
-        metrics_text = "\n".join([
-            f"{cls}: P={metrics[cls][0]:.3f}  R={metrics[cls][1]:.3f}  F1={metrics[cls][2]:.3f}"
-            for cls in classes_vehicle
-        ])
-        fig.text(0.5, 0.02, metrics_text, ha="center", va="bottom", fontsize=9)
+        tick_marks = np.arange(len(classes_vehicle))
+        plt.xticks(tick_marks, classes_vehicle)
+        plt.yticks(tick_marks, classes_vehicle)
 
+        # Add numbers inside cells
+        for i in range(conf_matrix_vehicle.shape[0]):
+            for j in range(conf_matrix_vehicle.shape[1]):
+                plt.text(j, i, str(conf_matrix_vehicle[i, j]),
+                         ha="center", va="center")
+
+        plt.xlabel("Predicted")
+        plt.ylabel("Actual")
+        plt.tight_layout()
         plt.show()
     elif XML_PATH:
         print(f"Skipping evaluation: XML file not found at {XML_PATH}")
@@ -1232,19 +1145,6 @@ def save_all_to_excel():
         for row in label_matrix:
             sheet.append(list(row))
         sheet.append([])
-
-    # ── Speed Data sheet ──
-    speed_sheet = workbook.create_sheet("Speed Data")
-    speed_sheet.append(["Frame", "Vehicle ID", "Label", "Speed (km/h)", "Centroid X", "Centroid Y"])
-    for rec in all_frames_speed_data:
-        speed_sheet.append([
-            rec["frame"],
-            rec["vehicle_id"],
-            rec["label"],
-            rec["speed_kmph"],
-            rec["centroid_x"],
-            rec["centroid_y"],
-        ])
 
     workbook.save(excel_file_path)
 

@@ -75,8 +75,6 @@ function processVideo() {
     formData.append("channel", channel);
     formData.append("mode", selectedMode);
 
-    document.getElementById("status").innerText = "Process started";
-
     fetch("/process", {
         method: "POST",
         body: formData
@@ -89,14 +87,13 @@ function processVideo() {
         return data;
     })
     .then(data => {
-        document.getElementById("status").innerText = "Processing completed";
         const preview = document.getElementById("preview");
         const cacheBustedUrl = `${data.video_url}?t=${Date.now()}`;
         preview.src = cacheBustedUrl;
         preview.load();
     })
     .catch(error => {
-        document.getElementById("status").innerText = `Error: ${error.message}`;
+        alert(`Error: ${error.message}`);
     });
 }
 
