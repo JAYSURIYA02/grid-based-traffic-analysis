@@ -45,11 +45,17 @@ result_matrix2 = np.zeros((num_rows, num_cols), dtype=int)
 
 cap = cv2.VideoCapture(video_path)
 
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+fourcc = cv2.VideoWriter_fourcc(*'avc1')
 out = cv2.VideoWriter('seq_output.mp4', fourcc, 20.0, (int(cap.get(3)), int(cap.get(4))))
+if not out.isOpened():
+    print("[WARN] avc1 codec failed, falling back to mp4v")
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter('seq_output.mp4', fourcc, 20.0, (int(cap.get(3)), int(cap.get(4))))
 
 if not os.path.exists('output_MVI_40771'):
     os.makedirs('output_MVI_40771')
+if not os.path.exists('output_seq'):
+    os.makedirs('output_seq')
 
 
 ret, frame1 = cap.read()
@@ -634,16 +640,12 @@ def process_tracking_counting(frame1, roi_x, roi_y, frame_count, cell_contours):
             status = v["display_label"]
             cv2.rectangle(frame1, (bx, by), (bx + bw, by + bh), (0, 255, 255), 2)
             label_y = max(by - 5 - (key % 3) * 16, 12)
-            if v.get('frame_age', 0) >= MIN_FRAMES_FOR_LABEL:
-                if v.get('speed_initialized', False):
-                    speed_str = f" | {v['speed_kmph']} km/h"
-                else:
-                    speed_str = " | Measuring..."
-            else:
-                speed_str = ""
+            speed_str = ""
+            if v.get("speed_kmph", 0) > 0:
+                speed_str = f" | {v['speed_kmph']} km/h"
             cv2.putText(
                 frame1,
-                f"ID:{key} | {status} | cols:{v['col_span']}" + speed_str,
+                f"ID:{key} | {status}" + speed_str,
                 (bx, label_y),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2,
             )
@@ -1021,7 +1023,10 @@ def main():
 
             output_filename = f'output_seq/frame_{frame_count:04d}.jpg'
             cv2.imwrite(output_filename, frame1)
-            cv2.imshow('Frame', frame1)
+            try:
+                cv2.imshow('Frame', frame1)
+            except cv2.error:
+                pass
             frame1 = frame2
             ret, frame2 = cap.read()
 
@@ -1040,14 +1045,54 @@ def main():
     cv2.destroyAllWindows()
     print("frames: "f"{frame_count}")
 
+    # ── Benchmark instrumentation: export per-frame timing for harness ────────
+    import json as _json
+    _metrics = {
+        "implementation": "sequential",
+        "video": video_path,
+        "frames": frame_count,
+        "grid_rows": num_rows,
+        "grid_cols": num_cols,
+        "color_channel": color_channel,
+        "total_time_seconds": execution_time,
+        "frame_times_seconds": frame_times,
+    }
+    with open("seq_frame_metrics.json", "w") as _f:
+        _json.dump(_metrics, _f, indent=2)
+    print("[BENCH] seq_frame_metrics.json written.")
+
 if __name__ == '__main__':
     profiler = cProfile.Profile()
     profiler.enable()
     main()
     profiler.disable()
 
-    stats = pstats.Stats(profiler).sort_stats('cumtime')
-    stats.print_stats(10)  # Print the top 10 functions by cumulative time
+    # ── Save binary profile for external analysis ─────────────────────────────
+    profiler.dump_stats('profile_seq.prof')
+    print("[BENCH] profile_seq.prof saved.")
+
+    # ── Readable cumtime report (top 15) ──────────────────────────────────────
+    import io as _io
+    _buf = _io.StringIO()
+    _stats_cum = pstats.Stats(profiler, stream=_buf).sort_stats('cumulative')
+    _stats_cum.print_stats(15)
+    _cum_text = _buf.getvalue()
+    with open('profile_seq_cumtime.txt', 'w') as _f:
+        _f.write(_cum_text)
+    print("[BENCH] profile_seq_cumtime.txt saved.")
+    print("\n=== seq.py — Top 15 by CUMULATIVE time ===")
+    print(_cum_text)
+
+    # ── Readable tottime report (top 15) ──────────────────────────────────────
+    _buf2 = _io.StringIO()
+    _stats_tot = pstats.Stats(profiler, stream=_buf2).sort_stats('tottime')
+    _stats_tot.print_stats(15)
+    _tot_text = _buf2.getvalue()
+    with open('profile_seq_tottime.txt', 'w') as _f:
+        _f.write(_tot_text)
+    print("[BENCH] profile_seq_tottime.txt saved.")
+    print("\n=== seq.py — Top 15 by SELF (tot) time ===")
+    print(_tot_text)
 
     # Evaluation runs only after processing has completed.
     XML_PATH = xml_path.strip()
@@ -1211,7 +1256,9 @@ if __name__ == '__main__':
         ])
         fig.text(0.5, 0.02, metrics_text, ha="center", va="bottom", fontsize=9)
 
-        plt.show()
+        os.makedirs("plots", exist_ok=True)
+        plt.savefig("plots/seq_evaluation_heatmaps.png")
+        plt.close('all')
     elif XML_PATH:
         print(f"Skipping evaluation: XML file not found at {XML_PATH}")
     else:
