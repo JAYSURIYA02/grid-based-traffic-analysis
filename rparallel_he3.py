@@ -7,7 +7,7 @@ import pandas as pd
 from openpyxl import load_workbook, Workbook
 import cProfile
 import pstats
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, Future
 from collections import Counter
 import json
 import xml.etree.ElementTree as ET
@@ -34,6 +34,7 @@ start_time = time.time()
 
 # ── Benchmark instrumentation (mirrors seq.py so results are comparable) ──
 frame_times = []
+frame_io_times = []
 memory_usages = []
 
 cap = cv2.VideoCapture(video_path)
@@ -90,8 +91,51 @@ DISPLAY_ENABLED = os.environ.get("BTP_DISPLAY", "1") != "0"
 #                 submit to _CELL_POOL never wait on a worker slot in the same
 #                 pool they're blocked on (avoids self-nesting deadlock risk).
 # ─────────────────────────────────────────────────────────────────────────────
-_CELL_POOL = ThreadPoolExecutor(max_workers=min(32, (os.cpu_count() or 4) * 4))
-_LANE_POOL = ThreadPoolExecutor(max_workers=2)
+# ── EXECUTION-MODE SWITCHES (benchmark workloads; defaults = original) ──────
+#   BTP_LANES=2 (default) | 1   -> process ROI1+ROI2, or ROI1 only
+#   BTP_EXECUTOR=threaded (default) | serial
+#       serial replaces both pools with an in-thread executor that runs every
+#       submitted task immediately, in submission order, on the main thread.
+#       Same LaneTracker code, same call order, no threads: this is the
+#       "same-workload sequential baseline" (paper Sec. IV-C).
+# Experiment matrix used by benchmarking/orchestrate_benchmark.py:
+#   A  seq.py                                     (1 lane, no pools)
+#   B  rparallel_he3.py BTP_LANES=1               (1 lane, threaded)
+#   C  rparallel_he3.py BTP_EXECUTOR=serial       (2 lanes, serial)
+#   D  rparallel_he3.py                           (2 lanes, threaded)
+ACTIVE_LANE_COUNT = int(os.environ.get("BTP_LANES", "2"))
+if ACTIVE_LANE_COUNT not in (1, 2):
+    raise ValueError(f"BTP_LANES must be 1 or 2, got {ACTIVE_LANE_COUNT}")
+EXECUTOR_MODE = os.environ.get("BTP_EXECUTOR", "threaded").strip().lower()
+if EXECUTOR_MODE not in ("threaded", "serial"):
+    raise ValueError(f"BTP_EXECUTOR must be 'threaded' or 'serial', got {EXECUTOR_MODE!r}")
+
+
+class _SerialExecutor:
+    """Drop-in stand-in for ThreadPoolExecutor that runs tasks inline."""
+    _max_workers = 1
+
+    def submit(self, fn, *args, **kwargs):
+        fut = Future()
+        try:
+            fut.set_result(fn(*args, **kwargs))
+        except BaseException as exc:  # propagate on .result(), like a real pool
+            fut.set_exception(exc)
+        return fut
+
+    def map(self, fn, *iterables):
+        return list(map(fn, *iterables))
+
+    def shutdown(self, wait=True):
+        pass
+
+
+if EXECUTOR_MODE == "serial":
+    _CELL_POOL = _SerialExecutor()
+    _LANE_POOL = _SerialExecutor()
+else:
+    _CELL_POOL = ThreadPoolExecutor(max_workers=min(32, (os.cpu_count() or 4) * 4))
+    _LANE_POOL = ThreadPoolExecutor(max_workers=2)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -136,10 +180,15 @@ def apply_histogram_equalization_single(frame, roi_x, roi_y, roi_width, roi_heig
     return frame
 
 
+_ACTIVE_ROIS = [(roi1_x, roi1_y, roi1_width, roi1_height),
+                (roi2_x, roi2_y, roi2_width, roi2_height)][:ACTIVE_LANE_COUNT]
+
+
 def apply_histogram_equalization_parallel(frame, channel_choice):
+    # Submitted from the main thread to _CELL_POOL (one task per active ROI).
     futures = [
-        _CELL_POOL.submit(apply_histogram_equalization_single, frame, roi1_x, roi1_y, roi1_width, roi1_height, channel_choice),
-        _CELL_POOL.submit(apply_histogram_equalization_single, frame, roi2_x, roi2_y, roi2_width, roi2_height, channel_choice)
+        _CELL_POOL.submit(apply_histogram_equalization_single, frame, rx, ry, rw, rh, channel_choice)
+        for (rx, ry, rw, rh) in _ACTIVE_ROIS
     ]
     for future in futures:
         frame = future.result()
@@ -881,10 +930,11 @@ lane1 = LaneTracker("Lane1", roi1_x, roi1_y, roi1_width, roi1_height, num_rows, 
                      FPS, pixels_per_meter, hud_x_offset=10, hud_y_offset=100, box_color=(0, 255, 255))
 lane2 = LaneTracker("Lane2", roi2_x, roi2_y, roi2_width, roi2_height, num_rows, num_cols,
                      FPS, pixels_per_meter, hud_x_offset=620, hud_y_offset=100, box_color=(255, 0, 255))
+ACTIVE_LANES = (lane1, lane2)[:ACTIVE_LANE_COUNT]
 
 
 def main():
-    global frame1, frame2, ret, frame_count, DISPLAY_ENABLED, frame_times, memory_usages
+    global frame1, frame2, ret, frame_count, DISPLAY_ENABLED, frame_times, frame_io_times, memory_usages
     WINDOW_NAME = "Parallel Vehicle Detection"
 
     try:
@@ -905,54 +955,63 @@ def main():
                 # Dispatched via the persistent _LANE_POOL rather than creating a
                 # new pool every frame; process_grid() itself uses the separate
                 # _CELL_POOL internally, so there's no self-nesting deadlock risk.
-                grid_future1 = _LANE_POOL.submit(lane1.process_grid, frame1, channels_data)
-                grid_future2 = _LANE_POOL.submit(lane2.process_grid, frame1, channels_data)
-                result_matrix1, cell_contours1 = grid_future1.result()
-                result_matrix2, cell_contours2 = grid_future2.result()
+                grid_futures = [_LANE_POOL.submit(lane.process_grid, frame1, channels_data)
+                                for lane in ACTIVE_LANES]
+                grid_results = [f.result() for f in grid_futures]
+                result_matrices = [r[0] for r in grid_results]
+                cell_contours_list = [r[1] for r in grid_results]
 
                 # Tracking / classification / speed / counting: compute state
-                # for both lanes concurrently (each lane only touches its own
-                # LaneTracker attributes, so this is race-free), then draw both
-                # lanes' results onto the shared frame1 buffer only after BOTH
-                # computations have finished. See LaneTracker.compute_tracking
+                # for all active lanes concurrently (each lane only touches its
+                # own LaneTracker attributes, so this is race-free), then draw
+                # all lanes' results onto the shared frame1 buffer only after
+                # ALL computations have finished. See LaneTracker.compute_tracking
                 # docstring for why this buys safety/clarity rather than a
                 # guaranteed CPU speedup.
-                track_future1 = _LANE_POOL.submit(lane1.compute_tracking, frame1.shape, frame_count, cell_contours1)
-                track_future2 = _LANE_POOL.submit(lane2.compute_tracking, frame1.shape, frame_count, cell_contours2)
-                track_future1.result()
-                track_future2.result()
+                track_futures = [_LANE_POOL.submit(lane.compute_tracking, frame1.shape, frame_count, cc)
+                                 for lane, cc in zip(ACTIVE_LANES, cell_contours_list)]
+                for f in track_futures:
+                    f.result()
 
-                lane1.draw_tracking_results(frame1)
-                lane2.draw_tracking_results(frame1)
+                # Serialized drawing on the shared frame (Lane1, then Lane2).
+                for lane in ACTIVE_LANES:
+                    lane.draw_tracking_results(frame1)
 
                 # Snapshot per-frame grid/label matrices + vehicle predictions
                 # (used later for DETRAC evaluation and Excel export).
-                lane1.record_frame_data(frame_count, result_matrix1)
-                lane2.record_frame_data(frame_count, result_matrix2)
+                for lane, rm in zip(ACTIVE_LANES, result_matrices):
+                    lane.record_frame_data(frame_count, rm)
 
                 # Grid overlays
-                lane1.draw_grid_overlay(frame1, result_matrix1)
-                lane2.draw_grid_overlay(frame1, result_matrix2)
+                for lane, rm in zip(ACTIVE_LANES, result_matrices):
+                    lane.draw_grid_overlay(frame1, rm)
 
                 # Density + count line
-                lane1.density_calculation(frame1, result_matrix1)
-                lane2.density_calculation(frame1, result_matrix2)
+                for lane, rm in zip(ACTIVE_LANES, result_matrices):
+                    lane.density_calculation(frame1, rm)
 
-                cv2.line(frame1, (lane1.roi_x, lane1.count_line_y),
-                         (lane1.roi_x + lane1.roi_width, lane1.count_line_y), (255, 255, 255), 2)
-                cv2.line(frame1, (lane2.roi_x, lane2.count_line_y),
-                         (lane2.roi_x + lane2.roi_width, lane2.count_line_y), (255, 255, 255), 2)
+                for lane in ACTIVE_LANES:
+                    cv2.line(frame1, (lane.roi_x, lane.count_line_y),
+                             (lane.roi_x + lane.roi_width, lane.count_line_y), (255, 255, 255), 2)
 
                 if frame_count % 100 == 0:  # reduce console spam
-                    print(f"Frame {frame_count} | Lane1 passed: {lane1.vehicle_count} "
-                          f"| Lane2 passed: {lane2.vehicle_count}")
+                    print(f"Frame {frame_count} | " + " | ".join(
+                        f"{lane.name} passed: {lane.vehicle_count}" for lane in ACTIVE_LANES))
 
                 cv2.putText(frame1, "Frame: {}".format(frame_count), (10, 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
 
-                # All drawing/annotation on frame1 is complete at this point —
-                # write it to disk and, if a display is available, preview it,
-                # before advancing to the next frame.
+                # ── TIMING BOUNDARY (identical in seq.py) ────────────────────
+                # frame_times_seconds covers preprocessing, per-cell detection,
+                # clustering, classification, tracking/counting/speed, density
+                # and ALL overlay drawing. It EXCLUDES output I/O, timed
+                # separately in frame_io_times_seconds: VideoWriter.write,
+                # optional preview, and decoding the next frame.
+                frame_end_time = time.time()
+                frame_times.append(frame_end_time - frame_start_time)
+                memory_usages.append(psutil.Process().memory_info().rss / (1024 * 1024))
+
+                io_start_time = time.time()
                 if OUTPUT_WRITER_OK:
                     out.write(frame1)
 
@@ -967,12 +1026,9 @@ def main():
                               "video will still be written to disk if the writer "
                               "opened successfully.")
 
-                frame_end_time = time.time()
-                frame_times.append(frame_end_time - frame_start_time)
-                memory_usages.append(psutil.Process().memory_info().rss / (1024 * 1024))
-
                 frame1 = frame2
                 ret, frame2 = cap.read()
+                frame_io_times.append(time.time() - io_start_time)
 
             # Non-blocking key poll (1ms) so the loop / preview never freezes.
             # ESC (27) AND Q requests a safe stop. Gated on DISPLAY_ENABLED:
@@ -993,7 +1049,7 @@ def main():
         memory_usage = psutil.Process().memory_info().rss
         print("Memory Usage: {:.2f} MB".format(memory_usage / (1024 * 1024)))
 
-        for lane in (lane1, lane2):
+        for lane in ACTIVE_LANES:
             avg_density = float(np.mean(lane.density_values)) if lane.density_values else 0.0
             print(f"\n-- {lane.name} Summary --")
             print(f"Average Density: {avg_density:.4f}")
@@ -1014,20 +1070,39 @@ def main():
         # See analyze_results.py / paper Section XI for the normalized
         # (per-ROI-frame) throughput metric that corrects for this.
         import json as _json
+        try:
+            from bench_sysinfo import collect_system_info
+            _sysinfo = collect_system_info()
+        except Exception as _e:  # never let provenance collection kill a run
+            _sysinfo = {"error": f"{type(_e).__name__}: {_e}"}
+        _cpu = psutil.Process().cpu_times()
+        _impl = "parallel_threaded" if EXECUTOR_MODE == "threaded" else "sequential_lanetracker"
         _metrics = {
-            "implementation": "parallel_threaded",
+            "schema_version": 2,
+            "implementation": _impl,
+            "executor": EXECUTOR_MODE,
             "video": video_path,
             "frames": frame_count,
-            "lanes": 2,
+            "lanes": len(ACTIVE_LANES),
+            "active_lanes": [lane.name for lane in ACTIVE_LANES],
             "grid_rows": num_rows,
             "grid_cols": num_cols,
             "color_channel": color_channel,
+            "he_choice": HE_CHOICE,
             "cell_pool_workers": _CELL_POOL._max_workers,
             "lane_pool_workers": _LANE_POOL._max_workers,
             "total_time_seconds": execution_time,
+            "total_time_definition": "module import (after config load) to end of main loop; includes video open, writer setup, all frames",
             "frame_times_seconds": frame_times,
+            "frame_time_definition": "per-frame processing + overlay drawing; excludes output write, preview and next-frame decode",
+            "frame_io_times_seconds": frame_io_times,
             "memory_usages_mb": memory_usages,
-            "lane_vehicle_counts": {lane.name: lane.vehicle_count for lane in (lane1, lane2)},
+            "peak_memory_mb": max(memory_usages) if memory_usages else None,
+            "process_cpu_user_seconds": _cpu.user,
+            "process_cpu_system_seconds": _cpu.system,
+            "cpu_utilization_of_one_core": ((_cpu.user + _cpu.system) / execution_time) if execution_time else None,
+            "lane_vehicle_counts": {lane.name: lane.vehicle_count for lane in ACTIVE_LANES},
+            "system": _sysinfo,
         }
         with open("rpar_frame_metrics.json", "w") as _f:
             _json.dump(_metrics, _f, indent=2)
@@ -1214,12 +1289,12 @@ def save_all_to_excel():
     summary_sheet = workbook.active
     summary_sheet.title = "Summary"
     summary_sheet.append(["Lane", "Vehicles Passed", "Average Density"])
-    for lane in (lane1, lane2):
+    for lane in ACTIVE_LANES:
         avg_density = float(np.mean(lane.density_values)) if lane.density_values else 0.0
         summary_sheet.append([lane.name, lane.vehicle_count, round(avg_density, 4)])
 
     # ── Grid Data sheets (binary + label matrix per frame), one per lane ──
-    for lane in (lane1, lane2):
+    for lane in ACTIVE_LANES:
         grid_sheet = workbook.create_sheet(f"{lane.name} Grid Data")
         for frame_number, binary_matrix, label_matrix in lane.all_frames_data:
             grid_sheet.append([f"Frame {frame_number} - Binary"])
@@ -1234,7 +1309,7 @@ def save_all_to_excel():
 
     speed_sheet = workbook.create_sheet("Speed Data")
     speed_sheet.append(["Lane", "Frame", "Vehicle ID", "Label", "Speed (km/h)", "Centroid X", "Centroid Y"])
-    for lane in (lane1, lane2):
+    for lane in ACTIVE_LANES:
         for rec in lane.speed_log:
             speed_sheet.append([
                 rec["lane"], rec["frame"], rec["vehicle_id"], rec["label"],
@@ -1243,7 +1318,7 @@ def save_all_to_excel():
 
     history_sheet = workbook.create_sheet("Vehicle History")
     history_sheet.append(["Lane", "Vehicle ID", "Final Label", "Avg Speed (km/h)", "Counted"])
-    for lane in (lane1, lane2):
+    for lane in ACTIVE_LANES:
         for rec in lane.vehicle_history:
             history_sheet.append([lane.name, rec["vehicle_id"], rec["label"], rec["avg_speed_kmph"], rec["counted"]])
 
@@ -1294,12 +1369,13 @@ if __name__ == '__main__':
     if XML_PATH and os.path.exists(XML_PATH):
         gt_data = load_detrac(XML_PATH)
         _eval_results = {}
-        for lane in (lane1, lane2):
+        for lane in ACTIVE_LANES:
             conf_matrix, conf_matrix_vehicle, metrics, id_summary = evaluate_lane(
                 lane, gt_data, show_grid_heatmap=True, debug_grid_metrics=False
             )
             _eval_results[lane.name] = {
-                "implementation": "parallel_threaded",
+                "implementation": "parallel_threaded" if EXECUTOR_MODE == "threaded" else "sequential_lanetracker",
+                "executor": EXECUTOR_MODE,
                 "lane": lane.name,
                 "video": video_path,
                 "grid_rows": num_rows,

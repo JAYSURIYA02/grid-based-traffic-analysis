@@ -760,6 +760,7 @@ choices = {
 
 channels = choices[user_choice]
 frame_times = []
+frame_io_times = []
 memory_usages = []
 density_values = []
 vehicle_count_history =[]
@@ -1036,6 +1037,15 @@ def main():
             #             grid_y = roi2_y + row * grid_height2
             #             cv2.rectangle(frame1, (grid_x, grid_y), (grid_x + grid_width2, grid_y + grid_height2), (0, 255, 0), 2)
 
+            cv2.putText(frame1, "Frame: {}".format(frame_count), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+
+            # ── TIMING BOUNDARY (identical in rparallel_he3.py) ──────────────
+            # frame_times_seconds covers: preprocessing (HE, blur, diff,
+            # channel split), per-cell detection, clustering, classification,
+            # tracking/counting/speed, density, and ALL overlay drawing.
+            # It EXCLUDES output I/O, which is timed separately below in
+            # frame_io_times_seconds: VideoWriter.write, optional JPEG dump,
+            # optional preview, and decoding the next frame.
             frame_end_time = time.time()
             frame_time = frame_end_time - frame_start_time
             frame_times.append(frame_time)
@@ -1043,7 +1053,7 @@ def main():
             memory_usage = psutil.Process().memory_info().rss / (1024 * 1024)
             memory_usages.append(memory_usage)
 
-            cv2.putText(frame1, "Frame: {}".format(frame_count), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+            io_start_time = time.time()
             out.write(frame1)
 
             output_filename = f'output_seq/frame_{frame_count:04d}.jpg'
@@ -1056,6 +1066,7 @@ def main():
                     pass
             frame1 = frame2
             ret, frame2 = cap.read()
+            frame_io_times.append(time.time() - io_start_time)
 
         if _BENCH_DISPLAY_ON:
             if (cv2.waitKey(1) & 0xFF == ord('q')) or (cv2.waitKey(1) & 0xFF == ord('Q')):  # Reduce delay
@@ -1078,15 +1089,36 @@ def main():
 
     # ── Benchmark instrumentation: export per-frame timing for harness ────────
     import json as _json
+    try:
+        from bench_sysinfo import collect_system_info
+        _sysinfo = collect_system_info()
+    except Exception as _e:  # never let provenance collection kill a run
+        _sysinfo = {"error": f"{type(_e).__name__}: {_e}"}
+    _cpu = psutil.Process().cpu_times()
     _metrics = {
+        "schema_version": 2,
         "implementation": "sequential",
+        "executor": "none",
         "video": video_path,
         "frames": frame_count,
+        "lanes": 1,
+        "active_lanes": ["Lane1(ROI1)"],
         "grid_rows": num_rows,
         "grid_cols": num_cols,
         "color_channel": color_channel,
+        "he_choice": he_choice,
         "total_time_seconds": execution_time,
+        "total_time_definition": "module import (after config load) to end of main loop; includes video open, writer setup, all frames",
         "frame_times_seconds": frame_times,
+        "frame_time_definition": "per-frame processing + overlay drawing; excludes output write, preview and next-frame decode",
+        "frame_io_times_seconds": frame_io_times,
+        "memory_usages_mb": memory_usages,
+        "peak_memory_mb": max(memory_usages) if memory_usages else None,
+        "process_cpu_user_seconds": _cpu.user,
+        "process_cpu_system_seconds": _cpu.system,
+        "cpu_utilization_of_one_core": ((_cpu.user + _cpu.system) / execution_time) if execution_time else None,
+        "lane_vehicle_counts": {"Lane1(ROI1)": vechicle_count},
+        "system": _sysinfo,
     }
     with open("seq_frame_metrics.json", "w") as _f:
         _json.dump(_metrics, _f, indent=2)
