@@ -1,25 +1,41 @@
 """
 orchestrate_benchmark.py
 -------------------------
-Drives a multi-video benchmark of seq_bench.py vs rparallel_he3_bench.py
-across the UA-DETRAC Cloudy/Night/Rainy/Sunny folder structure, selecting
-videos by traffic density (light/medium/heavy) within each weather
-category, running both implementations in isolated per-run directories,
-and aggregating results into consolidated CSVs.
+Drives the multi-video benchmark of the SHIPPED implementations
+(seq.py and rparallel_he3.py at the repository root) across the UA-DETRAC
+Cloudy/Night/Rainy/Sunny folder structure, and aggregates the results.
 
-WHAT THIS SCRIPT DOES NOT DO:
-It does not modify seq.py or rparallel_he3.py's detection, tracking,
-classification, counting, density, or speed algorithms. It only invokes
-the *_bench.py copies (which add opt-in instrumentation toggles and one
-crash-fix, all documented separately -- see seq_bench.diff /
-rparallel_he3_bench.diff) as external subprocesses, writes their
-per-run config file, and reads their output files.
+Workloads run per video (all with BTP_DISPLAY=0, BTP_SAVE_FRAMES=0):
+  A  sequential      seq.py                              1 lane, no pools
+  B  parallel_1lane  rparallel_he3.py  BTP_LANES=1       1 lane, threaded
+  C  serial_2lane    rparallel_he3.py  BTP_EXECUTOR=serial 2 lanes, no threads
+  D  parallel        rparallel_he3.py                    2 lanes, threaded
+Each gets a clean (profiler-off) pass used for timing; A and D also get a
+profiled pass (cProfile) used for the Amdahl analysis.
 
-===============================================================================
-STEP 0 -- EDIT THE CONFIG BLOCK BELOW FOR YOUR MACHINE, THEN RUN:
-    python orchestrate_benchmark.py --dry-run     # preview selection only
-    python orchestrate_benchmark.py               # run the full benchmark
-===============================================================================
+Video selection: by default the 12 videos of the existing
+benchmark_results/selection_report.json are re-used, so a re-run measures
+the same sequences as the paper. Pass --reselect to re-derive the
+selection from density terciles instead.
+
+Outputs go to a NEW directory (benchmark_results_v2/, or a timestamped
+sibling if that already holds a finished run); existing results are never
+overwritten.
+
+This script does not modify any detection/tracking/evaluation algorithm;
+it only writes each run's user_input_data.json, launches the scripts as
+subprocesses and reads their output files.
+
+USAGE
+    python benchmarking/orchestrate_benchmark.py --dry-run      # selection only
+    python benchmarking/orchestrate_benchmark.py                # full run
+    python benchmarking/orchestrate_benchmark.py --max-videos 2 # quick subset
+    python benchmarking/orchestrate_benchmark.py --no-profile   # skip profiled passes
+    python benchmarking/orchestrate_benchmark.py --resume       # continue an interrupted run
+                                                                # (same BTP_OUTPUT_ROOT), skipping
+                                                                # runs whose outputs already exist
+Paths can be overridden with BTP_DATASET_ROOT, BTP_ANNOTATIONS_ROOT,
+BTP_OUTPUT_ROOT, BTP_SELECTION_REPORT environment variables.
 """
 import csv
 import json
@@ -31,40 +47,35 @@ import sys
 import time
 import traceback
 import xml.etree.ElementTree as ET
+from datetime import datetime
 from pathlib import Path
 
 # ══════════════════════════════════════════════════════════════════════════
 # CONFIG -- edit these paths/values for your machine before running.
 # ══════════════════════════════════════════════════════════════════════════
 
-# UA-DETRAC video root, containing Cloudy/ Night/ Rainy/ Sunny/ subfolders
-# (each full of .mp4 files), matching the structure in your screenshot.
-DATASET_ROOT = Path(
-    r"C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\DETRAC_VIDEOS_eval"
-)
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
-# UA-DETRAC XML ground-truth annotations root. Searched recursively, so it
-# does not matter whether this is flat or split into subfolders internally.
-ANNOTATIONS_ROOT = Path(
-    r"C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\DETRAC-Annotations"
-)
+# UA-DETRAC video root, containing Cloudy/ Night/ Rainy/ Sunny/ subfolders.
+DATASET_ROOT = Path(os.environ.get("BTP_DATASET_ROOT", REPO_ROOT / "DETRAC_VIDEOS_eval"))
 
-# Your existing batch_runner.py output, used to pick videos by density
-# rather than randomly. If this file is missing, unreadable, or its columns
-# can't be confidently identified, the script automatically falls back to
-# computing density directly from each video's XML annotation instead --
-# see load_density_data() below -- and prints a clear warning saying so.
-PER_VIDEO_RESULTS_CSV = Path(
-    r"C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\per_video_results.csv"
-)
+# UA-DETRAC XML ground-truth annotations root (searched recursively).
+ANNOTATIONS_ROOT = Path(os.environ.get("BTP_ANNOTATIONS_ROOT", REPO_ROOT / "DETRAC-Annotations"))
 
-# Where the two benchmark scripts live (the *_bench.py copies, not the
-# originals -- see the diffs for exactly what differs and why).
-SEQ_SCRIPT = Path(__file__).resolve().parent.parent / "engines" / "seq_bench.py"
-PAR_SCRIPT = Path(__file__).resolve().parent.parent / "engines" / "rparallel_he3_bench.py"
+# Optional batch_runner.py output used to pick videos by density; if absent
+# or unparsable, density is computed from each video's XML instead.
+PER_VIDEO_RESULTS_CSV = REPO_ROOT / "evaluation" / "per_video_results.csv"
 
-# Where all benchmark outputs will be written.
-OUTPUT_ROOT = Path(r".\benchmark_results").resolve()
+# The shipped implementations (not copies).
+SEQ_SCRIPT = REPO_ROOT / "seq.py"
+PAR_SCRIPT = REPO_ROOT / "rparallel_he3.py"
+
+# Fixed video selection to reuse (the paper's 12 videos). --reselect ignores it.
+SELECTION_REPORT = Path(os.environ.get(
+    "BTP_SELECTION_REPORT", REPO_ROOT / "benchmark_results" / "selection_report.json"))
+
+# Where benchmark outputs are written. Never an existing finished run.
+_DEFAULT_OUTPUT_ROOT = Path(os.environ.get("BTP_OUTPUT_ROOT", REPO_ROOT / "benchmark_results_v2"))
 
 # ── Selection knobs ─────────────────────────────────────────────────────
 CATEGORIES = ["Cloudy", "Night", "Rainy", "Sunny"]
@@ -91,6 +102,14 @@ PIXELS_PER_METER = 0
 # per-function cProfile breakdown used in the paper's Discussion section).
 RUN_PROFILED_PASS = True
 RUN_TIMEOUT_SECONDS = 60 * 60  # 1 hour per script invocation; adjust as needed
+
+# (name, script, extra env, also run a profiled pass?)
+WORKLOADS = [
+    ("sequential",     SEQ_SCRIPT, {},                         True),   # A
+    ("parallel_1lane", PAR_SCRIPT, {"BTP_LANES": "1"},         False),  # B
+    ("serial_2lane",   PAR_SCRIPT, {"BTP_EXECUTOR": "serial"}, False),  # C
+    ("parallel",       PAR_SCRIPT, {},                         True),   # D
+]
 
 # ══════════════════════════════════════════════════════════════════════════
 # END CONFIG
@@ -457,17 +476,21 @@ def write_config(workdir, video_path, xml_path):
     return cfg
 
 
-def run_one(script_path, workdir, video_path, xml_path, profile_on):
+def run_one(script_path, workdir, video_path, xml_path, profile_on, extra_env=None):
     write_config(workdir, video_path, xml_path)
     env = os.environ.copy()
     env["BTP_PROFILE"] = "1" if profile_on else "0"
     env["BTP_DISPLAY"] = "0"
     env["BTP_SAVE_FRAMES"] = "0"
+    env.setdefault("MPLBACKEND", "Agg")  # evaluation plots must not need a display
+    for k, v in (extra_env or {}).items():
+        env[k] = v
     log_path = workdir / "run.log"
     record = {
         "workdir": str(workdir),
         "script": script_path.name,
         "profile_on": profile_on,
+        "extra_env": dict(extra_env or {}),
         "log": str(log_path),
     }
     t0 = time.time()
@@ -498,7 +521,7 @@ def run_one(script_path, workdir, video_path, xml_path, profile_on):
     # Extra sanity check beyond returncode: did the expected metrics file
     # actually get written? A script can exit 0 but still not have produced
     # usable output in unusual edge cases.
-    expected = "seq_frame_metrics.json" if "seq" in script_path.name else "rpar_frame_metrics.json"
+    expected = "seq_frame_metrics.json" if script_path.name.startswith("seq") else "rpar_frame_metrics.json"
     record["expected_output_present"] = (workdir / expected).exists()
     if record["status"] == "ok" and not record["expected_output_present"]:
         record["status"] = "ok_but_missing_output"
@@ -506,7 +529,7 @@ def run_one(script_path, workdir, video_path, xml_path, profile_on):
     return record
 
 
-def process_video(entry, output_root, run_profiled_pass):
+def process_video(entry, output_root, run_profiled_pass, resume=False):
     """Run all 4 (impl x pass) combinations for one selected video. Never
     raises -- any failure is captured in the returned record so the caller
     can continue with the next video (requirement #12)."""
@@ -522,18 +545,24 @@ def process_video(entry, output_root, run_profiled_pass):
         "xml_path": str(xml_path), "runs": {},
     }
 
-    plan = [("sequential", SEQ_SCRIPT, "clean", False)]
-    if run_profiled_pass:
-        plan.append(("sequential", SEQ_SCRIPT, "profiled", True))
-    plan.append(("parallel", PAR_SCRIPT, "clean", False))
-    if run_profiled_pass:
-        plan.append(("parallel", PAR_SCRIPT, "profiled", True))
+    plan = []
+    for impl_name, script, extra_env, profile_too in WORKLOADS:
+        plan.append((impl_name, script, "clean", False, extra_env))
+        if run_profiled_pass and profile_too:
+            plan.append((impl_name, script, "profiled", True, extra_env))
 
-    for impl_name, script, pass_name, profile_on in plan:
+    for impl_name, script, pass_name, profile_on, extra_env in plan:
         workdir = video_dir / impl_name / pass_name
         key = f"{impl_name}/{pass_name}"
+        expected = workdir / ("seq_frame_metrics.json" if script.name.startswith("seq") else "rpar_frame_metrics.json")
+        if resume and expected.exists() and (workdir / "eval_metrics.json").exists():
+            result["runs"][key] = {"workdir": str(workdir), "script": script.name, "profile_on": profile_on,
+                                   "extra_env": dict(extra_env or {}), "log": str(workdir / "run.log"),
+                                   "status": "ok", "resumed": True, "expected_output_present": True}
+            print(f"    [{key}] already complete (resumed) -> {workdir}")
+            continue
         try:
-            record = run_one(script, workdir, video, xml_path, profile_on)
+            record = run_one(script, workdir, video, xml_path, profile_on, extra_env)
         except Exception as e:  # belt-and-suspenders; run_one already catches internally
             record = {
                 "status": "exception", "error": f"{type(e).__name__}: {e}",
@@ -558,70 +587,211 @@ def _read_json(path):
         return None
 
 
+def _run_dir(entry, key):
+    rec = entry["runs"].get(key)
+    return Path(rec["workdir"]) if rec and rec.get("workdir") else None
+
+
+def _metrics_file(impl):
+    return "seq_frame_metrics.json" if impl == "sequential" else "rpar_frame_metrics.json"
+
+
+def _load_run(entry, impl, pass_name="clean"):
+    d = _run_dir(entry, f"{impl}/{pass_name}")
+    if d is None:
+        return None, None
+    return _read_json(d / _metrics_file(impl)), _read_json(d / "eval_metrics.json")
+
+
+def timing_fields(m):
+    keys = ["frames", "lanes", "total_time_seconds", "mean_frame_time_ms", "mean_frame_io_ms",
+            "fps", "roi_frame_throughput", "peak_memory_mb", "cpu_utilization_of_one_core"]
+    if m is None:
+        return {k: None for k in keys}
+    ft = m.get("frame_times_seconds", [])
+    io = m.get("frame_io_times_seconds", [])
+    lanes = m.get("lanes", 1)
+    frames = m.get("frames", 0)
+    total = m.get("total_time_seconds", 0) or 0
+    mem = m.get("memory_usages_mb", [])
+    return {
+        "frames": frames,
+        "lanes": lanes,
+        "total_time_seconds": total,
+        "mean_frame_time_ms": (statistics.mean(ft) * 1000) if ft else None,
+        "mean_frame_io_ms": (statistics.mean(io) * 1000) if io else None,
+        "fps": (frames / total) if total else None,
+        "roi_frame_throughput": ((frames * lanes) / total) if total else None,
+        "peak_memory_mb": max(mem) if mem else None,
+        "cpu_utilization_of_one_core": m.get("cpu_utilization_of_one_core"),
+    }
+
+
+def eval_fields(payload):
+    out = {}
+    m = (payload or {}).get("metrics", {})
+    for c in ["Car", "Van", "Bus"]:
+        cm = m.get(c, {})
+        for k in ["precision", "recall", "f1"]:
+            out[f"{c.lower()}_{k}"] = cm.get(k)
+    for k in ["unique_gt_vehicles", "unique_predicted_tracks", "matched_gt_vehicles",
+              "matched_predicted_tracks"]:
+        out[k] = (payload or {}).get(k)
+    return out
+
+
 def build_consolidated_rows(run_results, output_root):
-    """One row per (video, implementation, lane) using the CLEAN pass only
-    for timing (requirement #8), and that same clean pass's eval_metrics.json
-    for accuracy (identical DETRAC logic regardless of profiling)."""
+    """One row per (video, workload, lane), clean pass only. Timing fields
+    describe the whole run (all lanes); accuracy fields are per lane."""
     rows = []
     for entry in run_results:
-        video, cat, tier = entry["video"], entry["category"], entry["tier"]
-        stem = Path(video).stem
-
-        seq_clean_dir = Path(entry["runs"]["sequential/clean"]["workdir"])
-        par_clean_dir = Path(entry["runs"]["parallel/clean"]["workdir"])
-
-        seq_metrics = _read_json(seq_clean_dir / "seq_frame_metrics.json")
-        par_metrics = _read_json(par_clean_dir / "rpar_frame_metrics.json")
-        seq_eval = _read_json(seq_clean_dir / "eval_metrics.json")
-        par_eval = _read_json(par_clean_dir / "eval_metrics.json")  # {"Lane1": {...}, "Lane2": {...}}
-
-        def timing_fields(m):
-            if m is None:
-                return {"frames": None, "total_time_seconds": None,
-                        "mean_frame_time_ms": None, "fps": None,
-                        "roi_frame_throughput": None, "peak_memory_mb": None}
-            ft = m.get("frame_times_seconds", [])
-            lanes = m.get("lanes", 1)
-            frames = m.get("frames", 0)
-            total = m.get("total_time_seconds", 0) or 0
-            mem = m.get("memory_usages_mb", [])
-            return {
-                "frames": frames,
-                "total_time_seconds": total,
-                "mean_frame_time_ms": (statistics.mean(ft) * 1000) if ft else None,
-                "fps": (frames / total) if total else None,
-                "roi_frame_throughput": ((frames * lanes) / total) if total else None,
-                "peak_memory_mb": max(mem) if mem else None,
-            }
-
-        def eval_fields(metrics_dict):
-            if not metrics_dict:
-                return {f"{c.lower()}_{k}": None for c in ["car", "van", "bus"] for k in ["precision", "recall", "f1"]}
-            m = metrics_dict.get("metrics", {})
-            out = {}
-            for c in ["Car", "Van", "Bus"]:
-                cm = m.get(c, {})
-                out[f"{c.lower()}_precision"] = cm.get("precision")
-                out[f"{c.lower()}_recall"] = cm.get("recall")
-                out[f"{c.lower()}_f1"] = cm.get("f1")
-            return out
-
-        # Sequential row (single ROI == same coordinates as parallel Lane1)
-        row = {"video": stem, "category": cat, "tier": tier, "implementation": "sequential", "lane": "Lane1(ROI1)"}
-        row.update(timing_fields(seq_metrics))
-        row.update(eval_fields(seq_eval))
-        row["run_status"] = entry["runs"]["sequential/clean"].get("status")
-        rows.append(row)
-
-        # Parallel rows, one per lane
-        for lane_name in ("Lane1", "Lane2"):
-            row = {"video": stem, "category": cat, "tier": tier, "implementation": "parallel", "lane": lane_name}
-            row.update(timing_fields(par_metrics))  # timing is per-run (both lanes), not per-lane
-            row.update(eval_fields((par_eval or {}).get(lane_name)))
-            row["run_status"] = entry["runs"]["parallel/clean"].get("status")
-            rows.append(row)
-
+        stem = Path(entry["video"]).stem
+        for impl, _script, _env, _prof in WORKLOADS:
+            m, ev = _load_run(entry, impl)
+            if impl == "sequential":
+                lane_payloads = [("Lane1(ROI1)", ev)]
+            else:
+                lane_payloads = [(ln, (ev or {}).get(ln)) for ln in ("Lane1", "Lane2")
+                                 if ev is None or ln in ev]
+            for lane_name, payload in lane_payloads:
+                row = {"video": stem, "category": entry["category"], "tier": entry["tier"],
+                       "density": entry.get("density"), "implementation": impl, "lane": lane_name}
+                row.update(timing_fields(m))
+                row.update(eval_fields(payload))
+                row["run_status"] = (entry["runs"].get(f"{impl}/clean") or {}).get("status")
+                rows.append(row)
     return rows
+
+
+def compute_equivalence_rows(run_results):
+    """Exact Lane-1 equivalence of every workload against seq.py, plus Lane-2
+    equivalence between the serial and threaded 2-lane runs."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from check_equivalence import compare_payloads
+    rows = []
+    for entry in run_results:
+        stem = Path(entry["video"]).stem
+        _, a = _load_run(entry, "sequential")
+        _, b = _load_run(entry, "parallel_1lane")
+        _, c = _load_run(entry, "serial_2lane")
+        _, d = _load_run(entry, "parallel")
+        _, a_p = _load_run(entry, "sequential", "profiled")
+        _, d_p = _load_run(entry, "parallel", "profiled")
+        checks = [
+            ("A_seq_vs_B_par1lane_Lane1", a, (b or {}).get("Lane1")),
+            ("A_seq_vs_C_serial2lane_Lane1", a, (c or {}).get("Lane1")),
+            ("A_seq_vs_D_par2lane_Lane1", a, (d or {}).get("Lane1")),
+            ("C_serial_vs_D_threaded_Lane2", (c or {}).get("Lane2"), (d or {}).get("Lane2")),
+        ]
+        if a_p is not None and d_p is not None:
+            checks.append(("A_seq_vs_D_par2lane_Lane1_profiledpass", a_p, (d_p or {}).get("Lane1")))
+        for name, x, y in checks:
+            equal, diffs = compare_payloads(x, y)
+            rows.append({"video": stem, "category": entry["category"], "tier": entry["tier"],
+                         "check": name, "identical": equal, "differing_fields": ";".join(diffs)})
+    return rows
+
+
+def _ratio(a, b):
+    return (a / b) if (a is not None and b) else None
+
+
+def compute_speedup_rows(run_results, sysinfo):
+    """Per-video speedups. Every figure names its workload pair:
+      naive_speedup                 T_A / T_D        (1 lane vs 2 lanes, raw)
+      normalized_speedup            2*T_A / T_D      (ROI-frame throughput, end-to-end)
+      normalized_speedup_per_frame  2*f_A / f_D      (same, timed per-frame loop only)
+      same_workload_speedup_2lane   T_C / T_D        (threads vs no threads, 2 lanes)
+      same_workload_speedup_2lane_per_frame  f_C / f_D
+      same_workload_speedup_1lane   T_A / T_B        (seq.py vs threaded LaneTracker, 1 lane)
+      same_workload_speedup_1lane_per_frame  f_A / f_B
+    T = total_time_seconds, f = mean frame_times_seconds. Efficiency
+    E(N) = S/N is reported for the threads-only speedup (T_C/T_D) at
+    N = 2 (_LANE_POOL width), physical cores and logical processors."""
+    n_phys = (sysinfo or {}).get("physical_cores")
+    n_log = (sysinfo or {}).get("logical_processors")
+    rows = []
+    for entry in run_results:
+        r = {"video": Path(entry["video"]).stem, "category": entry["category"],
+             "tier": entry["tier"], "density": entry.get("density")}
+        t = {}
+        f = {}
+        for key, impl in (("A", "sequential"), ("B", "parallel_1lane"),
+                          ("C", "serial_2lane"), ("D", "parallel")):
+            m, _ = _load_run(entry, impl)
+            t[key] = (m or {}).get("total_time_seconds")
+            ft = (m or {}).get("frame_times_seconds") or []
+            f[key] = statistics.mean(ft) if ft else None
+            r[f"T_{key}_s"] = t[key]
+            r[f"frame_ms_{key}"] = f[key] * 1000 if f[key] else None
+        r["naive_speedup"] = _ratio(t["A"], t["D"])
+        r["normalized_speedup"] = _ratio(2 * t["A"], t["D"]) if t["A"] else None
+        r["normalized_speedup_per_frame"] = _ratio(2 * f["A"], f["D"]) if f["A"] else None
+        r["percent_improvement_normalized"] = ((r["normalized_speedup"] - 1) * 100) if r["normalized_speedup"] else None
+        r["same_workload_speedup_2lane"] = _ratio(t["C"], t["D"])
+        r["same_workload_speedup_2lane_per_frame"] = _ratio(f["C"], f["D"])
+        r["same_workload_speedup_1lane"] = _ratio(t["A"], t["B"])
+        r["same_workload_speedup_1lane_per_frame"] = _ratio(f["A"], f["B"])
+        s2 = r["same_workload_speedup_2lane"]
+        r["efficiency_N2_lanepool"] = _ratio(s2, 2)
+        r["efficiency_N_physical"] = _ratio(s2, n_phys)
+        r["efficiency_N_logical"] = _ratio(s2, n_log)
+        rows.append(r)
+    return rows
+
+
+NATIVE_BROAD = ["dilate", "GaussianBlur", "cvtColor", "absdiff", "split",
+                "'read' of 'cv2.VideoCapture", "'write' of 'cv2.VideoWriter"]
+
+
+def _amdahl(p, n):
+    return 1.0 / ((1.0 - p) + p / n) if (p is not None and n) else None
+
+
+def compute_amdahl_rows(run_results, sysinfo):
+    """Per-video Amdahl estimates from seq.py's profiled pass.
+    narrow p = cumtime(process_grid_channel + apply_histogram_equalization)/total
+      -- the work rparallel_he3.py actually dispatches to _CELL_POOL;
+    broad p  = tottime of the seven dominant native calls / total."""
+    import pstats
+    n_phys = (sysinfo or {}).get("physical_cores")
+    n_log = (sysinfo or {}).get("logical_processors")
+    rows = []
+    for entry in run_results:
+        d = _run_dir(entry, "sequential/profiled")
+        prof = d / "profile_seq.prof" if d else None
+        if not prof or not prof.exists():
+            continue
+        st = pstats.Stats(str(prof))
+        total = st.total_tt
+        narrow_t = broad_t = 0.0
+        for (fname, line, func), (cc, nc, tt, ct, callers) in st.stats.items():
+            if func in ("process_grid_channel", "apply_histogram_equalization") and fname.endswith("seq.py"):
+                narrow_t += ct
+            if fname == "~" and any(k in func for k in NATIVE_BROAD):
+                broad_t += tt
+        row = {"video": Path(entry["video"]).stem, "category": entry["category"], "tier": entry["tier"],
+               "profiled_total_s": total, "narrow_parallel_s": narrow_t, "broad_native_s": broad_t,
+               "p_narrow": narrow_t / total if total else None, "p_broad": broad_t / total if total else None}
+        for label, p in (("narrow", row["p_narrow"]), ("broad", row["p_broad"])):
+            row[f"S_{label}_N2"] = _amdahl(p, 2)
+            row[f"S_{label}_Nphys"] = _amdahl(p, n_phys)
+            row[f"S_{label}_Nlogical"] = _amdahl(p, n_log)
+            row[f"S_{label}_inf"] = (1.0 / (1.0 - p)) if p is not None and p < 1 else None
+        rows.append(row)
+    return rows
+
+
+def _pearson(xs, ys):
+    pairs = [(x, y) for x, y in zip(xs, ys) if x is not None and y is not None]
+    if len(pairs) < 3:
+        return None
+    xs, ys = zip(*pairs)
+    mx, my = statistics.mean(xs), statistics.mean(ys)
+    sxy = sum((x - mx) * (y - my) for x, y in pairs)
+    sxx = sum((x - mx) ** 2 for x in xs)
+    syy = sum((y - my) ** 2 for y in ys)
+    return sxy / (sxx * syy) ** 0.5 if sxx and syy else None
 
 
 def write_csv(rows, path, fieldnames=None):
@@ -703,6 +873,17 @@ def summarize(rows, group_key, value_keys):
 # ──────────────────────────────────────────────────────────────────────────
 def main():
     dry_run = "--dry-run" in sys.argv
+    reselect = "--reselect" in sys.argv
+    resume = "--resume" in sys.argv
+    run_profiled = RUN_PROFILED_PASS and "--no-profile" not in sys.argv
+    max_videos = None
+    if "--max-videos" in sys.argv:
+        max_videos = int(sys.argv[sys.argv.index("--max-videos") + 1])
+
+    OUTPUT_ROOT = _DEFAULT_OUTPUT_ROOT
+    if (OUTPUT_ROOT / "FINAL_SUMMARY.txt").exists() and not resume:
+        OUTPUT_ROOT = OUTPUT_ROOT.with_name(OUTPUT_ROOT.name + "_" + datetime.now().strftime("%Y%m%d_%H%M%S"))
+        print(f"[INFO] {_DEFAULT_OUTPUT_ROOT} already holds a finished run; writing to {OUTPUT_ROOT} instead.")
 
     print("=" * 78)
     print("STEP 1: Discovering videos")
@@ -747,9 +928,36 @@ def main():
     )
     for line in selection_log:
         print(line)
+    if not reselect and SELECTION_REPORT.exists():
+        fixed = json.load(open(SELECTION_REPORT))["selection"]
+        by_stem = {v.stem: (cat, v) for cat, vids in videos_by_category.items() for v in vids}
+        new_sel = []
+        for e in fixed:
+            stem = Path(e["video"].replace("\\", "/")).stem
+            if stem not in by_stem or by_stem[stem][1] not in xml_map:
+                print(f"[WARN] fixed-selection video {stem} not found locally (or no XML); skipped.")
+                continue
+            cat, vpath = by_stem[stem]
+            new_sel.append({"video": vpath, "category": e["category"], "tier": e["tier"],
+                            "density": e["density"], "density_source": e.get("density_source", "?"),
+                            "xml_path": xml_map[vpath]})
+        print(f"[INFO] Using FIXED selection from {SELECTION_REPORT} ({len(new_sel)} video(s)); "
+              "pass --reselect to re-derive it.")
+        selection = new_sel
+    if max_videos is not None:
+        selection = selection[:max_videos]
+        print(f"[INFO] --max-videos {max_videos}: running a subset.")
     print(f"\n[INFO] Final selection: {len(selection)} video(s).")
 
     OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
+    try:
+        sys.path.insert(0, str(REPO_ROOT))
+        from bench_sysinfo import collect_system_info
+        sysinfo = collect_system_info()
+    except Exception as e:
+        sysinfo = {"error": f"{type(e).__name__}: {e}"}
+    with open(OUTPUT_ROOT / "system_info.json", "w") as f:
+        json.dump(sysinfo, f, indent=2)
     selection_report_path = OUTPUT_ROOT / "selection_report.json"
     with open(selection_report_path, "w") as f:
         json.dump({
@@ -777,14 +985,14 @@ def main():
 
     print("\n" + "=" * 78)
     print(f"STEP 5: Running both implementations on {len(selection)} video(s)")
-    print(f"        (profiled pass: {'ON' if RUN_PROFILED_PASS else 'OFF'})")
+    print(f"        (profiled pass: {'ON' if run_profiled else 'OFF'})")
     print("=" * 78)
     run_results = []
     failures = []
     for i, entry in enumerate(selection, 1):
         print(f"\n[{i}/{len(selection)}] {entry['category']}/{entry['tier']}: {entry['video'].name}")
         try:
-            result = process_video(entry, OUTPUT_ROOT, RUN_PROFILED_PASS)
+            result = process_video(entry, OUTPUT_ROOT, run_profiled, resume)
         except Exception as e:
             # Should not happen (process_video already catches internally),
             # but requirement #12 demands the whole batch never dies.
@@ -823,69 +1031,82 @@ def main():
     rows = build_consolidated_rows(run_results, OUTPUT_ROOT)
     write_csv(rows, OUTPUT_ROOT / "consolidated_results.csv")
 
-    speedup_rows = compute_speedup_rows(run_results)
+    equiv_rows = compute_equivalence_rows(run_results)
+    write_csv(equiv_rows, OUTPUT_ROOT / "equivalence.csv")
+
+    speedup_rows = compute_speedup_rows(run_results, sysinfo)
     write_csv(speedup_rows, OUTPUT_ROOT / "speedup_by_video.csv")
 
-    # Category summary: sequential vs parallel(Lane1) timing + accuracy
-    cat_rows_seq = [r for r in rows if r["implementation"] == "sequential"]
-    cat_rows_par = [r for r in rows if r["implementation"] == "parallel" and r["lane"] == "Lane1"]
-    value_keys = ["mean_frame_time_ms", "fps", "roi_frame_throughput",
+    amdahl_rows = compute_amdahl_rows(run_results, sysinfo) if run_profiled else []
+    if amdahl_rows:
+        write_csv(amdahl_rows, OUTPUT_ROOT / "amdahl_by_video.csv")
+
+    value_keys = ["mean_frame_time_ms", "mean_frame_io_ms", "fps", "roi_frame_throughput",
+                  "peak_memory_mb", "cpu_utilization_of_one_core",
                   "car_f1", "van_f1", "bus_f1"]
-    summary_cat_seq = summarize(cat_rows_seq, "category", value_keys)
-    summary_cat_par = summarize(cat_rows_par, "category", value_keys)
-    for r in summary_cat_seq:
-        r["implementation"] = "sequential"
-    for r in summary_cat_par:
-        r["implementation"] = "parallel(Lane1)"
-    write_csv(summary_cat_seq + summary_cat_par, OUTPUT_ROOT / "summary_by_category.csv")
+    for group in ("category", "tier"):
+        out = []
+        for impl, lane in (("sequential", "Lane1(ROI1)"), ("parallel_1lane", "Lane1"),
+                           ("serial_2lane", "Lane1"), ("parallel", "Lane1")):
+            sel = [r for r in rows if r["implementation"] == impl and r["lane"] == lane]
+            for srow in summarize(sel, group, value_keys):
+                srow["implementation"] = f"{impl}({lane})"
+                out.append(srow)
+        write_csv(out, OUTPUT_ROOT / f"summary_by_{group}.csv")
 
-    summary_tier_seq = summarize(cat_rows_seq, "tier", value_keys)
-    summary_tier_par = summarize(cat_rows_par, "tier", value_keys)
-    for r in summary_tier_seq:
-        r["implementation"] = "sequential"
-    for r in summary_tier_par:
-        r["implementation"] = "parallel(Lane1)"
-    write_csv(summary_tier_seq + summary_tier_par, OUTPUT_ROOT / "summary_by_tier.csv")
+    speed_keys = ["naive_speedup", "normalized_speedup", "normalized_speedup_per_frame",
+                  "same_workload_speedup_2lane", "same_workload_speedup_2lane_per_frame",
+                  "same_workload_speedup_1lane", "same_workload_speedup_1lane_per_frame",
+                  "efficiency_N2_lanepool", "efficiency_N_physical", "efficiency_N_logical"]
+    write_csv(summarize(speedup_rows, "category", speed_keys), OUTPUT_ROOT / "speedup_summary_by_category.csv")
+    write_csv(summarize(speedup_rows, "tier", speed_keys), OUTPUT_ROOT / "speedup_summary_by_tier.csv")
 
-    speedup_summary_cat = summarize(speedup_rows, "category", ["naive_speedup", "normalized_speedup", "percent_improvement_normalized"])
-    write_csv(speedup_summary_cat, OUTPUT_ROOT / "speedup_summary_by_category.csv")
-    speedup_summary_tier = summarize(speedup_rows, "tier", ["naive_speedup", "normalized_speedup", "percent_improvement_normalized"])
-    write_csv(speedup_summary_tier, OUTPUT_ROOT / "speedup_summary_by_tier.csv")
+    overall = {k: mean_std([r.get(k) for r in speedup_rows]) for k in speed_keys}
+    impl_overall = {}
+    for impl, lane in (("sequential", "Lane1(ROI1)"), ("parallel_1lane", "Lane1"),
+                       ("serial_2lane", "Lane1"), ("parallel", "Lane1")):
+        sel = [r for r in rows if r["implementation"] == impl and r["lane"] == lane]
+        impl_overall[impl] = {k: mean_std([r.get(k) for r in sel])
+                              for k in ("mean_frame_time_ms", "mean_frame_io_ms", "fps",
+                                        "total_time_seconds", "peak_memory_mb",
+                                        "cpu_utilization_of_one_core")}
+    r_density = _pearson([r.get("density") for r in speedup_rows],
+                         [r.get("normalized_speedup") for r in speedup_rows])
+    amdahl_overall = {k: mean_std([r.get(k) for r in amdahl_rows])
+                      for k in ("p_narrow", "p_broad", "S_narrow_N2", "S_broad_N2",
+                                "S_narrow_Nphys", "S_broad_Nphys")} if amdahl_rows else {}
+    n_equiv = sum(1 for r in equiv_rows if r["identical"])
 
-    overall_speedup_mean, overall_speedup_std, overall_speedup_n = mean_std(
-        [r["normalized_speedup"] for r in speedup_rows]
-    )
+    def fmt(ms):
+        m, s, n = ms
+        return f"{m:.4f} ± {s:.4f} (n={n})" if m is not None else "n/a"
 
-    # ── Final human-readable summary (requirement: "at the end, tell me...") ──
-    lines = []
-    lines.append("=" * 78)
-    lines.append("BENCHMARK COMPLETE")
-    lines.append("=" * 78)
-    lines.append(f"\nOutput root: {OUTPUT_ROOT}")
-    lines.append(f"\nVideos selected ({len(selection)}):")
+    lines = ["=" * 78, "BENCHMARK COMPLETE", "=" * 78,
+             f"\nOutput root: {OUTPUT_ROOT}",
+             f"\nSystem: {sysinfo.get('cpu_model')} | physical cores {sysinfo.get('physical_cores')} | "
+             f"logical {sysinfo.get('logical_processors')} | {sysinfo.get('platform')} | "
+             f"Python {sysinfo.get('python_version')} | OpenCV {sysinfo.get('opencv_version')}",
+             f"\nVideos ({len(selection)}):"]
     for e in selection:
-        lines.append(f"  - {e['category']}/{e['tier']}: {e['video'].name}  "
-                      f"(density={e['density']:.3f}, source={e['density_source']})")
-    lines.append(f"\nMissing XML annotations ({len(missing_xml)}), excluded from selection:")
-    for v in missing_xml:
-        lines.append(f"  - {v}")
+        lines.append(f"  - {e['category']}/{e['tier']}: {e['video'].name}  (density={e['density']:.3f})")
     lines.append(f"\nFailed runs: {len(failures)} (see failures.csv)")
-    lines.append(f"\nOverall normalized speedup (parallel vs sequential, "
-                  f"workload-corrected, clean pass only):")
-    lines.append(f"  mean = {overall_speedup_mean:.3f}x  "
-                  f"std = {overall_speedup_std:.3f}  (n={overall_speedup_n})"
-                  if overall_speedup_mean is not None else "  (no valid runs)")
-    lines.append("\nPer-category speedup: see speedup_summary_by_category.csv")
-    lines.append("Per-tier (light/medium/heavy) speedup: see speedup_summary_by_tier.csv")
-    lines.append("Per-category accuracy (F1) mean±std: see summary_by_category.csv")
-    lines.append("Per-tier accuracy (F1) mean±std: see summary_by_tier.csv")
-    lines.append("Full per-video, per-implementation, per-lane rows: consolidated_results.csv")
-    lines.append("Full per-video speedup: speedup_by_video.csv")
+    lines.append(f"\nEquivalence checks identical: {n_equiv}/{len(equiv_rows)} (see equivalence.csv)")
+    lines.append("\nPer-workload means over videos (clean pass, Lane-1 rows):")
+    for impl, vals in impl_overall.items():
+        lines.append(f"  {impl:15s} " + "  ".join(f"{k}={fmt(v)}" for k, v in vals.items()))
+    lines.append("\nSpeedups (mean ± sample std over videos):")
+    for k in speed_keys:
+        lines.append(f"  {k:40s} {fmt(overall[k])}")
+    lines.append(f"\nPearson r(density, normalized_speedup) = "
+                 f"{r_density:.3f}" if r_density is not None else "\nPearson r: n/a")
+    if amdahl_overall:
+        lines.append("\nAmdahl (seq.py profiled pass, per-video then averaged):")
+        for k, v in amdahl_overall.items():
+            lines.append(f"  {k:20s} {fmt(v)}")
     summary_text = "\n".join(lines)
     print("\n" + summary_text)
     with open(OUTPUT_ROOT / "FINAL_SUMMARY.txt", "w") as f:
         f.write(summary_text + "\n")
-
 
 if __name__ == "__main__":
     main()
