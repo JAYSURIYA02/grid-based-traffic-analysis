@@ -1,8 +1,12 @@
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))  # expose root utils.py
+
 import cv2
 import numpy as np
 from collections import Counter
 
-from annotation_parser import load_detrac_annotations
+from evaluation.annotation_parser import load_detrac_annotations
 from utils import CLASSES, compute_metrics
 
 CLASS_TO_IDX = {cls: i for i, cls in enumerate(CLASSES)}

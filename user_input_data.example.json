@@ -1,0 +1,11 @@
+{
+    "video": "/absolute/path/to/your/video.mp4",
+    "color_channel": "V",
+    "grids": {
+        "rows": 6,
+        "cols": 6
+    },
+    "execution_mode": "Sequential",
+    "xml_path": "",
+    "pixels_per_meter": 0
+}
