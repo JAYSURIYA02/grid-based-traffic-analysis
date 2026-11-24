@@ -1,0 +1,66 @@
+========================================================
+SEQUENTIAL VS PARALLEL BENCHMARK
+========================================================
+
+  Input video     : MVI_63521.mp4
+  Frames (seq)    : 2054
+  Frames (par)    : 2054
+  Grid            : 6 x 6
+  Color channel   : V
+  Trials          : 3
+  CPU% note       : unnormalized -- can exceed 100% on multi-core
+  Workload note   : seq.py = 1 lane | rparallel_he3.py = 2 lanes
+
+--------------------------------------------------------
+SEQUENTIAL  (seq.py)
+--------------------------------------------------------
+  Mean total time   : 80.06 s  (+-0.00 s)
+  Mean FPS          : 25.66  (+-0.00)
+  Mean frame time   : 12.48 ms
+  Initial RSS       : 2.0 MB
+  Peak RSS          : 518.7 MB
+  Final RSS         : 228.8 MB
+  Average CPU%      : 365.4%
+  Maximum CPU%      : 600.7%
+
+  Per-trial breakdown:
+    Trial 1: wall=111.04s  fps=25.66  <- Trial 1 (possible warm-up)
+    Trial 2: wall=112.19s  fps=25.66
+    Trial 3: wall=112.06s  fps=25.66
+
+--------------------------------------------------------
+PARALLEL  (rparallel_he3.py)
+--------------------------------------------------------
+  Mean total time   : 89.66 s  (+-0.00 s)
+  Mean FPS          : 22.91  (+-0.00)
+  Mean frame time   : 38.14 ms
+  Initial RSS       : 2.0 MB
+  Peak RSS          : 519.5 MB
+  Final RSS         : 182.7 MB
+  Average CPU%      : 353.0%
+  Maximum CPU%      : 601.4%
+
+  Per-trial breakdown:
+    Trial 1: wall=112.55s  fps=22.91  <- Trial 1 (possible warm-up)
+    Trial 2: wall=112.02s  fps=22.91
+    Trial 3: wall=110.99s  fps=22.91
+
+--------------------------------------------------------
+COMPARISON
+--------------------------------------------------------
+  Speedup (seq/par)          : 0.893x
+  Execution-time reduction   : -12.0%
+  FPS improvement            : -10.7%
+  Memory diff (peak, MB)     : +0.7 MB  (par - seq)
+  CPU diff (avg %)           : -12.4%  (par - seq)
+
+  Verdict: Sequential is faster (parallel is 12.0% slower).
+
+  Workload caveat: parallel processes 2 lanes; sequential processes 1.
+    A fair per-lane comparison would halve the parallel time.
+    Per-lane parallel time : 44.83 s
+    Per-lane speedup       : 1.786x
+
+========================================================
+
+

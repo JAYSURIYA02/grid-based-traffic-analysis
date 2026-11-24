@@ -1,0 +1,23 @@
+         19878827 function calls (17793178 primitive calls) in 88.506 seconds
+
+   Ordered by: internal time
+   List reduced from 243 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     2054    5.194    0.003    5.194    0.003 {waitKey}
+148918/11205    4.532    0.000   58.246    0.005 {method 'get' of '_queue.SimpleQueue' objects}
+160212/21873    3.903    0.000    9.655    0.000 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\thread.py:164(submit)
+147888/49942    3.735    0.000    6.695    0.000 {dilate}
+     2054    3.530    0.002    3.530    0.002 {method 'read' of 'cv2.VideoCapture' objects}
+45428/6162    3.304    0.000   62.753    0.010 C:\Users\jaysu\anaconda3\Lib\threading.py:1016(_bootstrap)
+    45428    3.267    0.000    3.267    0.000 {built-in method _thread.start_new_thread}
+147888/68370    3.091    0.000    4.401    0.000 {getStructuringElement}
+147888/78962    3.000    0.000   10.541    0.000 {findContours}
+147888/94994    2.801    0.000    3.525    0.000 {threshold}
+147888/79654    2.789    0.000    3.155    0.000 {GaussianBlur}
+679236/138959    2.650    0.000   65.909    0.000 {method 'acquire' of '_thread.lock' objects}
+147888/13828    2.147    0.000   21.294    0.002 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3.py:315(process_grid_cell)
+160212/10243    1.765    0.000   55.453    0.005 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\thread.py:53(run)
+147888/13847    1.739    0.000   18.685    0.001 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3.py:78(process_grid_channel)
+
+

@@ -1,0 +1,7 @@
+implementation,trial,video,frames,grid_rows,grid_cols,color_channel,total_time_seconds,average_frame_time_ms,fps,initial_memory_mb,peak_memory_mb,final_memory_mb,average_cpu_percent,max_cpu_percent
+sequential,1,MVI_63521.mp4,2054,6,6,V,80.0607,12.4831,25.6555,1.96,519.07,209.1,364.48,625.0
+sequential,2,MVI_63521.mp4,2054,6,6,V,80.0607,12.4831,25.6555,1.96,516.47,263.34,366.36,587.4
+sequential,3,MVI_63521.mp4,2054,6,6,V,80.0607,12.4831,25.6555,1.96,520.69,214.04,365.41,589.6
+parallel,1,MVI_63521.mp4,2054,6,6,V,89.6611,38.1383,22.9085,1.96,520.38,267.61,352.02,634.4
+parallel,2,MVI_63521.mp4,2054,6,6,V,89.6611,38.1383,22.9085,1.96,519.37,72.2,354.47,569.8
+parallel,3,MVI_63521.mp4,2054,6,6,V,89.6611,38.1383,22.9085,1.96,518.68,208.32,352.53,600.0

@@ -1,0 +1,23 @@
+         8575524 function calls (7313683 primitive calls) in 22.931 seconds
+
+   Ordered by: cumulative time
+   List reduced from 234 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+306523/15984    0.324    0.000   69.049    0.004 {method 'acquire' of '_thread.lock' objects}
+       34    0.000    0.000   68.763    2.022 C:\Users\jaysu\anaconda3\Lib\threading.py:1115(join)
+       34    0.000    0.000   68.763    2.022 C:\Users\jaysu\anaconda3\Lib\threading.py:1153(_wait_for_tstate_lock)
+        2    0.000    0.000   45.852   22.926 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\thread.py:219(shutdown)
+88726/38226    0.156    0.000   34.910    0.001 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:612(result_iterator)
+86328/37026    0.249    0.000   34.581    0.001 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:314(_result_or_cancel)
+        1    0.000    0.000   22.931   22.931 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3_bench.py:887(main)
+     34/1    0.852    0.025   22.931   22.931 C:\Users\jaysu\anaconda3\Lib\threading.py:1016(_bootstrap)
+     34/1    0.001    0.000   22.931   22.931 C:\Users\jaysu\anaconda3\Lib\threading.py:1056(_bootstrap_inner)
+     34/1    0.000    0.000   22.931   22.931 C:\Users\jaysu\anaconda3\Lib\threading.py:999(run)
+     34/1    0.001    0.000   22.931   22.931 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\thread.py:69(_worker)
+  39769/9    0.943    0.000   22.930    2.548 {method 'get' of '_queue.SimpleQueue' objects}
+95920/8408    0.318    0.000   15.307    0.002 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:428(result)
+77115/6769    0.295    0.000   14.992    0.002 C:\Users\jaysu\anaconda3\Lib\threading.py:323(wait)
+95920/5996    0.373    0.000   14.251    0.002 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\thread.py:53(run)
+
+

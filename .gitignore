@@ -63,10 +63,13 @@ JAYSURIYA_BTP_Output Folder/
 # ══════════════════════════════════════════════════════════════════════════════
 # BENCHMARK & PROFILING OUTPUTS  (generated — reproduce locally)
 # ══════════════════════════════════════════════════════════════════════════════
-benchmark_results/
-profiling/*.prof
-profiling/*.json
-profiling/*.txt
+# Benchmark result folders ARE committed (small JSON/CSV/log/profile files);
+# their videos and spreadsheets stay ignored via the **/*.mp4 and **/*.xlsx
+# rules above. Large per-run evaluation plots are ignored:
+benchmark_results*/**/plots/
+verification/**/plots/
+# heatmaps / per-frame dumps written by runs
+**/output_MVI_40771/
 
 # ══════════════════════════════════════════════════════════════════════════════
 # UPLOADED FILES  (user-uploaded via the Flask UI)
@@ -83,5 +86,3 @@ user_input_data.json
 # ══════════════════════════════════════════════════════════════════════════════
 evaluation/per_video_results.csv
 evaluation/category_results.csv
-benchmarking/benchmark_results.csv
-benchmarking/benchmark_results.txt

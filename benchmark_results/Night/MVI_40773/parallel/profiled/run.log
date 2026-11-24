@@ -1,0 +1,138 @@
+
+Failed to load OpenH264 library: openh264-1.8.0-win64.dll
+	Please check environment and/or download library: https://github.com/cisco/openh264/releases
+
+[libopenh264 @ 000001d6c5dede00] Incorrect library version loaded
+[ERROR:0@0.013] global cap_ffmpeg_impl.hpp:3268 open Could not open codec libopenh264, error: Unspecified error (-22)
+[ERROR:0@0.013] global cap_ffmpeg_impl.hpp:3285 open VIDEOIO/FFMPEG: Failed to initialize VideoWriter
+Frame 100 | Lane1 passed: 0 | Lane2 passed: 0
+Frame 200 | Lane1 passed: 0 | Lane2 passed: 0
+Frame 300 | Lane1 passed: 0 | Lane2 passed: 0
+Frame 400 | Lane1 passed: 1 | Lane2 passed: 0
+Frame 500 | Lane1 passed: 2 | Lane2 passed: 1
+Frame 600 | Lane1 passed: 4 | Lane2 passed: 2
+Frame 700 | Lane1 passed: 4 | Lane2 passed: 4
+Frame 800 | Lane1 passed: 5 | Lane2 passed: 5
+Frame 900 | Lane1 passed: 5 | Lane2 passed: 6
+Execution Time: 20.50 seconds
+Memory Usage: 308.76 MB
+
+-- Lane1 Summary --
+Average Density: 0.0943
+Vehicles Passed: 6
+  Car: 10
+  Van: 5
+  Bus: 1
+
+-- Lane2 Summary --
+Average Density: 0.1083
+Vehicles Passed: 7
+  Car: 27
+  Van: 2
+  Bus: 0
+frames: 984
+[BENCH] rpar_frame_metrics.json written.
+         6835647 function calls (5800749 primitive calls) in 19.749 seconds
+
+   Ordered by: cumulative time
+   List reduced from 234 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+253221/13130    0.282    0.000   98.868    0.008 {method 'acquire' of '_thread.lock' objects}
+       34    0.000    0.000   98.650    2.901 C:\Users\jaysu\anaconda3\Lib\threading.py:1115(join)
+       34    0.000    0.000   98.649    2.901 C:\Users\jaysu\anaconda3\Lib\threading.py:1153(_wait_for_tstate_lock)
+        2    0.000    0.000   39.484   19.742 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\thread.py:219(shutdown)
+72816/31139    0.131    0.000   28.617    0.001 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:612(result_iterator)
+70848/30154    0.202    0.000   28.312    0.001 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:314(_result_or_cancel)
+        1    0.000    0.000   19.749   19.749 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3_bench.py:887(main)
+     34/1    0.838    0.025   19.749   19.749 C:\Users\jaysu\anaconda3\Lib\threading.py:1016(_bootstrap)
+     34/1    0.001    0.000   19.748   19.748 C:\Users\jaysu\anaconda3\Lib\threading.py:1056(_bootstrap_inner)
+     34/1    0.000    0.000   19.748   19.748 C:\Users\jaysu\anaconda3\Lib\threading.py:999(run)
+
+
+[BENCH] profile_rpar.prof saved.
+[BENCH] profile_rpar_cumtime.txt saved.
+[BENCH] profile_rpar_tottime.txt saved.
+
+===== DETRAC Evaluation: Lane1 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 11
+Predicted vehicles (unique tracker IDs): 19
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 10
+Unmatched GT vehicles: 1
+Matched predicted tracks: 12
+Unmatched predicted tracks: 7
+
+-- DEBUG INFO --
+Total GT vehicles: 11
+Total predicted vehicles: 19
+Matched GT vehicles: 10
+Unmatched GT vehicles: 1
+Unmatched predicted vehicles: 7
+
+-- Vehicle-Level Confusion Matrix --
+[[6 3 0]
+ [0 0 0]
+ [0 1 0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 1.000
+Recall   : 0.667
+F1 Score : 0.800
+
+Class: Van
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+===== DETRAC Evaluation: Lane2 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 19
+Predicted vehicles (unique tracker IDs): 34
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 16
+Unmatched GT vehicles: 3
+Matched predicted tracks: 21
+Unmatched predicted tracks: 13
+
+-- DEBUG INFO --
+Total GT vehicles: 19
+Total predicted vehicles: 34
+Matched GT vehicles: 16
+Unmatched GT vehicles: 3
+Unmatched predicted vehicles: 13
+
+-- Vehicle-Level Confusion Matrix --
+[[6 8 1]
+ [0 0 0]
+ [0 1 0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 1.000
+Recall   : 0.400
+F1 Score : 0.571
+
+Class: Van
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+[BENCH] eval_metrics.json written (both lanes).

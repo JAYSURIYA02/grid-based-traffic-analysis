@@ -1,0 +1,170 @@
+{
+  "Lane1": {
+    "implementation": "parallel_threaded",
+    "lane": "Lane1",
+    "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Rainy\\MVI_40131.mp4",
+    "grid_rows": 6,
+    "grid_cols": 6,
+    "unique_gt_vehicles": 39,
+    "unique_predicted_tracks": 64,
+    "matched_gt_vehicles": 39,
+    "unmatched_gt_vehicles": 0,
+    "matched_predicted_tracks": 40,
+    "unmatched_predicted_tracks": 24,
+    "confusion_matrix_vehicle_labels": [
+      "Car",
+      "Van",
+      "Bus"
+    ],
+    "confusion_matrix_vehicle": [
+      [
+        6,
+        17,
+        11
+      ],
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        0,
+        1
+      ]
+    ],
+    "confusion_matrix_grid_labels": [
+      "Empty",
+      "Car",
+      "Van",
+      "Bus"
+    ],
+    "confusion_matrix_grid": [
+      [
+        43645,
+        2679,
+        5390,
+        4451
+      ],
+      [
+        419,
+        425,
+        862,
+        595
+      ],
+      [
+        12,
+        57,
+        23,
+        22
+      ],
+      [
+        587,
+        9,
+        6,
+        2
+      ]
+    ],
+    "metrics": {
+      "Car": {
+        "precision": 0.857142734693895,
+        "recall": 0.17647058304498286,
+        "f1": 0.29268262938752304
+      },
+      "Van": {
+        "precision": 0.055555552469135974,
+        "recall": 0.33333322222225925,
+        "f1": 0.09523784127042328
+      },
+      "Bus": {
+        "precision": 0.07142856632653098,
+        "recall": 0.499999750000125,
+        "f1": 0.12499976562531447
+      }
+    }
+  },
+  "Lane2": {
+    "implementation": "parallel_threaded",
+    "lane": "Lane2",
+    "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Rainy\\MVI_40131.mp4",
+    "grid_rows": 6,
+    "grid_cols": 6,
+    "unique_gt_vehicles": 21,
+    "unique_predicted_tracks": 48,
+    "matched_gt_vehicles": 21,
+    "unmatched_gt_vehicles": 0,
+    "matched_predicted_tracks": 24,
+    "unmatched_predicted_tracks": 24,
+    "confusion_matrix_vehicle_labels": [
+      "Car",
+      "Van",
+      "Bus"
+    ],
+    "confusion_matrix_vehicle": [
+      [
+        0,
+        12,
+        7
+      ],
+      [
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        1,
+        0
+      ]
+    ],
+    "confusion_matrix_grid_labels": [
+      "Empty",
+      "Car",
+      "Van",
+      "Bus"
+    ],
+    "confusion_matrix_grid": [
+      [
+        51697,
+        1518,
+        2408,
+        2045
+      ],
+      [
+        70,
+        205,
+        268,
+        226
+      ],
+      [
+        0,
+        5,
+        0,
+        31
+      ],
+      [
+        652,
+        20,
+        39,
+        0
+      ]
+    ],
+    "metrics": {
+      "Car": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Van": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Bus": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      }
+    }
+  }
+}
