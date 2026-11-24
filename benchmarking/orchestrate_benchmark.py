@@ -807,40 +807,6 @@ def write_csv(rows, path, fieldnames=None):
     print(f"[OK] Wrote {path} ({len(rows)} rows)")
 
 
-def compute_speedup_rows(run_results):
-    """Per-video normalized speedup: (parallel ROI-frame throughput) /
-    (sequential ROI-frame throughput), using the clean pass only."""
-    rows = []
-    for entry in run_results:
-        video, cat, tier = entry["video"], entry["category"], entry["tier"]
-        seq_dir = Path(entry["runs"]["sequential/clean"]["workdir"])
-        par_dir = Path(entry["runs"]["parallel/clean"]["workdir"])
-        seq_m = _read_json(seq_dir / "seq_frame_metrics.json")
-        par_m = _read_json(par_dir / "rpar_frame_metrics.json")
-        if not seq_m or not par_m:
-            rows.append({
-                "video": Path(video).stem, "category": cat, "tier": tier,
-                "naive_speedup": None, "normalized_speedup": None,
-                "percent_improvement_normalized": None,
-                "note": "missing seq or parallel clean-pass metrics (see run_status)",
-            })
-            continue
-        seq_total = seq_m.get("total_time_seconds", 0) or 0
-        par_total = par_m.get("total_time_seconds", 0) or 0
-        seq_thr = (seq_m["frames"] * seq_m.get("lanes", 1)) / seq_total if seq_total else None
-        par_thr = (par_m["frames"] * par_m.get("lanes", 2)) / par_total if par_total else None
-        naive = (seq_total / par_total) if par_total else None
-        norm = (par_thr / seq_thr) if (seq_thr and par_thr) else None
-        rows.append({
-            "video": Path(video).stem, "category": cat, "tier": tier,
-            "seq_total_time_s": seq_total, "par_total_time_s": par_total,
-            "naive_speedup": naive,
-            "normalized_speedup": norm,
-            "percent_improvement_normalized": ((norm - 1) * 100) if norm is not None else None,
-        })
-    return rows
-
-
 def mean_std(values):
     values = [v for v in values if v is not None]
     if not values:

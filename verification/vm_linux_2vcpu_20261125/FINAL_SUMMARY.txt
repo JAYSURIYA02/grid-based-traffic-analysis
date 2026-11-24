@@ -1,0 +1,45 @@
+==============================================================================
+BENCHMARK COMPLETE
+==============================================================================
+
+Output root: /sessions/rcw-0125cyjxwb9bjy8y5yzk8rjk/mnt/Lattice-Layer-Vehicle-Detection-/verification/vm_linux_2vcpu_20261125
+
+System: AMD Ryzen 5 7235HS | physical cores 1 | logical 2 | Linux-6.8.0-149-generic-x86_64-with-glibc2.35 | Python 3.10.12 | OpenCV 5.0.0
+
+Videos (12):
+  - Cloudy/light: MVI_39761.mp4  (density=2.810)
+  - Night/light: MVI_40774.mp4  (density=6.087)
+  - Rainy/light: MVI_63525.mp4  (density=3.523)
+  - Sunny/light: MVI_20033.mp4  (density=6.727)
+  - Cloudy/medium: MVI_39771.mp4  (density=6.325)
+  - Night/medium: MVI_40773.mp4  (density=8.029)
+  - Rainy/medium: MVI_40141.mp4  (density=3.889)
+  - Sunny/medium: MVI_20011.mp4  (density=11.529)
+  - Cloudy/heavy: MVI_40963.mp4  (density=6.395)
+  - Night/heavy: MVI_40772.mp4  (density=12.928)
+  - Rainy/heavy: MVI_40131.mp4  (density=9.316)
+  - Sunny/heavy: MVI_39311.mp4  (density=14.922)
+
+Failed runs: 0 (see failures.csv)
+
+Equivalence checks identical: 48/48 (see equivalence.csv)
+
+Per-workload means over videos (clean pass, Lane-1 rows):
+  sequential      mean_frame_time_ms=8.4160 ± 1.2721 (n=12)  mean_frame_io_ms=5.7802 ± 0.5860 (n=12)  fps=69.9674 ± 8.3175 (n=12)  total_time_seconds=17.1764 ± 6.3632 (n=12)  peak_memory_mb=175.0547 ± 1.3310 (n=12)  cpu_utilization_of_one_core=1.6647 ± 0.0835 (n=12)
+  parallel_1lane  mean_frame_time_ms=11.2435 ± 1.0171 (n=12)  mean_frame_io_ms=5.8310 ± 0.6337 (n=12)  fps=58.0416 ± 4.5122 (n=12)  total_time_seconds=20.7012 ± 7.4039 (n=12)  peak_memory_mb=183.5456 ± 2.0672 (n=12)  cpu_utilization_of_one_core=1.5560 ± 0.0821 (n=12)
+  serial_2lane    mean_frame_time_ms=11.2963 ± 1.2530 (n=12)  mean_frame_io_ms=5.9212 ± 0.7199 (n=12)  fps=57.7670 ± 5.6018 (n=12)  total_time_seconds=20.7569 ± 7.4364 (n=12)  peak_memory_mb=179.4066 ± 2.9269 (n=12)  cpu_utilization_of_one_core=1.6231 ± 0.0606 (n=12)
+  parallel        mean_frame_time_ms=17.8484 ± 1.5467 (n=12)  mean_frame_io_ms=6.1225 ± 0.7249 (n=12)  fps=41.5265 ± 3.2115 (n=12)  total_time_seconds=28.8190 ± 10.0730 (n=12)  peak_memory_mb=187.6260 ± 3.3611 (n=12)  cpu_utilization_of_one_core=1.5600 ± 0.0620 (n=12)
+
+Speedups (mean ± sample std over videos):
+  naive_speedup                            0.5994 ± 0.0712 (n=12)
+  normalized_speedup                       1.1987 ± 0.1424 (n=12)
+  normalized_speedup_per_frame             0.9493 ± 0.1646 (n=12)
+  same_workload_speedup_2lane              0.7220 ± 0.0572 (n=12)
+  same_workload_speedup_2lane_per_frame    0.6343 ± 0.0634 (n=12)
+  same_workload_speedup_1lane              0.8359 ± 0.0802 (n=12)
+  same_workload_speedup_1lane_per_frame    0.7511 ± 0.1125 (n=12)
+  efficiency_N2_lanepool                   0.3610 ± 0.0286 (n=12)
+  efficiency_N_physical                    0.7220 ± 0.0572 (n=12)
+  efficiency_N_logical                     0.3610 ± 0.0286 (n=12)
+
+Pearson r(density, normalized_speedup) = -0.327

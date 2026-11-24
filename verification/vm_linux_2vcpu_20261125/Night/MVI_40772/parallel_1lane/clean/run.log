@@ -1,0 +1,70 @@
+[h264_v4l2m2m @ 0x5ce1ed9b2b40] Could not find a valid device
+[h264_v4l2m2m @ 0x5ce1ed9b2b40] can't configure encoder
+[ERROR:0@2.732] global cap_ffmpeg_impl.hpp:3568 open Could not open codec h264_v4l2m2m, error: Unspecified error (-22)
+[ERROR:0@2.733] global cap_ffmpeg_impl.hpp:3585 open VIDEOIO/FFMPEG: Failed to initialize VideoWriter
+[WARN] avc1 codec failed, falling back to mp4v
+Frame 100 | Lane1 passed: 0
+Frame 200 | Lane1 passed: 0
+Frame 300 | Lane1 passed: 1
+Frame 400 | Lane1 passed: 2
+Frame 500 | Lane1 passed: 3
+Frame 600 | Lane1 passed: 4
+Frame 700 | Lane1 passed: 4
+Frame 800 | Lane1 passed: 5
+Frame 900 | Lane1 passed: 5
+Frame 1000 | Lane1 passed: 9
+Frame 1100 | Lane1 passed: 10
+Execution Time: 20.01 seconds
+Memory Usage: 183.26 MB
+
+-- Lane1 Summary --
+Average Density: 0.1179
+Vehicles Passed: 13
+  Car: 10
+  Van: 9
+  Bus: 0
+frames: 1199
+[BENCH] rpar_frame_metrics.json written.
+[BENCH] BTP_PROFILE=0 — clean timing pass, no profile written.
+
+===== DETRAC Evaluation: Lane1 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 26
+Predicted vehicles (unique tracker IDs): 23
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 25
+Unmatched GT vehicles: 1
+Matched predicted tracks: 18
+Unmatched predicted tracks: 5
+
+-- DEBUG INFO --
+Total GT vehicles: 26
+Total predicted vehicles: 23
+Matched GT vehicles: 25
+Unmatched GT vehicles: 1
+Unmatched predicted vehicles: 5
+
+-- Vehicle-Level Confusion Matrix --
+[[ 6 19  0]
+ [ 0  0  0]
+ [ 0  0  0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 1.000
+Recall   : 0.240
+F1 Score : 0.387
+
+Class: Van
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+[BENCH] eval_metrics.json written (both lanes).
