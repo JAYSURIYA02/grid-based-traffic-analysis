@@ -1,4 +1,3 @@
-from anyio import key
 import cv2
 import numpy as np
 import psutil
@@ -33,6 +32,10 @@ num_rows, num_cols = rows, cols
 frame_count = 0
 start_time = time.time()
 
+# ── Benchmark instrumentation (mirrors seq.py so results are comparable) ──
+frame_times = []
+memory_usages = []
+
 cap = cv2.VideoCapture(video_path)
 
 # Read actual FPS from the video; fall back to 30 if unavailable
@@ -66,7 +69,9 @@ if not OUTPUT_WRITER_OK:
 
 # Whether a GUI display is available; probed lazily on the first imshow call
 # in main(), so this also correctly detects headless environments.
-DISPLAY_ENABLED = True
+# ── BENCH PATCH: BTP_DISPLAY=0 suppresses the live preview window for
+# unattended batch runs. Default (unset/"1") preserves original behavior.
+DISPLAY_ENABLED = os.environ.get("BTP_DISPLAY", "1") != "0"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Persistent, reusable thread pools.
@@ -102,26 +107,73 @@ def process_grid_channel(channel, grid_width, grid_height):
     return contours
 
 
-def apply_histogram_equalization_single(frame, roi_x, roi_y, roi_width, roi_height):
+def apply_histogram_equalization_single(frame, roi_x, roi_y, roi_width, roi_height, channel_choice):
+    # ── ALGORITHM-EQUIVALENCE FIX (user-authorized, 2026) ───────────────────
+    # Previously this function ignored channel_choice entirely and always
+    # converted the ROI to grayscale before equalizing, discarding all hue/
+    # saturation information. seq.py's apply_histogram_equalization (with
+    # he_choice='V') instead equalizes only the V channel in HSV space,
+    # leaving H and S untouched. That is a materially different preprocessing
+    # step, not just a stylistic difference -- it changes what information
+    # reaches the differencing stage. This function now branches identically
+    # to seq.py's apply_histogram_equalization; seq.py itself is unchanged.
     roi = frame[roi_y:roi_y + roi_height, roi_x:roi_x + roi_width]
-    roi_equalized = cv2.equalizeHist(cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY))
-    frame[roi_y:roi_y + roi_height, roi_x:roi_x + roi_width] = cv2.cvtColor(roi_equalized, cv2.COLOR_GRAY2BGR)
+    if channel_choice == 'gray':
+        roi_gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+        roi_equalized = cv2.equalizeHist(roi_gray)
+        frame[roi_y:roi_y + roi_height, roi_x:roi_x + roi_width] = cv2.cvtColor(roi_equalized, cv2.COLOR_GRAY2BGR)
+    else:
+        hsv = cv2.cvtColor(roi, cv2.COLOR_BGR2HSV)
+        h, s, v = cv2.split(hsv)
+        if channel_choice == 'H':
+            h = cv2.equalizeHist(h)
+        elif channel_choice == 'S':
+            s = cv2.equalizeHist(s)
+        elif channel_choice == 'V':
+            v = cv2.equalizeHist(v)
+        hsv_equalized = cv2.merge([h, s, v])
+        frame[roi_y:roi_y + roi_height, roi_x:roi_x + roi_width] = cv2.cvtColor(hsv_equalized, cv2.COLOR_HSV2BGR)
     return frame
 
 
-def apply_histogram_equalization_parallel(frame):
+def apply_histogram_equalization_parallel(frame, channel_choice):
     futures = [
-        _CELL_POOL.submit(apply_histogram_equalization_single, frame, roi1_x, roi1_y, roi1_width, roi1_height),
-        _CELL_POOL.submit(apply_histogram_equalization_single, frame, roi2_x, roi2_y, roi2_width, roi2_height)
+        _CELL_POOL.submit(apply_histogram_equalization_single, frame, roi1_x, roi1_y, roi1_width, roi1_height, channel_choice),
+        _CELL_POOL.submit(apply_histogram_equalization_single, frame, roi2_x, roi2_y, roi2_width, roi2_height, channel_choice)
     ]
     for future in futures:
         frame = future.result()
     return frame
 
 
+# ── ALGORITHM-EQUIVALENCE FIX (user-authorized, 2026) ───────────────────────
+# seq.py's equalization channel (he_choice) is a hardcoded 'V', independent
+# of the color_channel config used for diff-channel selection (see seq.py
+# line ~723). Matched here verbatim -- NOT derived from color_channel --
+# to reproduce seq.py's *current* behavior exactly, per explicit instruction
+# not to also change what seq.py does. If seq.py's hardcoding of he_choice
+# is revisited later, this constant should be revisited identically.
+HE_CHOICE = 'V'
+
+
 def process_hsv(frame1, frame2, channels):
-    frame1 = apply_histogram_equalization_parallel(frame1)
-    frame2 = apply_histogram_equalization_parallel(frame2)
+    frame1 = apply_histogram_equalization_parallel(frame1, HE_CHOICE)
+    frame2 = apply_histogram_equalization_parallel(frame2, HE_CHOICE)
+
+    # ── ALGORITHM-EQUIVALENCE FIX (user-authorized, 2026) ───────────────────
+    # seq.py applies a 7x7 frame-level Gaussian blur to both frames before
+    # differencing (see seq.py's process_hsv); this implementation omitted
+    # it, so the two "identical" pipelines were actually processing
+    # different diff images. Added here, unmodified from seq.py's kernel/
+    # sigma, to restore true algorithmic equivalence between lanes and the
+    # sequential reference. This is the one change in this file that
+    # touches detection output (as opposed to the BTP_* benchmarking
+    # instrumentation elsewhere), and was explicitly requested by the user
+    # after cross-implementation F1 comparison showed only 4/12 benchmark
+    # videos produced matching predictions between seq.py and this file's
+    # Lane 1 prior to this fix.
+    frame1 = cv2.GaussianBlur(frame1, (7, 7), 0)
+    frame2 = cv2.GaussianBlur(frame2, (7, 7), 0)
 
     diff = cv2.absdiff(frame1, frame2)
     hsv = cv2.cvtColor(diff, cv2.COLOR_BGR2HSV)
@@ -130,8 +182,14 @@ def process_hsv(frame1, frame2, channels):
 
 
 def process_grayscale(frame1, frame2):
-    frame1 = apply_histogram_equalization_parallel(frame1)
-    frame2 = apply_histogram_equalization_parallel(frame2)
+    frame1 = apply_histogram_equalization_parallel(frame1, HE_CHOICE)
+    frame2 = apply_histogram_equalization_parallel(frame2, HE_CHOICE)
+
+    # ── ALGORITHM-EQUIVALENCE FIX (user-authorized, 2026) ───────────────────
+    # Same fix as process_hsv above, for the grayscale code path (seq.py's
+    # process_grayscale also applies this blur before differencing).
+    frame1 = cv2.GaussianBlur(frame1, (7, 7), 0)
+    frame2 = cv2.GaussianBlur(frame2, (7, 7), 0)
 
     diff = cv2.absdiff(frame1, frame2)
     gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
@@ -826,7 +884,7 @@ lane2 = LaneTracker("Lane2", roi2_x, roi2_y, roi2_width, roi2_height, num_rows, 
 
 
 def main():
-    global frame1, frame2, ret, frame_count, DISPLAY_ENABLED
+    global frame1, frame2, ret, frame_count, DISPLAY_ENABLED, frame_times, memory_usages
     WINDOW_NAME = "Parallel Vehicle Detection"
 
     try:
@@ -834,6 +892,7 @@ def main():
             if not ret:
                 break
             frame_count += 1
+            frame_start_time = time.time()
 
             if frame1.shape[:2] == frame2.shape[:2]:
                 if channels == 'gray':
@@ -908,14 +967,23 @@ def main():
                               "video will still be written to disk if the writer "
                               "opened successfully.")
 
+                frame_end_time = time.time()
+                frame_times.append(frame_end_time - frame_start_time)
+                memory_usages.append(psutil.Process().memory_info().rss / (1024 * 1024))
+
                 frame1 = frame2
                 ret, frame2 = cap.read()
 
             # Non-blocking key poll (1ms) so the loop / preview never freezes.
-            # ESC (27)  AND Q requests a safe stop.
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q') or key == 27:
-                break
+            # ESC (27) AND Q requests a safe stop. Gated on DISPLAY_ENABLED:
+            # waitKey() performs its own internal wait/event processing
+            # regardless of whether a window exists, so it's skipped entirely
+            # for unattended batch runs (BTP_DISPLAY=0) rather than only
+            # gating cv2.imshow as an earlier, incomplete patch did.
+            if DISPLAY_ENABLED:
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord('q') or key == 27:
+                    break
     
 
         end_time = time.time()
@@ -937,12 +1005,42 @@ def main():
                 print(f"  {cls}: {label_counts.get(cls, 0)}")
 
         print("frames: " f"{frame_count}")
+
+        # ── Benchmark instrumentation: export per-frame timing for harness ────
+        # Schema mirrors seq_frame_metrics.json (seq.py) so both runs can be
+        # loaded and compared directly by analyze_results.py. Note "lanes": 2 —
+        # this run processes TWICE the ROI workload of seq.py's single lane,
+        # so raw total_time_seconds is NOT a fair speedup ratio on its own.
+        # See analyze_results.py / paper Section XI for the normalized
+        # (per-ROI-frame) throughput metric that corrects for this.
+        import json as _json
+        _metrics = {
+            "implementation": "parallel_threaded",
+            "video": video_path,
+            "frames": frame_count,
+            "lanes": 2,
+            "grid_rows": num_rows,
+            "grid_cols": num_cols,
+            "color_channel": color_channel,
+            "cell_pool_workers": _CELL_POOL._max_workers,
+            "lane_pool_workers": _LANE_POOL._max_workers,
+            "total_time_seconds": execution_time,
+            "frame_times_seconds": frame_times,
+            "memory_usages_mb": memory_usages,
+            "lane_vehicle_counts": {lane.name: lane.vehicle_count for lane in (lane1, lane2)},
+        }
+        with open("rpar_frame_metrics.json", "w") as _f:
+            _json.dump(_metrics, _f, indent=2)
+        print("[BENCH] rpar_frame_metrics.json written.")
     finally:
         # Always released, even if an exception interrupted the loop above,
         # so the capture/writer/window handles never leak.
         cap.release()
         out.release()
-        cv2.destroyAllWindows()
+        try:  # headless OpenCV builds have no HighGUI backend
+            cv2.destroyAllWindows()
+        except cv2.error:
+            pass
         _CELL_POOL.shutdown(wait=True)
         _LANE_POOL.shutdown(wait=True)
 
@@ -1097,7 +1195,17 @@ def evaluate_lane(lane, gt_data, show_grid_heatmap=True, debug_grid_metrics=Fals
     ])
     fig.text(0.5, 0.02, metrics_text, ha="center", va="bottom", fontsize=9)
 
-    return conf_matrix, conf_matrix_vehicle, metrics
+    # ── BENCH PATCH: surface the already-computed ID-based summary so callers
+    # can export it, instead of only printing it. No computation changed.
+    id_summary = {
+        "unique_gt_vehicles": len(unique_gt_ids),
+        "unique_predicted_tracks": len(unique_pred_track_ids),
+        "matched_gt_vehicles": len(matched_gt_ids),
+        "unmatched_gt_vehicles": len(unmatched_gt_ids),
+        "matched_predicted_tracks": len(matched_pred_track_ids),
+        "unmatched_predicted_tracks": len(unmatched_pred_track_ids),
+    }
+    return conf_matrix, conf_matrix_vehicle, metrics, id_summary
 
 
 def save_all_to_excel():
@@ -1143,13 +1251,40 @@ def save_all_to_excel():
 
 
 if __name__ == '__main__':
+    # ── BENCH PATCH (orchestration infra, not an algorithm change) ─────────
+    # Set BTP_PROFILE=0 to run without cProfile, for a clean timing pass
+    # uncontaminated by profiler overhead. Default preserves original
+    # always-profiled behavior.
+    _PROFILE_ON = os.environ.get("BTP_PROFILE", "1") != "0"
     profiler = cProfile.Profile()
-    profiler.enable()
+    if _PROFILE_ON:
+        profiler.enable()
     main()
-    profiler.disable()
+    if _PROFILE_ON:
+        profiler.disable()
 
-    stats = pstats.Stats(profiler).sort_stats('cumtime')
-    stats.print_stats(10)  # Print the top 10 functions by cumulative time
+    if _PROFILE_ON:
+        stats = pstats.Stats(profiler).sort_stats('cumtime')
+        stats.print_stats(10)  # Print the top 10 functions by cumulative time
+
+        # ── Save binary profile + readable reports, mirroring seq.py's outputs ──
+        profiler.dump_stats('profile_rpar.prof')
+        print("[BENCH] profile_rpar.prof saved.")
+
+        import io as _io
+        _buf = _io.StringIO()
+        pstats.Stats(profiler, stream=_buf).sort_stats('cumulative').print_stats(15)
+        with open('profile_rpar_cumtime.txt', 'w') as _f:
+            _f.write(_buf.getvalue())
+        print("[BENCH] profile_rpar_cumtime.txt saved.")
+
+        _buf2 = _io.StringIO()
+        pstats.Stats(profiler, stream=_buf2).sort_stats('tottime').print_stats(15)
+        with open('profile_rpar_tottime.txt', 'w') as _f:
+            _f.write(_buf2.getvalue())
+        print("[BENCH] profile_rpar_tottime.txt saved.")
+    else:
+        print("[BENCH] BTP_PROFILE=0 — clean timing pass, no profile written.")
 
     # Evaluation runs only after processing has completed.
     XML_PATH = xml_path.strip()
@@ -1158,8 +1293,30 @@ if __name__ == '__main__':
 
     if XML_PATH and os.path.exists(XML_PATH):
         gt_data = load_detrac(XML_PATH)
+        _eval_results = {}
         for lane in (lane1, lane2):
-            evaluate_lane(lane, gt_data, show_grid_heatmap=True, debug_grid_metrics=False)
+            conf_matrix, conf_matrix_vehicle, metrics, id_summary = evaluate_lane(
+                lane, gt_data, show_grid_heatmap=True, debug_grid_metrics=False
+            )
+            _eval_results[lane.name] = {
+                "implementation": "parallel_threaded",
+                "lane": lane.name,
+                "video": video_path,
+                "grid_rows": num_rows,
+                "grid_cols": num_cols,
+                **id_summary,
+                "confusion_matrix_vehicle_labels": ["Car", "Van", "Bus"],
+                "confusion_matrix_vehicle": conf_matrix_vehicle.tolist(),
+                "confusion_matrix_grid_labels": ["Empty", "Car", "Van", "Bus"] if conf_matrix is not None else None,
+                "confusion_matrix_grid": conf_matrix.tolist() if conf_matrix is not None else None,
+                "metrics": {
+                    cls: {"precision": metrics[cls][0], "recall": metrics[cls][1], "f1": metrics[cls][2]}
+                    for cls in ["Car", "Van", "Bus"]
+                },
+            }
+        with open("eval_metrics.json", "w") as _f:
+            json.dump(_eval_results, _f, indent=2)
+        print("[BENCH] eval_metrics.json written (both lanes).")
         os.makedirs("plots", exist_ok=True)
         plt.savefig("plots/evaluation_heatmaps.png")
         plt.close("all")
@@ -1167,5 +1324,7 @@ if __name__ == '__main__':
         print(f"Skipping evaluation: XML file not found at {XML_PATH}")
     else:
         print("Skipping evaluation: XML path not provided in user_input_data.json")
+
+
 
     save_all_to_excel()
