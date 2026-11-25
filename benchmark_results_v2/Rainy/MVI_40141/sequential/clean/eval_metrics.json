@@ -1,0 +1,83 @@
+{
+  "implementation": "sequential",
+  "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Rainy\\MVI_40141.mp4",
+  "grid_rows": 6,
+  "grid_cols": 6,
+  "unique_gt_vehicles": 16,
+  "unique_predicted_tracks": 35,
+  "matched_gt_vehicles": 16,
+  "unmatched_gt_vehicles": 0,
+  "matched_predicted_tracks": 21,
+  "unmatched_predicted_tracks": 14,
+  "confusion_matrix_vehicle_labels": [
+    "Car",
+    "Van",
+    "Bus"
+  ],
+  "confusion_matrix_vehicle": [
+    [
+      2,
+      9,
+      2
+    ],
+    [
+      1,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "confusion_matrix_grid_labels": [
+    "Empty",
+    "Car",
+    "Van",
+    "Bus"
+  ],
+  "confusion_matrix_grid": [
+    [
+      52524,
+      1614,
+      1833,
+      531
+    ],
+    [
+      270,
+      255,
+      257,
+      87
+    ],
+    [
+      57,
+      59,
+      55,
+      22
+    ],
+    [
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "metrics": {
+    "Car": {
+      "precision": 0.6666664444445185,
+      "recall": 0.15384614201183525,
+      "f1": 0.24999966406282645
+    },
+    "Van": {
+      "precision": 0.1818181652892577,
+      "recall": 0.6666664444445185,
+      "f1": 0.28571390816362136
+    },
+    "Bus": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    }
+  }
+}

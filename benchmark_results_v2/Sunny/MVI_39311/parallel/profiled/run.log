@@ -1,0 +1,144 @@
+
+Failed to load OpenH264 library: openh264-1.8.0-win64.dll
+	Please check environment and/or download library: https://github.com/cisco/openh264/releases
+
+[libopenh264 @ 000002659f03af00] Incorrect library version loaded
+[ERROR:0@0.016] global cap_ffmpeg_impl.hpp:3268 open Could not open codec libopenh264, error: Unspecified error (-22)
+[ERROR:0@0.018] global cap_ffmpeg_impl.hpp:3285 open VIDEOIO/FFMPEG: Failed to initialize VideoWriter
+Frame 100 | Lane1 passed: 5 | Lane2 passed: 2
+Frame 200 | Lane1 passed: 7 | Lane2 passed: 5
+Frame 300 | Lane1 passed: 7 | Lane2 passed: 6
+Frame 400 | Lane1 passed: 11 | Lane2 passed: 6
+Frame 500 | Lane1 passed: 15 | Lane2 passed: 8
+Frame 600 | Lane1 passed: 17 | Lane2 passed: 8
+Frame 700 | Lane1 passed: 19 | Lane2 passed: 11
+Frame 800 | Lane1 passed: 21 | Lane2 passed: 12
+Frame 900 | Lane1 passed: 24 | Lane2 passed: 14
+Frame 1000 | Lane1 passed: 25 | Lane2 passed: 14
+Frame 1100 | Lane1 passed: 26 | Lane2 passed: 15
+Frame 1200 | Lane1 passed: 27 | Lane2 passed: 16
+Frame 1300 | Lane1 passed: 28 | Lane2 passed: 16
+Frame 1400 | Lane1 passed: 28 | Lane2 passed: 17
+Frame 1500 | Lane1 passed: 30 | Lane2 passed: 19
+Execution Time: 34.62 seconds
+Memory Usage: 310.59 MB
+
+-- Lane1 Summary --
+Average Density: 0.0898
+Vehicles Passed: 30
+  Car: 58
+  Van: 0
+  Bus: 0
+
+-- Lane2 Summary --
+Average Density: 0.1366
+Vehicles Passed: 19
+  Car: 48
+  Van: 2
+  Bus: 5
+frames: 1504
+[BENCH] rpar_frame_metrics.json written.
+         11276288 function calls (9694562 primitive calls) in 33.835 seconds
+
+   Ordered by: cumulative time
+   List reduced from 373 to 10 due to restriction <10>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+384061/20048    0.551    0.000  169.535    0.008 {method 'acquire' of '_thread.lock' objects}
+       34    0.000    0.000  169.094    4.973 C:\Users\jaysu\anaconda3\Lib\threading.py:1115(join)
+       34    0.000    0.000  169.094    4.973 C:\Users\jaysu\anaconda3\Lib\threading.py:1153(_wait_for_tstate_lock)
+        2    0.000    0.000   67.656   33.828 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\thread.py:219(shutdown)
+111296/48425    0.218    0.000   50.028    0.001 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:612(result_iterator)
+108288/46920    0.342    0.000   49.515    0.001 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:314(_result_or_cancel)
+        1    0.000    0.000   33.835   33.835 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3.py:936(main)
+     34/1    1.529    0.045   33.834   33.834 C:\Users\jaysu\anaconda3\Lib\threading.py:1016(_bootstrap)
+     34/1    0.001    0.000   33.834   33.834 C:\Users\jaysu\anaconda3\Lib\threading.py:1056(_bootstrap_inner)
+     34/1    0.000    0.000   33.834   33.834 C:\Users\jaysu\anaconda3\Lib\threading.py:999(run)
+
+
+[BENCH] profile_rpar.prof saved.
+[BENCH] profile_rpar_cumtime.txt saved.
+[BENCH] profile_rpar_tottime.txt saved.
+
+===== DETRAC Evaluation: Lane1 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 24
+Predicted vehicles (unique tracker IDs): 65
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 19
+Unmatched GT vehicles: 5
+Matched predicted tracks: 30
+Unmatched predicted tracks: 35
+
+-- DEBUG INFO --
+Total GT vehicles: 24
+Total predicted vehicles: 65
+Matched GT vehicles: 19
+Unmatched GT vehicles: 5
+Unmatched predicted vehicles: 35
+
+-- Vehicle-Level Confusion Matrix --
+[[14  0  0]
+ [ 1  0  0]
+ [ 4  0  0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 0.737
+Recall   : 1.000
+F1 Score : 0.848
+
+Class: Van
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+===== DETRAC Evaluation: Lane2 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 45
+Predicted vehicles (unique tracker IDs): 64
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 42
+Unmatched GT vehicles: 3
+Matched predicted tracks: 28
+Unmatched predicted tracks: 36
+
+-- DEBUG INFO --
+Total GT vehicles: 45
+Total predicted vehicles: 64
+Matched GT vehicles: 42
+Unmatched GT vehicles: 3
+Unmatched predicted vehicles: 36
+
+-- Vehicle-Level Confusion Matrix --
+[[35  1  0]
+ [ 1  0  0]
+ [ 5  0  0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 0.854
+Recall   : 0.972
+F1 Score : 0.909
+
+Class: Van
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+[BENCH] eval_metrics.json written (both lanes).

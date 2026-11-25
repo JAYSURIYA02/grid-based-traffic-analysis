@@ -1,0 +1,962 @@
+[
+  {
+    "video": "MVI_39761.mp4",
+    "category": "Cloudy",
+    "tier": "light",
+    "density": 2.8102796674225248,
+    "density_source": "xml_fallback",
+    "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_39761.xml",
+    "runs": {
+      "sequential/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39761\\sequential\\clean",
+        "script": "seq.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39761\\sequential\\clean\\run.log",
+        "wall_seconds": 30.13098955154419,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "sequential/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39761\\sequential\\profiled",
+        "script": "seq.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39761\\sequential\\profiled\\run.log",
+        "wall_seconds": 31.685794591903687,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel_1lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39761\\parallel_1lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_LANES": "1"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39761\\parallel_1lane\\clean\\run.log",
+        "wall_seconds": 43.404749631881714,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "serial_2lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39761\\serial_2lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_EXECUTOR": "serial"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39761\\serial_2lane\\clean\\run.log",
+        "wall_seconds": 51.445204734802246,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39761\\parallel\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39761\\parallel\\clean\\run.log",
+        "wall_seconds": 50.5996630191803,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39761\\parallel\\profiled",
+        "script": "rparallel_he3.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39761\\parallel\\profiled\\run.log",
+        "wall_seconds": 59.127609729766846,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      }
+    }
+  },
+  {
+    "video": "MVI_40774.mp4",
+    "category": "Night",
+    "tier": "light",
+    "density": 6.0873684210526315,
+    "density_source": "xml_fallback",
+    "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_40774.xml",
+    "runs": {
+      "sequential/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40774\\sequential\\clean",
+        "script": "seq.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40774\\sequential\\clean\\run.log",
+        "wall_seconds": 26.838221788406372,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "sequential/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40774\\sequential\\profiled",
+        "script": "seq.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40774\\sequential\\profiled\\run.log",
+        "wall_seconds": 25.742992639541626,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel_1lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40774\\parallel_1lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_LANES": "1"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40774\\parallel_1lane\\clean\\run.log",
+        "wall_seconds": 26.987777709960938,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "serial_2lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40774\\serial_2lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_EXECUTOR": "serial"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40774\\serial_2lane\\clean\\run.log",
+        "wall_seconds": 27.410665035247803,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40774\\parallel\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40774\\parallel\\clean\\run.log",
+        "wall_seconds": 28.83517837524414,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40774\\parallel\\profiled",
+        "script": "rparallel_he3.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40774\\parallel\\profiled\\run.log",
+        "wall_seconds": 42.607319355010986,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      }
+    }
+  },
+  {
+    "video": "MVI_63525.mp4",
+    "category": "Rainy",
+    "tier": "light",
+    "density": 3.5228426395939088,
+    "density_source": "xml_fallback",
+    "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_63525.xml",
+    "runs": {
+      "sequential/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_63525\\sequential\\clean",
+        "script": "seq.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_63525\\sequential\\clean\\run.log",
+        "wall_seconds": 29.46018147468567,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "sequential/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_63525\\sequential\\profiled",
+        "script": "seq.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_63525\\sequential\\profiled\\run.log",
+        "wall_seconds": 30.5519962310791,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel_1lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_63525\\parallel_1lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_LANES": "1"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_63525\\parallel_1lane\\clean\\run.log",
+        "wall_seconds": 28.96770477294922,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "serial_2lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_63525\\serial_2lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_EXECUTOR": "serial"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_63525\\serial_2lane\\clean\\run.log",
+        "wall_seconds": 37.03747868537903,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_63525\\parallel\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_63525\\parallel\\clean\\run.log",
+        "wall_seconds": 38.896583795547485,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_63525\\parallel\\profiled",
+        "script": "rparallel_he3.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_63525\\parallel\\profiled\\run.log",
+        "wall_seconds": 47.183539390563965,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      }
+    }
+  },
+  {
+    "video": "MVI_20033.mp4",
+    "category": "Sunny",
+    "tier": "light",
+    "density": 6.7270408163265305,
+    "density_source": "xml_fallback",
+    "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_20033.xml",
+    "runs": {
+      "sequential/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20033\\sequential\\clean",
+        "script": "seq.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20033\\sequential\\clean\\run.log",
+        "wall_seconds": 23.18241286277771,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "sequential/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20033\\sequential\\profiled",
+        "script": "seq.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20033\\sequential\\profiled\\run.log",
+        "wall_seconds": 23.210487365722656,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel_1lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20033\\parallel_1lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_LANES": "1"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20033\\parallel_1lane\\clean\\run.log",
+        "wall_seconds": 22.60128402709961,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "serial_2lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20033\\serial_2lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_EXECUTOR": "serial"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20033\\serial_2lane\\clean\\run.log",
+        "wall_seconds": 28.0748131275177,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20033\\parallel\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20033\\parallel\\clean\\run.log",
+        "wall_seconds": 29.42518401145935,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20033\\parallel\\profiled",
+        "script": "rparallel_he3.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20033\\parallel\\profiled\\run.log",
+        "wall_seconds": 33.08145046234131,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      }
+    }
+  },
+  {
+    "video": "MVI_39771.mp4",
+    "category": "Cloudy",
+    "tier": "medium",
+    "density": 6.324561403508772,
+    "density_source": "xml_fallback",
+    "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_39771.xml",
+    "runs": {
+      "sequential/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39771\\sequential\\clean",
+        "script": "seq.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39771\\sequential\\clean\\run.log",
+        "wall_seconds": 16.33714485168457,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "sequential/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39771\\sequential\\profiled",
+        "script": "seq.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39771\\sequential\\profiled\\run.log",
+        "wall_seconds": 13.691752195358276,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel_1lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39771\\parallel_1lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_LANES": "1"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39771\\parallel_1lane\\clean\\run.log",
+        "wall_seconds": 13.319888591766357,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "serial_2lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39771\\serial_2lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_EXECUTOR": "serial"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39771\\serial_2lane\\clean\\run.log",
+        "wall_seconds": 14.958618640899658,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39771\\parallel\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39771\\parallel\\clean\\run.log",
+        "wall_seconds": 16.032072067260742,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39771\\parallel\\profiled",
+        "script": "rparallel_he3.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_39771\\parallel\\profiled\\run.log",
+        "wall_seconds": 18.453256130218506,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      }
+    }
+  },
+  {
+    "video": "MVI_40773.mp4",
+    "category": "Night",
+    "tier": "medium",
+    "density": 8.029441624365482,
+    "density_source": "xml_fallback",
+    "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_40773.xml",
+    "runs": {
+      "sequential/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40773\\sequential\\clean",
+        "script": "seq.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40773\\sequential\\clean\\run.log",
+        "wall_seconds": 16.270280838012695,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "sequential/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40773\\sequential\\profiled",
+        "script": "seq.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40773\\sequential\\profiled\\run.log",
+        "wall_seconds": 16.64459466934204,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel_1lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40773\\parallel_1lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_LANES": "1"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40773\\parallel_1lane\\clean\\run.log",
+        "wall_seconds": 17.875243186950684,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "serial_2lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40773\\serial_2lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_EXECUTOR": "serial"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40773\\serial_2lane\\clean\\run.log",
+        "wall_seconds": 21.634923458099365,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40773\\parallel\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40773\\parallel\\clean\\run.log",
+        "wall_seconds": 24.48863959312439,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40773\\parallel\\profiled",
+        "script": "rparallel_he3.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40773\\parallel\\profiled\\run.log",
+        "wall_seconds": 27.30318307876587,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      }
+    }
+  },
+  {
+    "video": "MVI_40141.mp4",
+    "category": "Rainy",
+    "tier": "medium",
+    "density": 3.88875,
+    "density_source": "xml_fallback",
+    "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_40141.xml",
+    "runs": {
+      "sequential/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40141\\sequential\\clean",
+        "script": "seq.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40141\\sequential\\clean\\run.log",
+        "wall_seconds": 22.931935787200928,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "sequential/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40141\\sequential\\profiled",
+        "script": "seq.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40141\\sequential\\profiled\\run.log",
+        "wall_seconds": 23.68105387687683,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel_1lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40141\\parallel_1lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_LANES": "1"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40141\\parallel_1lane\\clean\\run.log",
+        "wall_seconds": 26.595460891723633,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "serial_2lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40141\\serial_2lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_EXECUTOR": "serial"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40141\\serial_2lane\\clean\\run.log",
+        "wall_seconds": 31.456889867782593,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40141\\parallel\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40141\\parallel\\clean\\run.log",
+        "wall_seconds": 34.46147680282593,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40141\\parallel\\profiled",
+        "script": "rparallel_he3.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40141\\parallel\\profiled\\run.log",
+        "wall_seconds": 39.93165397644043,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      }
+    }
+  },
+  {
+    "video": "MVI_20011.mp4",
+    "category": "Sunny",
+    "tier": "medium",
+    "density": 11.528614457831326,
+    "density_source": "xml_fallback",
+    "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_20011.xml",
+    "runs": {
+      "sequential/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20011\\sequential\\clean",
+        "script": "seq.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20011\\sequential\\clean\\run.log",
+        "wall_seconds": 13.110676527023315,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "sequential/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20011\\sequential\\profiled",
+        "script": "seq.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20011\\sequential\\profiled\\run.log",
+        "wall_seconds": 13.165966749191284,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel_1lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20011\\parallel_1lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_LANES": "1"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20011\\parallel_1lane\\clean\\run.log",
+        "wall_seconds": 14.147136688232422,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "serial_2lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20011\\serial_2lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_EXECUTOR": "serial"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20011\\serial_2lane\\clean\\run.log",
+        "wall_seconds": 17.14202618598938,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20011\\parallel\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20011\\parallel\\clean\\run.log",
+        "wall_seconds": 18.462040424346924,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20011\\parallel\\profiled",
+        "script": "rparallel_he3.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_20011\\parallel\\profiled\\run.log",
+        "wall_seconds": 20.096125602722168,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      }
+    }
+  },
+  {
+    "video": "MVI_40963.mp4",
+    "category": "Cloudy",
+    "tier": "heavy",
+    "density": 6.395054945054945,
+    "density_source": "xml_fallback",
+    "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_40963.xml",
+    "runs": {
+      "sequential/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_40963\\sequential\\clean",
+        "script": "seq.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_40963\\sequential\\clean\\run.log",
+        "wall_seconds": 26.14165711402893,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "sequential/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_40963\\sequential\\profiled",
+        "script": "seq.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_40963\\sequential\\profiled\\run.log",
+        "wall_seconds": 27.505024194717407,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel_1lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_40963\\parallel_1lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_LANES": "1"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_40963\\parallel_1lane\\clean\\run.log",
+        "wall_seconds": 28.132376432418823,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "serial_2lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_40963\\serial_2lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_EXECUTOR": "serial"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_40963\\serial_2lane\\clean\\run.log",
+        "wall_seconds": 37.51171851158142,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_40963\\parallel\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_40963\\parallel\\clean\\run.log",
+        "wall_seconds": 39.50103044509888,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_40963\\parallel\\profiled",
+        "script": "rparallel_he3.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Cloudy\\MVI_40963\\parallel\\profiled\\run.log",
+        "wall_seconds": 44.62273931503296,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      }
+    }
+  },
+  {
+    "video": "MVI_40772.mp4",
+    "category": "Night",
+    "tier": "heavy",
+    "density": 12.928333333333333,
+    "density_source": "xml_fallback",
+    "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_40772.xml",
+    "runs": {
+      "sequential/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40772\\sequential\\clean",
+        "script": "seq.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40772\\sequential\\clean\\run.log",
+        "wall_seconds": 19.32214093208313,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "sequential/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40772\\sequential\\profiled",
+        "script": "seq.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40772\\sequential\\profiled\\run.log",
+        "wall_seconds": 20.436017513275146,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel_1lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40772\\parallel_1lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_LANES": "1"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40772\\parallel_1lane\\clean\\run.log",
+        "wall_seconds": 21.69025754928589,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "serial_2lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40772\\serial_2lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_EXECUTOR": "serial"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40772\\serial_2lane\\clean\\run.log",
+        "wall_seconds": 26.838671922683716,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40772\\parallel\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40772\\parallel\\clean\\run.log",
+        "wall_seconds": 28.57537293434143,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40772\\parallel\\profiled",
+        "script": "rparallel_he3.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Night\\MVI_40772\\parallel\\profiled\\run.log",
+        "wall_seconds": 32.48299431800842,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      }
+    }
+  },
+  {
+    "video": "MVI_40131.mp4",
+    "category": "Rainy",
+    "tier": "heavy",
+    "density": 9.31550151975684,
+    "density_source": "xml_fallback",
+    "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_40131.xml",
+    "runs": {
+      "sequential/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40131\\sequential\\clean",
+        "script": "seq.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40131\\sequential\\clean\\run.log",
+        "wall_seconds": 25.498380184173584,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "sequential/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40131\\sequential\\profiled",
+        "script": "seq.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40131\\sequential\\profiled\\run.log",
+        "wall_seconds": 27.49925947189331,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel_1lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40131\\parallel_1lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_LANES": "1"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40131\\parallel_1lane\\clean\\run.log",
+        "wall_seconds": 27.391215562820435,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "serial_2lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40131\\serial_2lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_EXECUTOR": "serial"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40131\\serial_2lane\\clean\\run.log",
+        "wall_seconds": 34.53663897514343,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40131\\parallel\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40131\\parallel\\clean\\run.log",
+        "wall_seconds": 50.081339836120605,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40131\\parallel\\profiled",
+        "script": "rparallel_he3.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Rainy\\MVI_40131\\parallel\\profiled\\run.log",
+        "wall_seconds": 58.52302408218384,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      }
+    }
+  },
+  {
+    "video": "MVI_39311.mp4",
+    "category": "Sunny",
+    "tier": "heavy",
+    "density": 14.921594684385383,
+    "density_source": "xml_fallback",
+    "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_39311.xml",
+    "runs": {
+      "sequential/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_39311\\sequential\\clean",
+        "script": "seq.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_39311\\sequential\\clean\\run.log",
+        "wall_seconds": 27.3980233669281,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "sequential/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_39311\\sequential\\profiled",
+        "script": "seq.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_39311\\sequential\\profiled\\run.log",
+        "wall_seconds": 28.897972583770752,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel_1lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_39311\\parallel_1lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_LANES": "1"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_39311\\parallel_1lane\\clean\\run.log",
+        "wall_seconds": 33.40411877632141,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "serial_2lane/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_39311\\serial_2lane\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {
+          "BTP_EXECUTOR": "serial"
+        },
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_39311\\serial_2lane\\clean\\run.log",
+        "wall_seconds": 46.59024119377136,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/clean": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_39311\\parallel\\clean",
+        "script": "rparallel_he3.py",
+        "profile_on": false,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_39311\\parallel\\clean\\run.log",
+        "wall_seconds": 59.8447151184082,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      },
+      "parallel/profiled": {
+        "workdir": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_39311\\parallel\\profiled",
+        "script": "rparallel_he3.py",
+        "profile_on": true,
+        "extra_env": {},
+        "log": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\benchmark_results_v2\\Sunny\\MVI_39311\\parallel\\profiled\\run.log",
+        "wall_seconds": 47.70409154891968,
+        "returncode": 0,
+        "status": "ok",
+        "expected_output_present": true
+      }
+    }
+  }
+]

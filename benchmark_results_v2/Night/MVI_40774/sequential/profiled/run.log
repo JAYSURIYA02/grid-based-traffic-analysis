@@ -1,0 +1,106 @@
+
+Failed to load OpenH264 library: openh264-1.8.0-win64.dll
+	Please check environment and/or download library: https://github.com/cisco/openh264/releases
+
+[libopenh264 @ 000001594bec4840] Incorrect library version loaded
+[ERROR:0@0.009] global cap_ffmpeg_impl.hpp:3268 open Could not open codec libopenh264, error: Unspecified error (-22)
+[ERROR:0@0.009] global cap_ffmpeg_impl.hpp:3285 open VIDEOIO/FFMPEG: Failed to initialize VideoWriter
+Execution Time: 15.37 seconds
+Total Memory Usage: 300.00 MB
+frames: 949
+[BENCH] seq_frame_metrics.json written.
+[BENCH] profile_seq.prof saved.
+[BENCH] profile_seq_cumtime.txt saved.
+
+=== seq.py — Top 15 by CUMULATIVE time ===
+         721549 function calls (721458 primitive calls) in 14.096 seconds
+
+   Ordered by: cumulative time
+   List reduced from 290 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    1.254    1.254   14.096   14.096 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:925(main)
+      949    0.311    0.000    4.511    0.005 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:182(process_grid)
+      949    0.031    0.000    4.221    0.004 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:121(process_hsv)
+    34164    0.130    0.000    4.135    0.000 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:84(process_grid_channel)
+    34164    2.627    0.000    2.627    0.000 {dilate}
+    36062    2.111    0.000    2.111    0.000 {GaussianBlur}
+      949    1.757    0.002    1.757    0.002 {method 'read' of 'cv2.VideoCapture' objects}
+     4745    1.276    0.000    1.276    0.000 {cvtColor}
+     1898    0.103    0.000    1.138    0.001 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:99(apply_histogram_equalization)
+      949    0.076    0.000    0.952    0.001 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:709(density_calculation)
+      949    0.619    0.001    0.619    0.001 {absdiff}
+     1798    0.029    0.000    0.618    0.000 C:\Users\jaysu\anaconda3\Lib\site-packages\numpy\lib\function_base.py:3992(percentile)
+      949    0.539    0.001    0.539    0.001 {method 'write' of 'cv2.VideoWriter' objects}
+     2847    0.516    0.000    0.516    0.000 {split}
+     1798    0.007    0.000    0.407    0.000 C:\Users\jaysu\anaconda3\Lib\site-packages\numpy\lib\function_base.py:4547(_quantile_unchecked)
+
+
+
+[BENCH] profile_seq_tottime.txt saved.
+
+=== seq.py — Top 15 by SELF (tot) time ===
+         721549 function calls (721458 primitive calls) in 14.096 seconds
+
+   Ordered by: internal time
+   List reduced from 290 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    34164    2.627    0.000    2.627    0.000 {dilate}
+    36062    2.111    0.000    2.111    0.000 {GaussianBlur}
+      949    1.757    0.002    1.757    0.002 {method 'read' of 'cv2.VideoCapture' objects}
+     4745    1.276    0.000    1.276    0.000 {cvtColor}
+        1    1.254    1.254   14.096   14.096 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:925(main)
+      949    0.619    0.001    0.619    0.001 {absdiff}
+      949    0.539    0.001    0.539    0.001 {method 'write' of 'cv2.VideoWriter' objects}
+     2847    0.516    0.000    0.516    0.000 {split}
+    34164    0.382    0.000    0.382    0.000 {findContours}
+     3083    0.330    0.000    0.330    0.000 {putText}
+      949    0.311    0.000    4.511    0.005 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:182(process_grid)
+    34400    0.243    0.000    0.243    0.000 {rectangle}
+    34164    0.201    0.000    0.201    0.000 {getStructuringElement}
+    34164    0.165    0.000    0.165    0.000 {threshold}
+     1898    0.147    0.000    0.147    0.000 {equalizeHist}
+
+
+
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 4
+Predicted vehicles (unique tracker IDs): 7
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 3
+Unmatched GT vehicles: 1
+Matched predicted tracks: 5
+Unmatched predicted tracks: 2
+
+-- DEBUG INFO --
+Total GT vehicles: 4
+Total predicted vehicles: 7
+Matched GT vehicles: 3
+Unmatched GT vehicles: 1
+Unmatched predicted vehicles: 2
+
+-- Vehicle-Level Confusion Matrix --
+[[0 3 0]
+ [0 0 0]
+ [0 0 0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Van
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+[BENCH] eval_metrics.json written.
