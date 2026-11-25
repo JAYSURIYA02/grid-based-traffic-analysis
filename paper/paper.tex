@@ -39,64 +39,47 @@ A prior published system \cite{baseline} performs grid-based vehicle
 motion detection: a region of interest (ROI) is discretized into a
 grid, histogram-equalized frame differencing marks each cell as
 motion/no-motion, and a preliminary dual-ROI implementation dispatches
-this per-cell work across a freshly created thread pool every frame.
-That baseline stops at a binary occupancy grid -- it does not classify
-vehicles, track individuals across frames, count crossings, estimate
-speed, or evaluate against ground truth. This paper documents that
-work, built entirely on top of the baseline's motion-detection front
-end: rule-based vehicle classification from per-cluster grid geometry,
+this per-cell work across a thread pool created anew every frame. Its
+released implementation stops at a binary occupancy grid: it does not
+classify vehicles, track individual vehicles across frames, count line
+crossings, estimate speed, or evaluate against ground truth. This paper
+builds that layer on top of the baseline's motion-detection front end
+-- rule-based vehicle classification from per-cluster grid geometry,
 multi-object tracking with temporally smoothed labels and
 duplicate-aware line-crossing counting, displacement-gated speed
 estimation, and adaptively thresholded traffic-density estimation --
-implemented and evaluated in \emph{both} a sequential form and a
-substantially redesigned parallel form. The baseline's naive
-per-frame thread-pool recreation cannot hold state across frames, which
-per-vehicle tracking, classification smoothing, and speed estimation all
-require; this paper's parallel implementation instead encapsulates all
-per-lane tracking state in a \code{LaneTracker} class driven by two
-persistent \code{ThreadPoolExecutor} pools, with an explicit compute/draw
-separation that keeps the two lanes race-free on the shared frame
-buffer. We evaluate both implementations against UA-DETRAC ground truth
-and report a benchmarking protocol that corrects for a workload confound
-between them (one versus two ROIs per frame) via a workload-normalized
-throughput metric. A cross-implementation validation check -- comparing
-per-video DETRAC confusion matrices between the sequential
-implementation and the parallel implementation's first lane, which
-should be identical given supposedly-identical tracking/classification
-logic on the same ROI -- surfaced two real preprocessing divergences in
-the underlying frame-differencing step (a missing pre-differencing
-Gaussian blur, introduced when this work extended the baseline's
-sequential preprocessing but not correspondingly ported to the parallel
-side; and a histogram-equalization method that silently discarded color
-information, present unchanged in the published baseline's parallel
-code since before this work began) that had been masking the
-implementations' true relative performance. After fixing both, all 12
-benchmark videos (drawn from UA-DETRAC's Cloudy/Night/Rainy/Sunny
-categories across light/medium/heavy traffic-density tiers) produce
-bit-identical classification results between implementations. On this
-corrected basis, and on a 4-core/8-thread laptop CPU, we report three
-explicitly distinct timing figures ($n{=}12$ videos, mean $\pm$ std):
-the raw wall-clock ratio of the one-lane sequential run to the two-lane
-parallel run is $0.631\pm0.042$ (the parallel run takes longer, because it
-does twice the work); the workload-normalized end-to-end ROI-frame
-throughput ratio is $1.261\pm0.084$; and the same normalization applied
-only to the timed per-frame processing loop gives $1.079\pm0.064$. The
-normalized figures are throughput ratios, not execution-time speedups.
-Per-stage \code{cProfile} analysis gives an Amdahl's-law ceiling at the
-lane pool's concurrency width of 2 of $1.24\times$ when $p$ is restricted
-to the work actually dispatched to the thread pool ($p{\approx}0.39$),
-versus $1.50\times$ when $p$ counts the seven largest native calls
-($p{\approx}0.67$); neither estimate is a strict bound on a two-lane
-throughput ratio. Normalized throughput correlates weakly and negatively
-with traffic density ($r{=}-0.46$), but profiling does not support a
-density-dependent tracking cost as the cause: the tracking stage takes
-1.8--3.8\% of sequential run time on every video, with no density trend.
-We report full accuracy and timing breakdowns by weather category and
-density tier, and document both the benchmarking artifacts and the
-algorithmic divergences found in the course of this work as evidence
-for a general point: an ``identical algorithm, parallelized'' claim
-between independently maintained code paths is an empirical claim that
-drifts silently and must be re-verified, not assumed from documentation.
+in a sequential form and in a redesigned parallel form that keeps all
+per-lane state in a \code{LaneTracker} class, uses two persistent
+\code{ThreadPoolExecutor} pools, and separates state updates from drawing
+on the shared frame. A cross-implementation check -- comparing per-video
+UA-DETRAC confusion matrices of the sequential implementation and the
+parallel implementation's first lane -- surfaced two real preprocessing
+divergences (a missing pre-differencing Gaussian blur, and a
+histogram-equalization step that discarded color information). After
+fixing both, the two implementations produce matching confusion matrices
+and F1 scores on all 12 tested videos (drawn from UA-DETRAC's
+Cloudy/Night/Rainy/Sunny categories across three density tiers). We then
+time four workloads on a 4-core/8-thread laptop CPU: sequential one-lane,
+threaded one-lane, the same two-lane code without threads, and threaded
+two-lane. Threading does \emph{not} reduce execution time on this
+machine: for the same two-lane workload the threaded run is slower than
+the unthreaded one (time ratio $0.860\pm0.077$, slower on all 12 videos;
+mean $\pm$ between-video std). The workload-normalized ROI-frame
+throughput of the threaded two-lane run relative to the sequential
+one-lane run is $1.257\pm0.228$, but processing two lanes without any
+threads already gives $1.458\pm0.216$: the gain comes from sharing
+once-per-frame work between lanes, not from threading. Even the
+single-threaded Python script keeps about four cores busy through native
+multithreading inside OpenCV, which leaves Python-level threads little to
+add; Amdahl ceilings at the lane-pool width of 2 (1.22 when $p$ counts
+the work dispatched to the pool, 1.50 for the seven largest native calls)
+are not approached. Normalized throughput correlates weakly and
+negatively with traffic density ($r{=}-0.45$), while the tracking stage
+takes only 1.6--4.2\% of run time with no density trend. We report full
+accuracy and timing breakdowns and document the benchmarking artifacts
+and algorithmic divergences found along the way as evidence for a
+general point: ``identical algorithm, parallelized'' and ``parallel is
+faster'' are empirical claims that must be measured, not assumed.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -108,50 +91,59 @@ pool, Python GIL, UA-DETRAC
 \section{Introduction}
 \label{sec:intro}
 
-Automated traffic monitoring increasingly relies on video analytics to
-count vehicles, estimate speed, and classify vehicle type without
-dedicated inductive-loop or radar hardware. The dominant approach in
-recent literature is a learned object detector (e.g., a convolutional or
-transformer-based network) combined with a tracking-by-detection
-algorithm. These systems are accurate but computationally expensive,
-which is a real constraint for edge deployments -- roadside units,
-low-power embedded cameras, or software running alongside other
-processes on shared hardware -- where a GPU or a large CPU budget is not
-guaranteed to be available for every camera stream.
+Automated traffic monitoring increasingly relies on video analytics:
+existing road cameras can support vision-based vehicle counting and
+classification without dedicated inductive-loop or radar hardware
+\cite{crouzil2016}. Recent vehicle-monitoring systems combine learned
+detectors with multi-object trackers, e.g.\ YOLOv7 with DeepSORT
+\cite{lian2025} or an improved YOLOv8 with BoT-SORT \cite{liu2025}.
+Model complexity, parameter count, power and throughput are recognized
+deployment challenges for such systems on edge hardware \cite{zhai2023};
+lightweight architectures and quantization reduce these demands
+\cite{chang2025,macko2025}. Classical foreground-segmentation pipelines
+remain a practical, training-free alternative for counting and coarse
+classification \cite{unzueta2012}, although illumination changes,
+shadows, camera placement and occlusion make them fragile
+\cite{abbas2021,chen2020}.
 
 \subsection{Relationship to Prior Published Work}
 \label{sec:priorwork}
-A previously published system \cite{baseline} addresses the motion-detection
-front end of this problem without a learned detector: each region of
-interest (ROI) is discretized into a grid; consecutive frames are
-histogram-equalized and differenced; and each grid cell is independently
-marked motion/no-motion via per-cell blur-threshold-dilate-contour
-detection. That system also includes a preliminary dual-ROI
-implementation that dispatches this per-cell work across a thread pool.
-Section~\ref{sec:overview} describes this baseline in the detail needed
-to establish the notation used throughout the rest of the paper, and
-Table~\ref{tab:baseline-vs-contribution} summarizes the boundary
-precisely. \textbf{The baseline stops at a binary per-cell occupancy
-grid.} It performs no vehicle classification, no per-vehicle tracking
-or identity assignment, no line-crossing counting, no speed estimation,
-no adaptively thresholded density estimation, and no evaluation against
-ground truth; its preliminary parallel implementation recreates a thread
-pool every frame and holds no state across frames.
+A previously published system, Two-Tier Parallel Virtual Lattice Layers
+(TPL2) \cite{baseline}, addresses the motion-detection front end of this
+problem without a learned detector: each region of interest (ROI) is
+discretized into a grid; consecutive frames are histogram-equalized and
+differenced; and each grid cell is independently marked motion/no-motion
+via per-cell blur-threshold-dilate-contour detection, with per-cell and
+per-lane work dispatched to a \code{ThreadPoolExecutor}. The TPL2 paper
+also describes a lattice-run heuristic for counting vehicles (its
+Eqs.~7--8) and density derived from those counts, leaves tracking-based
+speed estimation to future work, and reports execution time and memory
+-- an efficiency improvement of about 26.55\% with a 3.72\% memory
+increase -- but no detection-accuracy metrics
+\cite{baseline,muthuraja2026}. Its released implementation, on which this
+work builds, stops at a binary per-cell occupancy grid (printing the raw
+occupancy fraction): it contains no vehicle-type classification, no
+per-vehicle tracking or identity assignment, no line-crossing counting,
+no speed estimation, no adaptively thresholded density estimation and no
+evaluation against ground truth, and its parallel variant creates a new
+thread pool every frame and stores no persistent per-lane tracking
+state. Section~\ref{sec:overview} describes this baseline in the detail
+needed to fix notation, and Table~\ref{tab:baseline-vs-contribution}
+summarizes the boundary.
 
-This paper documents everything built on top of that occupancy grid:
+This paper documents what is built on top of that occupancy grid:
 rule-based vehicle classification from the geometry of clustered hot
 cells; multi-object tracking with temporally smoothed labels,
 duplicate-track suppression, and duplicate-crossing-aware vehicle
 counting; displacement-gated speed estimation; and adaptively
 thresholded traffic-density estimation combining spatial occupancy with
 recent flow -- implemented and evaluated in \emph{both} a sequential
-form and a parallel form. Critically, per-vehicle tracking,
-label-smoothing, and speed estimation all require state that persists
-across frames per lane, which the baseline's per-frame thread-pool
-recreation cannot hold; supporting these features in a parallel
-implementation therefore required a substantially redesigned
-concurrency architecture, described in Section~\ref{sec:parallel}, not
-a direct reuse of the baseline's preliminary threading.
+form and a parallel form. Per-vehicle tracking, label smoothing and
+speed estimation need state that persists across frames for each lane;
+the parallel form therefore introduces per-lane \code{LaneTracker}
+instances that hold this state and persistent thread pools
+(Section~\ref{sec:parallel}), rather than reusing the baseline's
+per-frame threading.
 
 We implement and document two versions of the resulting system:
 
@@ -169,16 +161,14 @@ grid-detection and tracking-state updates across two persistent
 \end{itemize}
 
 The two implementations are intended to be algorithmically identical in
-every stage except lane count, which would let us isolate the effect of
-the concurrency architecture alone -- but, as Section~\ref{sec:crosscheck}
+every stage except lane count -- but, as Section~\ref{sec:crosscheck}
 reports, that intended equivalence was not automatic and had to be
 verified and repaired. Comparing them also introduces a workload
 confound (one ROI vs.\ two ROIs per frame) that a naive wall-clock
 comparison would silently absorb into an inflated or deflated
 ``speedup'' number. Section~\ref{sec:experiments} makes this confound
-explicit and defines a workload-normalized throughput metric so that
-reported speedup numbers reflect the concurrency architecture and not
-simply a doubled workload.
+explicit, defines a workload-normalized throughput metric, and adds
+same-workload baselines that isolate the effect of threading itself.
 
 \begin{table}[t]
 \centering
@@ -200,21 +190,21 @@ Histogram-equalized frame differencing &
 -- (reused; two latent bugs in it found and fixed, Section~\ref{sec:crosscheck}) \\
 -- &
 Rule-based vehicle classification (Section~\ref{sec:classify}) \\
--- &
+Lattice-run vehicle-count heuristic (paper only) &
 Multi-object tracking, duplicate suppression, line-crossing counting
 (Section~\ref{sec:tracking}) \\
--- &
+Speed estimation left to future work &
 Displacement-gated speed estimation (Section~\ref{sec:speed}) \\
-Raw occupancy fraction (printed, not thresholded) &
+Raw occupancy fraction (code); count-based density (paper) &
 Adaptive percentile-based density thresholding with flow blending
 (Section~\ref{sec:density}) \\
-Preliminary per-frame thread-pool recreation, stateless &
-Persistent, stateful two-pool architecture with per-lane
-\code{LaneTracker} encapsulation (Section~\ref{sec:parallel}) \\
--- &
+Thread pool created every frame; no persistent per-lane state &
+Persistent two-pool architecture with per-lane
+\code{LaneTracker} state (Section~\ref{sec:parallel}) \\
+Execution time and memory only &
 DETRAC ground-truth evaluation methodology (Section~\ref{sec:eval}) \\
 -- &
-Fair-comparison benchmarking protocol and cross-implementation
+Four-workload benchmarking protocol and cross-implementation
 validation (Sections~\ref{sec:experiments}--\ref{sec:crosscheck}) \\
 \bottomrule
 \end{tabular}
@@ -228,26 +218,21 @@ implemented identically in both a sequential and a parallel execution
 model; 2) an adaptively thresholded traffic-density estimator that
 extends the baseline's raw per-frame occupancy fraction with
 percentile-based recalibration and flow blending
-(Section~\ref{sec:density}); 3) a substantially redesigned concurrency
-architecture -- two persistent thread pools and per-lane
-\code{LaneTracker} state encapsulation -- required because the new
-tracking/classification/speed layer needs cross-frame state per lane
-that the baseline's preliminary, stateless, per-frame thread-pool
-recreation cannot provide (Section~\ref{sec:parallel}), with an
-explicit argument for \emph{why} and \emph{where} GIL-releasing native
-calls make thread-based parallelism viable for this added workload,
-and where they do not; 4) a DETRAC-grounded evaluation methodology
-covering both grid-level and vehicle-level (ID-based) accuracy,
-applied identically to both implementations (Section~\ref{sec:eval}) --
-the baseline has no evaluation methodology to extend; and 5) a
-benchmarking protocol and an accompanying orchestration script
-(\code{benchmarking/orchestrate\_benchmark.py}) that reports a
-workload-normalized throughput figure correcting for the one-lane-vs-two-lane confound between the
-two implementations (Section~\ref{sec:experiments}), together with a
-cross-implementation validation methodology that found and fixed two
-real accuracy-affecting divergences in the reused preprocessing step
-before trusting any comparison built on top of it
-(Section~\ref{sec:crosscheck}).
+(Section~\ref{sec:density}); 3) a redesigned concurrency architecture --
+two persistent thread pools and per-lane \code{LaneTracker} state --
+introduced because the new layer needs cross-frame state per lane that
+the baseline does not store (Section~\ref{sec:parallel}), together with
+measurements showing that on the evaluated machine this threading does
+not reduce execution time; 4) a DETRAC-grounded evaluation methodology
+covering both grid-level and vehicle-level (ID-based) accuracy, applied
+identically to both implementations (Section~\ref{sec:eval}); and 5) a
+benchmarking protocol and orchestration script
+(\code{benchmarking/orchestrate\_benchmark.py}) that times four
+workloads -- separating the effect of the workload (one vs.\ two lanes)
+from the effect of threading -- together with a cross-implementation
+validation methodology that found and fixed two accuracy-affecting
+divergences in the reused preprocessing step before any comparison was
+trusted (Sections~\ref{sec:experiments}--\ref{sec:crosscheck}).
 
 \section{Related Work}
 \label{sec:related}
@@ -268,11 +253,17 @@ cost relative to learned detectors. Cheung and Kamath compare simple
 frame-differencing and adaptive median filtering against more elaborate
 probabilistic background models for urban traffic video and find that
 the simpler techniques remain competitive at a fraction of the
-computational cost \cite{cheung2004}, which is consistent with the
-motivation for the baseline's frame-differencing-plus-grid design.
-Contour extraction from the resulting binary motion masks -- used
-throughout the baseline and this paper via OpenCV's
-\code{cv2.findContours} -- implements the border-following algorithm of
+computational cost \cite{cheung2004}; Unzueta et al.\ demonstrate
+real-time vehicle counting and classification with adaptive multicue
+background subtraction \cite{unzueta2012}, and Crouzil et al.\ a
+counting system built on existing traffic cameras \cite{crouzil2016}.
+Such pipelines are sensitive to camera position, background variation
+and occlusion \cite{abbas2021} and to sudden illumination changes and
+shadows \cite{chen2020}, which motivates the contrast normalization used
+here (Section~\ref{sec:motion}) and bounds what can be expected of it
+(Section~\ref{sec:threats}). Contour extraction from the resulting binary
+motion masks -- used throughout the baseline and this paper via OpenCV's
+\code{cv2.findContours} -- follows the border-following algorithm of
 Suzuki and Abe \cite{suzuki1985}.
 
 A separate, contemporaneous extension of the same baseline
@@ -281,37 +272,53 @@ preprocessing (per-frame illumination classification, CLAHE, and a Dark
 Channel Prior degradation indicator) and perspective-aware centroid
 non-maximum suppression, evaluated on 60 UA-DETRAC sequences with a
 Hungarian-matched protocol and reporting 71.03\% micro-averaged F1. That
-work explicitly notes the baseline ``reports execution time and memory
+work notes that the baseline ``reports execution time and memory
 consumption but does not provide detection-accuracy metrics,'' and adds
 an accuracy evaluation without addressing parallelization. The present
 paper is complementary in the other direction: it adds no scene-adaptive
 preprocessing, but adds vehicle classification, multi-object tracking
-and counting, speed estimation, and -- unlike either prior work -- a
-verified-equivalent sequential/parallel comparison methodology.
+and counting, speed estimation, and a verified-equivalent
+sequential/parallel comparison methodology.
+
+For tracking, SORT combines Kalman-filter motion prediction with
+Hungarian assignment for efficient online tracking \cite{bewley2016}, and
+DeepSORT adds appearance association to improve robustness under
+occlusion \cite{wojke2017}; this paper uses simpler greedy
+nearest-centroid association (Section~\ref{sec:tracking}) and lists
+these methods as future alternatives. Pixel-displacement speed estimates
+require an appropriate image-to-metric scale, e.g.\ via homography
+rectification, and validation against measured speeds \cite{kamil2024},
+and unstable detected trajectories are a recognized source of speed error
+\cite{sangsuwan2024}.
 
 Evaluation is performed against the UA-DETRAC benchmark, a large-scale
 traffic video dataset with per-frame, per-vehicle bounding-box and
-type annotations designed for joint detection-and-tracking evaluation
-\cite{wen2020}. We reuse its vehicle-type taxonomy (car, van, bus, and an
-``others''/unknown category) as the target label space for the
-classification stage.
+type annotations (car, bus, van, others) across cloudy, night, sunny and
+rainy conditions, designed for joint detection-and-tracking evaluation
+\cite{wen2020}. We reuse its vehicle-type taxonomy as the target label
+space for the classification stage.
 
 On the systems side, CPython's Global Interpreter Lock (GIL) serializes
 execution of Python bytecode across threads within a single process
 \cite{pythongil}; \code{concurrent.futures.ThreadPoolExecutor}
-\cite{pythonfutures} is nonetheless an effective concurrency primitive
-for workloads dominated by calls into C/C++ extensions -- such as
-OpenCV's \code{GaussianBlur}, \code{threshold}, \code{dilate}, and
-\code{findContours} -- because those calls release the GIL for their
-duration. The theoretical ceiling on any such speedup, as a function of
-the parallelizable fraction $p$ of the workload and the number of
-workers $N$, is given by Amdahl's law \cite{amdahl1967}:
+\cite{pythonfutures} can still overlap calls into C/C++ extensions --
+such as OpenCV's \code{GaussianBlur}, \code{threshold}, \code{dilate}, and
+\code{findContours} -- that release the GIL while they run. The
+theoretical ceiling on any such speedup, as a function of the
+parallelizable fraction $p$ of the workload and the number of workers
+$N$, is given by Amdahl's law \cite{amdahl1967,alhayanni2020}:
 \begin{equation}
 S(N) = \frac{1}{(1-p) + p/N}.
 \label{eq:amdahl}
 \end{equation}
-Section~\ref{sec:results} uses Eq.~\eqref{eq:amdahl} as a reference
-ceiling against which the measured speedup is compared.
+Its interpretation depends on how $p$ is estimated \cite{alhayanni2020},
+and a single-fraction model cannot capture contention between several
+resources \cite{poolla2023}; Section~\ref{sec:results} therefore uses
+Eq.~\eqref{eq:amdahl} only as a reference ceiling. For benchmarking
+practice we follow the recommendations to report hardware, software,
+configuration, inputs, raw results and evaluation scripts
+\cite{beyer2019}, and to quantify run-to-run variation by repetition
+\cite{kalibera2013} (Section~\ref{sec:threats}).
 
 \section{Proposed Methodology}
 \label{sec:methodology}
@@ -325,9 +332,12 @@ and differences consecutive frames, and marks each cell
 motion/no-motion via per-cell blur-threshold-dilate-contour detection,
 producing a binary occupancy grid per frame. Its preliminary parallel
 implementation dispatches this per-cell work across a thread pool
-recreated every frame and holds no state across frames. Nothing past
-this point -- clustering, classification, tracking, counting, speed,
-adaptive density, or evaluation -- exists in the baseline.
+created every frame and stores no persistent per-lane tracking state.
+None of the clustering, classification, per-vehicle tracking,
+line-crossing counting, speed estimation, adaptive density or
+ground-truth evaluation described below exists in the baseline
+implementation (its paper describes a lattice-run counting heuristic and
+count-based density, Section~\ref{sec:priorwork}).
 
 \textbf{What this paper adds.} Both implementations documented here
 share the pipeline shown in Fig.~\ref{fig:pipeline}: two consecutive
@@ -367,13 +377,11 @@ different preprocessing step that predates this work and went unnoticed
 because the baseline's occupancy-only output is far less sensitive to
 it than the classification stage added here. Both have been added to
 the parallel implementation to match \code{seq.py} exactly;
-\code{seq.py}'s detection logic was not modified. The benchmark reported
-in Section~\ref{sec:results} was run with instrumented copies of the two
-scripts whose detection, tracking and evaluation code is identical to
-the shipped \code{seq.py} and \code{rparallel\_he3.py}; both fixes and
-the instrumentation are now part of the shipped files in the public
-repository (Section~\ref{sec:repro}). All results in this paper reflect
-the corrected, verified-equivalent version.}
+\code{seq.py}'s detection logic was not modified. Both fixes are part of
+the shipped \code{seq.py} and \code{rparallel\_he3.py}, which are the
+files benchmarked in Section~\ref{sec:results} (Section~\ref{sec:repro}).
+All results in this paper reflect the corrected, verified-equivalent
+version.}
 
 \begin{figure*}[t]
 \centering
@@ -518,10 +526,10 @@ Track eviction & unseen for $>2\,$s ($2\times$FPS frames) \\
 \subsection{Spatial Clustering and Object Formation}
 \label{sec:cluster}
 
-The baseline \cite{baseline} stops at the per-cell binary occupancy grid
-of Section~\ref{sec:motion}; everything from this section onward is
-this paper's contribution, starting with converting that occupancy grid
-into discrete, per-vehicle candidate objects.
+The baseline implementation \cite{baseline} stops at the per-cell binary
+occupancy grid of Section~\ref{sec:motion}; everything from this section
+onward is this paper's contribution, starting with converting that
+occupancy grid into discrete, per-vehicle candidate objects.
 
 Hot cells are grouped into candidate vehicle objects by 4-connected
 flood fill (\code{group\_cells}): starting from any unvisited hot cell,
@@ -566,8 +574,10 @@ camera placements (see Section~\ref{sec:threats}).
 \subsection{Tracking, Counting, and Speed Estimation}
 \label{sec:tracking}
 
-Per-vehicle identity, counting, and speed have no counterpart in the
-baseline \cite{baseline} either; this section (together with
+Per-vehicle identity tracking, line-crossing counting and implemented
+speed estimation have no counterpart in the baseline \cite{baseline}
+either (its paper counts vehicles from runs of occupied lattices and
+leaves speed estimation to future work); this section (together with
 Sections~\ref{sec:cluster} and \ref{sec:classify}) is the core
 contribution this paper adds on top of it.
 
@@ -632,15 +642,23 @@ without this guard. Because the distance is a NumPy float, dividing by a
 zero constant does not raise but yields \code{inf}, i.e.\ spurious
 ``inf km/h'' speeds whenever \code{pixels\_per\_meter} is left at its
 default of 0 (\code{user\_input\_data.example.json}). The guard has been
-added to \code{seq.py}; see Section~\ref{sec:threats}.
+added to \code{seq.py}; see Section~\ref{sec:threats}. \textbf{Speed
+estimates are not validated in this paper}: no calibrated speed ground
+truth exists for the benchmark sequences and the calibration constant is
+0 in all benchmark runs, so speed estimation is inactive there.
+Pixel-displacement speeds require an appropriate metric scale and
+validation against measured speeds \cite{kamil2024}, and unstable
+trajectories -- here, grid-quantized centroids -- degrade them
+\cite{sangsuwan2024}.
 
 \subsection{Adaptive Traffic Density Estimation}
 \label{sec:density}
 
-The baseline \cite{baseline} computes and prints this same raw
-occupancy fraction per frame (and, in its dual-ROI variant, per lane),
-but does not smooth it, blend it with flow, or threshold it into
-traffic-state labels -- that adaptive layer is added here.
+The baseline code \cite{baseline} computes and prints this same raw
+occupancy fraction per frame (and, in its dual-ROI variant, per lane);
+the baseline paper defines density from lattice-run vehicle counts per
+unit area. Neither smooths it, blends it with flow, or thresholds it
+into traffic-state labels -- that adaptive layer is added here.
 
 Instantaneous density is the fraction of hot cells in the current
 frame. It is smoothed with a rolling mean over approximately one second
@@ -660,13 +678,13 @@ self-calibrate to the specific scene's typical occupancy range.
 
 \subsubsection{Design Goals}
 The baseline's \cite{baseline} preliminary dual-ROI implementation
-already used a thread pool, but recreated it every frame and held no
-state across frames -- adequate for a stateless per-frame occupancy
-check, but structurally incompatible with the tracking, label-smoothing,
-and speed estimation this paper adds (Sections~\ref{sec:cluster}--\ref{sec:tracking}),
-all of which require state that persists across frames, per lane. The
-parallel implementation described in this section is accordingly a
-redesign, not an extension of the baseline's threading: it preserves
+already used a thread pool, but created it every frame and stored no
+persistent per-lane tracking state -- adequate for a stateless per-frame
+occupancy check. The tracking, label smoothing and speed estimation this
+paper adds (Sections~\ref{sec:cluster}--\ref{sec:tracking}) need state
+that persists across frames, per lane; the parallel implementation
+described here therefore introduces \code{LaneTracker} instances that
+hold it, together with persistent pools: it preserves
 the algorithm and output semantics of Sections~\ref{sec:motion}--\ref{sec:density}
 exactly, while restructuring execution to (i) support two independent
 ROIs/lanes with persistent per-lane tracking state and (ii) exploit two
@@ -801,7 +819,11 @@ inside \code{compute\_tracking}. Under Amdahl's law
 (Eq.~\eqref{eq:amdahl}), the pipeline's overall achievable speedup is
 therefore bounded above by the fraction of total per-frame time spent in
 the GIL-releasing stage, not by worker count alone -- a bound this paper
-measures directly rather than assumes (Section~\ref{sec:results}).
+measures directly rather than assumes (Section~\ref{sec:results}). A
+further limit applies if the native calls are themselves already
+multithreaded: Python-level threads then compete for cores that are
+already busy, and the ceiling of Eq.~\eqref{eq:amdahl} is not reached
+(Section~\ref{sec:why}).
 
 \subsection{Ground-Truth Evaluation Methodology}
 \label{sec:eval}
@@ -860,21 +882,24 @@ matching is greedy per track, without a one-to-one constraint.
 
 \subsection{Hardware, Software, and Data}
 \begin{itemize}
-\item CPU: AMD Ryzen 5 7235HS (4 cores / 8 threads; reported by
-\code{Win32\_Processor}); \code{\_CELL\_POOL} therefore has
-$\min(32, 4\times8)=32$ workers
-\item OS: Windows 11
-\item Python: 3.12.3; OpenCV: 4.12.0
+\item CPU: AMD Ryzen 5 7235HS, 4 cores / 8 logical processors (laptop);
+\code{\_CELL\_POOL} therefore has $\min(32, 4\times8)=32$ workers
+\item OS: Windows 11 (build 26300)
+\item Python 3.12.3 (CPython); OpenCV 4.12.0; NumPy 1.26.4
 \item Dataset: UA-DETRAC, 12 sequences selected across the four weather
 categories (Section~\ref{sec:selection-detail}); all 12 are
 $960\times540$ at 25\,fps
 \item Grid dimensions: $6\times6$; \code{color\_channel}: V
 \item \code{pixels\_per\_meter}: 0 (uncalibrated for these sequences --
-speed estimation intentionally inactive, per Section~\ref{sec:tracking})
-\item GUI display: disabled for all benchmark runs (\code{BTP\_DISPLAY=0})
-\item Repeated runs per video: 1 (see Section~\ref{sec:threats} for the
-resulting limitation)
+speed estimation inactive, per Section~\ref{sec:speed})
+\item GUI display and per-frame JPEG dump disabled for all benchmark runs
+(\code{BTP\_DISPLAY=0}, \code{BTP\_SAVE\_FRAMES=0})
+\item Repeated runs per video: 1 per workload (see
+Section~\ref{sec:threats})
 \end{itemize}
+Every metrics file records the platform, CPU model, physical and logical
+core counts and the Python/OpenCV/NumPy versions, following the
+reporting recommendations of \cite{beyer2019}.
 
 \subsection{Video Selection}
 \label{sec:selection-detail}
@@ -889,78 +914,85 @@ when a tercile has an even count), balanced across all four categories
 uneven (Cloudy 4, Night 6, Rainy 5, Sunny 23 videos with annotations),
 and the tiers are \emph{relative within each category}: the Sunny
 ``light'' video (6.73) is denser than the Cloudy ``heavy'' video (6.40).
-All 12 selected videos had a matching XML annotation (0 missing). Selected sequences and their
-measured density (mean GT vehicles/frame) were: Cloudy --
-MVI\_39761 (2.81, light), MVI\_39771 (6.32, medium), MVI\_40963 (6.40,
-heavy); Night -- MVI\_40774 (6.09, light), MVI\_40773 (8.03, medium),
-MVI\_40772 (12.93, heavy); Rainy -- MVI\_63525 (3.52, light), MVI\_40141
-(3.89, medium), MVI\_40131 (9.32, heavy); Sunny -- MVI\_20033 (6.73,
-light), MVI\_20011 (11.53, medium), MVI\_39311 (14.92, heavy).
-Processed frame pairs per video (video length $-1$) were, in the same
-order: 1659, 569, 1819; 949, 984, 1199; 984, 1599, 1644; 783, 663, 1504
-(14{,}356 in total).
+All 12 selected videos had a matching XML annotation (0 missing).
+Selected sequences and their measured density (mean GT vehicles/frame)
+were: Cloudy -- MVI\_39761 (2.81, light), MVI\_39771 (6.32, medium),
+MVI\_40963 (6.40, heavy); Night -- MVI\_40774 (6.09, light), MVI\_40773
+(8.03, medium), MVI\_40772 (12.93, heavy); Rainy -- MVI\_63525 (3.52,
+light), MVI\_40141 (3.89, medium), MVI\_40131 (9.32, heavy); Sunny --
+MVI\_20033 (6.73, light), MVI\_20011 (11.53, medium), MVI\_39311 (14.92,
+heavy). Processed frame pairs per video (video length $-1$) were, in the
+same order: 1659, 569, 1819; 949, 984, 1199; 984, 1599, 1644; 783, 663,
+1504 (14{,}356 in total).
 
 \subsection{Fair-Comparison Protocol}
 \label{sec:fair}
 The two implementations as shipped are \emph{not} directly comparable
 by raw wall-clock time: \code{seq.py} processes one ROI per frame,
-while \code{rparallel\_he3.py} processes two. A naive speedup
-\begin{equation}
-S_{\text{naive}} = \frac{T_{\text{seq}}}{T_{\text{par}}}
-\end{equation}
-therefore conflates the effect of parallelization with the effect of a
-doubled workload, in either direction. We therefore report it only as
-context ($S_{\text{naive}}$), alongside the following corrected figures:
-\begin{enumerate}
-\item \textbf{Workload-normalized throughput (end-to-end).} Define
-ROI-frame throughput as $\Theta = (\text{frames}\times\text{lanes}) /
-T_{\text{total}}$, and report $S_{\text{norm}} = \Theta_{\text{par}} /
-\Theta_{\text{seq}} = 2\,T_{\text{seq}}/T_{\text{par}}$, where
-$T_{\text{total}}$ is end-to-end wall time (video open, writer setup and
-all frames). This is a throughput ratio, not an execution-time speedup.
-Work done once per frame regardless of lane count -- decoding, video
-writing and the full-frame blur/difference/channel split -- is shared by
-the two lanes, so the factor 2 credits the parallel run for work it does
-not duplicate; $S_{\text{norm}}>1$ can therefore arise from this
-amortization alone, without any benefit from threading, and must not be
-read as a threading speedup without the same-workload comparison
-below.
-\item \textbf{Workload-normalized throughput (per-frame loop).}
-$S_{\text{norm,pf}} = 2\,\bar t_{\text{seq}}/\bar t_{\text{par}}$, using
-the mean of each script's per-frame timer (Section~\ref{sec:instr}).
-\item \textbf{Same-workload sequential baseline.} The parallel script
-can run with both thread pools replaced by an inline executor
-(\code{BTP\_EXECUTOR=serial}): the same \code{LaneTracker} code, the same
-two ROIs and the same call order, with no threads. $S_{\text{same}} =
-T_{\text{serial}}/T_{\text{threaded}}$ then isolates the effect of
-threading alone. A one-lane threaded run (\code{BTP\_LANES=1}) completes
-the matrix of four workloads (sequential 1-lane, threaded 1-lane, serial
-2-lane, threaded 2-lane). These baselines are implemented and verified to
-produce identical Lane-1 results (Section~\ref{sec:crosscheck}); their
-timings on the benchmark machine are reported in
-Table~\ref{tab:sameworkload}.
-\end{enumerate}
-All figures are computed per video by
-\code{benchmarking/orchestrate\_benchmark.py} from the scripts' exported
-\code{*\_frame\_metrics.json} files, and summarized as mean $\pm$ sample
-standard deviation over the 12 videos. Parallel efficiency is
-$E(N) = S/N$; we report it for $N=2$ (the \code{\_LANE\_POOL} width),
-$N=4$ (physical cores) and $N=8$ (logical processors), and compare $S$
-with the Amdahl's-law ceiling of Eq.~\eqref{eq:amdahl} using $p$
-estimated from per-stage \code{cProfile} output
+while \code{rparallel\_he3.py} processes two. We therefore time four
+workloads per video, all with identical videos, ROIs, grid,
+preprocessing and evaluation settings:
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lllc}
+\toprule
+\textbf{ID} & \textbf{Script} & \textbf{Setting} & \textbf{Lanes} \\
+\midrule
+A & \code{seq.py} & -- & 1 \\
+B & \code{rparallel\_he3.py} & \code{BTP\_LANES=1}, threaded & 1 \\
+C & \code{rparallel\_he3.py} & \code{BTP\_EXECUTOR=serial} & 2 \\
+D & \code{rparallel\_he3.py} & default, threaded & 2 \\
+\bottomrule
+\end{tabular}
+\end{center}
+In C, both thread pools are replaced by an inline executor that runs each
+submitted task immediately on the main thread: the same
+\code{LaneTracker} code, ROIs and call order as D, without threads. With
+$T$ the end-to-end wall time (video open, writer setup and all frames)
+and $\bar t$ the mean of the per-frame timer (Section~\ref{sec:instr}),
+we report, per video:
+\begin{itemize}
+\item $S_{\text{naive}} = T_A/T_D$ -- raw ratio, workload-confounded,
+context only;
+\item $S_{\text{norm}} = \Theta_D/\Theta_A = 2\,T_A/T_D$, with ROI-frame
+throughput $\Theta = (\text{frames}\times\text{lanes})/T$ -- a throughput
+ratio, not an execution-time speedup; its per-frame-loop form is
+$S_{\text{norm,pf}} = 2\,\bar t_A/\bar t_D$;
+\item $S_{\text{amort}} = 2\,T_A/T_C$ -- the same normalization for the
+\emph{unthreaded} two-lane run, i.e.\ the gain from processing two lanes
+per decoded frame without any threading;
+\item $S_{\text{same}} = T_C/T_D$ (two lanes) and $T_A/T_B$ (one lane)
+-- same workload with and without threads, isolating the effect of
+threading.
+\end{itemize}
+Because decoding, video writing and the full-frame
+blur/difference/channel split are done once per frame regardless of lane
+count, $S_{\text{norm}}$ can exceed 1 through this sharing alone; it must
+not be read as a threading speedup without $S_{\text{same}}$. All figures
+are computed per video by \code{benchmarking/orchestrate\_benchmark.py}
+and summarized as mean $\pm$ sample standard deviation over the 12 videos;
+this spread is between-video variation, not repeated-run uncertainty.
+Parallel efficiency is $E(N)=S_{\text{same}}/N$ for $N=2$
+(\code{\_LANE\_POOL} width), $N=4$ (physical cores) and $N=8$ (logical
+processors), and $S_{\text{same}}$ is compared with the Amdahl ceiling of
+Eq.~\eqref{eq:amdahl} using $p$ estimated from \code{cProfile} output
 (Section~\ref{sec:results-amdahl}).
 
 \subsection{Instrumentation}
 \label{sec:instr}
-Each run exports total end-to-end wall time; a per-frame timing array
-(\code{frame\_times\_seconds}); a binary \code{cProfile} profile plus
-cumulative- and self-time top-15 reports (profiled pass only); and, with
-DETRAC ground truth, the grid-level and vehicle-level confusion matrices
-and per-class precision/recall/F1 of Section~\ref{sec:eval}. Each video
-is run twice per implementation: a clean pass (profiler off) used for all
-timing, and a profiled pass used only for Section~\ref{sec:results-amdahl}.
-Display and the per-frame JPEG dump are disabled in both
-(\code{BTP\_DISPLAY=0}, \code{BTP\_SAVE\_FRAMES=0}).
+Each run exports end-to-end wall time; per-frame processing time
+(\code{frame\_times\_seconds}), which covers preprocessing, per-cell
+detection, clustering, classification, tracking/counting/speed, density
+and all overlay drawing and stops before output I/O, with identical
+boundaries in both scripts; per-frame output I/O time (video write,
+preview, decoding the next frame); per-frame resident memory; process CPU
+time; the system record above; and, with DETRAC ground truth, the
+grid-level and vehicle-level confusion matrices and per-class
+precision/recall/F1 of Section~\ref{sec:eval}. Each video is run with a
+clean pass (profiler off) for every workload, used for all timing, and a
+profiled pass (\code{cProfile}) for workloads A and D, used only for
+Section~\ref{sec:results-amdahl}.
 
 \textbf{Timing artifact (found and fixed).}\label{sec:timingfix} In an
 earlier measurement round the sequential script polled
@@ -973,39 +1005,30 @@ videos, $10\times10$ grid) show \code{waitKey} at 43.0\,s and
 \code{imwrite} at 7.6\,s of an 83.5\,s run; the $3.3\times$ figure itself
 could not be recovered and is not used anywhere in this paper.
 
-\textbf{Limitations of the instrumentation used for
-Section~\ref{sec:results}.} (i) The two per-frame timers had different
-boundaries: the sequential timer stopped before \code{VideoWriter.write},
-the parallel timer after \code{VideoWriter.write} and the preview call;
-the timed loop covered $74\pm2\%$ (sequential) and $87\pm2\%$ (parallel)
-of end-to-end time. (ii) Only the parallel script exported per-frame
-resident memory (\code{memory\_usages\_mb}); sequential memory was not
-recorded. Both are corrected in the shipped scripts
-(Section~\ref{sec:repro}): the per-frame timer now covers processing and
-all overlay drawing and stops before output I/O in \emph{both} scripts,
-I/O is timed separately (\code{frame\_io\_times\_seconds}), both export
-memory, process CPU time and a hardware/software record (CPU model,
-physical/logical cores, Python, OpenCV and NumPy versions).
+\textbf{Earlier benchmark run.} A first run of workloads A and D on the
+same machine and videos used instrumented copies of the scripts whose
+per-frame timers had different boundaries (the sequential timer stopped
+before the video write, the parallel one after it) and which did not
+record sequential memory. It gave $S_{\text{naive}}=0.631\pm0.042$,
+$S_{\text{norm}}=1.261\pm0.084$ and $S_{\text{norm,pf}}=1.079\pm0.064$,
+and per-video F1 scores identical to those reported below. All results
+in Section~\ref{sec:results} are from the re-run of the shipped scripts
+with the corrected instrumentation.
 
 \section{Results and Discussion}
 \label{sec:results}
 
 Results are from the 12-video benchmark described in
-Section~\ref{sec:selection-detail}, using the corrected, verified-equivalent
-scripts (Section~\ref{sec:crosscheck}): every reported number reflects
-the version in which both preprocessing divergences have been fixed and
-confirmed to produce identical per-video confusion matrices between
-\code{seq.py} and the parallel implementation's Lane~1.
+Section~\ref{sec:selection-detail}, run with the shipped, corrected
+scripts (Section~\ref{sec:crosscheck}).
 
 \subsection{Accuracy: Verified Equivalence}
 Across all 12 videos, \code{seq.py} and the parallel implementation's
-Lane~1 produced \textbf{bit-identical Car/Van/Bus F1 scores}
-(agreement to at least 6 decimal places on every class, every video),
-confirming that the two fixes in Section~\ref{sec:crosscheck} were the
-complete set of divergences and that the implementations are now
-genuinely running the same algorithm. Table~\ref{tab:accuracy-by-cat}
+Lane~1 produced matching Car/Van/Bus F1 scores and confusion matrices
+(compared exactly, on every class and video), and the earlier benchmark
+run gave the same per-video values. Table~\ref{tab:accuracy-by-cat}
 therefore reports a single accuracy figure per category (identical
-between implementations by construction); per-tier figures are in
+between implementations); per-tier figures are in
 Table~\ref{tab:accuracy-by-tier}.
 
 \begin{table}[t]
@@ -1053,164 +1076,143 @@ because of graded misclassification. Bus F1 is 0 for Night, Sunny, and
 the light/medium density tiers entirely -- consistent with
 Section~\ref{sec:classify}'s expectation that the geometric classifier's
 fixed span thresholds are the least portable part of the pipeline.
+These absolute accuracies are low; the contribution of this section is
+the verified agreement between implementations, not the classifier's
+accuracy.
 
-\subsection{Timing and Speedup}
-Table~\ref{tab:results-timing} reports timing from the clean
-(profiler-off) pass. Its two timing columns use different time bases
-(see the table note), so $1000/\text{ms}$ does not equal the FPS
-column.
+\subsection{Timing: Four Workloads}
+\label{sec:timing}
+Table~\ref{tab:results-timing} reports the clean-pass timing of the four
+workloads.
 
 \begin{table}[t]
 \centering
-\caption{Timing (clean pass), mean $\pm$ sample std over 12 videos.}
+\caption{Timing of the four workloads (clean pass), mean $\pm$ std over
+12 videos (between-video variation).}
 \label{tab:results-timing}
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{lcccc}
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lcccccc}
 \toprule
-\textbf{Impl.} & \textbf{Lanes} & \textbf{Loop (ms)$^{a}$} & \textbf{FPS$^{b}$} & \textbf{Peak MB} \\
+ & \textbf{Ln.} & \textbf{Loop$^{a}$} & \textbf{I/O$^{a}$} & \textbf{FPS$^{b}$} & \textbf{Peak} & \textbf{CPU$^{c}$} \\
+ & & (ms) & (ms) & & (MB) & (cores) \\
 \midrule
-Sequential & 1 & $8.03 \pm 0.29$ & $92.4 \pm 4.5$ & n/r$^{c}$ \\
-Parallel   & 2 & $14.92 \pm 0.84$ & $58.2 \pm 3.5$ & $313.0 \pm 3.3$ \\
+A & 1 & $9.41\pm1.84$ & $2.26\pm0.46$ & $81.1\pm15.7$ & $302.5\pm1.9$ & $4.20\pm0.61$ \\
+B & 1 & $11.10\pm1.99$ & $2.19\pm0.43$ & $72.0\pm12.2$ & $306.4\pm1.8$ & $4.01\pm0.50$ \\
+C & 2 & $14.54\pm2.59$ & $2.09\pm0.36$ & $58.2\pm9.6$ & $306.0\pm3.0$ & $4.52\pm0.47$ \\
+D & 2 & $17.46\pm3.73$ & $2.27\pm0.39$ & $50.1\pm9.4$ & $310.0\pm3.1$ & $3.94\pm0.70$ \\
 \bottomrule
 \end{tabular}
 
 \smallskip
-\parbox{\columnwidth}{\scriptsize $^{a}$Mean of the per-frame timer. In
-this benchmark the sequential timer stopped before
-\code{VideoWriter.write} and the parallel timer after it (and after the
-preview call); the timed loop covers 74\% and 87\% of end-to-end time,
-respectively (Section~\ref{sec:instr}).
-$^{b}$Frames divided by end-to-end wall time, including video open,
-decoding and writing.
-$^{c}$Not recorded: the sequential script did not export memory samples in this
-benchmark (Section~\ref{sec:instr}).}
+\parbox{\columnwidth}{\scriptsize $^{a}$Per-frame processing incl.\ drawing
+(Loop) and output I/O incl.\ next-frame decode (I/O); identical
+boundaries in all workloads.
+$^{b}$Video frames per second of end-to-end wall time.
+$^{c}$Process CPU time divided by wall time.}
 \end{table}
 
-The three figures of Section~\ref{sec:fair} are, per video and then
-averaged ($n=12$):
+Per video, then averaged ($n=12$):
 \begin{align}
-S_{\text{naive}} &= T_{\text{seq}}/T_{\text{par}} = 0.631 \pm 0.042,\\
-S_{\text{norm}} &= 2\,T_{\text{seq}}/T_{\text{par}} = 1.261 \pm 0.084,
+S_{\text{naive}} &= T_A/T_D = 0.628 \pm 0.114,\\
+S_{\text{norm}} &= 2\,T_A/T_D = 1.257 \pm 0.228,
 \label{eq:measured-speedup}\\
-S_{\text{norm,pf}} &= 2\,\bar t_{\text{seq}}/\bar t_{\text{par}} = 1.079 \pm 0.064.
+S_{\text{norm,pf}} &= 2\,\bar t_A/\bar t_D = 1.097 \pm 0.187,\\
+S_{\text{amort}} &= 2\,T_A/T_C = 1.458 \pm 0.216,\\
+S_{\text{same}}^{(2)} &= T_C/T_D = 0.860 \pm 0.077,\\
+S_{\text{same}}^{(1)} &= T_A/T_B = 0.900 \pm 0.123.
 \end{align}
-The parallel run takes longer than the sequential run on every video
-(it processes two ROIs instead of one). Per ROI-frame, end-to-end
-throughput is 26\% higher; restricted to the timed processing loop the
-gain is 8\%, and part of the difference between the two normalized
-figures comes from once-per-frame I/O being credited twice by the factor
-2, and part from the asymmetric timer boundaries noted under
-Table~\ref{tab:results-timing}. Using $S_{\text{norm}}$ as $S$, the
-efficiency is $E(2)=0.63$, $E(4)=0.32$ and $E(8)=0.16$; since
-$S_{\text{norm}}$ is a throughput ratio rather than a same-workload
-speedup, these values are indicative only. Table
-\ref{tab:speedup-breakdown} breaks $S_{\text{norm}}$ down by category and
-by density tier.
+The per-frame-loop forms of the last two are $0.842\pm0.081$ and
+$0.852\pm0.107$. Three findings follow. (i) The threaded two-lane run
+takes longer than the one-lane sequential run on every video
+($S_{\text{naive}}$ 0.43--0.85). (ii) \textbf{Threading does not reduce
+execution time on this machine}: for the same two-lane workload, the
+threaded run (D) is slower than the unthreaded run (C) on all 12 videos
+($S_{\text{same}}^{(2)}$ 0.69--0.93), and the one-lane threaded run (B)
+is slower than \code{seq.py} on 9 of 12 videos. (iii) The
+workload-normalized throughput gain of D over A ($S_{\text{norm}}=1.26$,
+above 1 on 10 of 12 videos) is \emph{smaller} than that of the
+unthreaded two-lane run C over A ($S_{\text{amort}}=1.46$); it therefore
+comes from processing two lanes per decoded and preprocessed frame, not
+from threading. The parallel efficiency of the threads-only comparison
+is $E(2)=0.43$, $E(4)=0.22$ and $E(8)=0.11$. Peak memory of the threaded
+two-lane run is $7.5$\,MB (2.5\%) above \code{seq.py}.
 
 \begin{table}[t]
 \centering
-\caption{Workload-normalized speedup by category and by density tier,
-mean $\pm$ std.}
+\caption{Normalized throughput ($S_{\text{norm}}=2T_A/T_D$) and
+threads-only ratio ($S_{\text{same}}^{(2)}=T_C/T_D$) by category and
+density tier, mean $\pm$ std.}
 \label{tab:speedup-breakdown}
 \footnotesize
-\begin{tabular}{lc}
+\begin{tabular}{lcc}
 \toprule
-\textbf{Group} & \textbf{Normalized speedup} \\
+\textbf{Group} & $S_{\text{norm}}$ & $S_{\text{same}}^{(2)}$ \\
 \midrule
-Cloudy & $1.305 \pm 0.022$ \\
-Night  & $1.262 \pm 0.116$ \\
-Rainy  & $1.222 \pm 0.127$ \\
-Sunny  & $1.255 \pm 0.057$ \\
+Cloudy & $1.329 \pm 0.323$ & $0.910 \pm 0.020$ \\
+Night  & $1.316 \pm 0.146$ & $0.863 \pm 0.049$ \\
+Rainy  & $1.220 \pm 0.241$ & $0.831 \pm 0.124$ \\
+Sunny  & $1.162 \pm 0.269$ & $0.837 \pm 0.090$ \\
 \midrule
-Light  & $1.266 \pm 0.090$ \\
-Medium & $1.322 \pm 0.055$ \\
-Heavy  & $1.196 \pm 0.064$ \\
+Light  & $1.342 \pm 0.188$ & $0.889 \pm 0.037$ \\
+Medium & $1.349 \pm 0.228$ & $0.874 \pm 0.027$ \\
+Heavy  & $1.078 \pm 0.197$ & $0.818 \pm 0.126$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Normalized throughput is highest for the medium tier and lowest for the
-heavy tier ($1.322$ vs.\ $1.196$), but the tier means are not monotone in
-density (light $1.266$), and the tiers are ranked within each weather
-category rather than on an absolute density scale
-(Section~\ref{sec:selection-detail}). Across the 12 videos,
-$S_{\text{norm}}$ correlates weakly and negatively with measured density
-(Pearson $r=-0.46$; $r=-0.46$ also for $S_{\text{norm,pf}}$). With
-$n=12$ this is an observation, not an established effect. In particular,
-the profiles do \emph{not} support the explanation that a
-density-dependent, unparallelized tracking stage
-(Section~\ref{sec:speedup-limits}) drives it: in the sequential profiled
-pass, \code{process\_tracking\_counting} accounts for only 1.8--3.8\% of
-run time on every video with no trend in density (3.2\% on the lightest
-video, 3.3\% on the densest), and sequential loop time is flat across
-tiers (8.00, 8.10 and 7.98\,ms). The cause of the variation is
-undetermined. Category-level variation (1.22--1.31) is comparatively
-small and shows no clean ordering by weather condition.
-
-\begin{table}[t]
-\centering
-\caption{Same-workload timing (four workloads, clean pass, mean $\pm$
-std over 12 videos). \TBD: to be filled from
-\code{benchmark\_results\_v2/} after re-running
-\code{orchestrate\_benchmark.py} on the benchmark machine.}
-\label{tab:sameworkload}
-\footnotesize
-\begin{tabular}{lccc}
-\toprule
-\textbf{Workload} & \textbf{Lanes} & \textbf{Loop (ms)} & \textbf{$T_{\text{total}}$ (s)} \\
-\midrule
-A: \code{seq.py} & 1 & \TBD & \TBD \\
-B: threaded, Lane 1 only & 1 & \TBD & \TBD \\
-C: \code{LaneTracker}, no threads & 2 & \TBD & \TBD \\
-D: threaded & 2 & \TBD & \TBD \\
-\midrule
-\multicolumn{2}{l}{$S_{\text{same}} = T_C/T_D$} & \multicolumn{2}{c}{\TBD} \\
-\bottomrule
-\end{tabular}
-\end{table}
+Table~\ref{tab:speedup-breakdown} breaks both ratios down by category and
+density tier. Normalized throughput is lowest for the heavy tier, but the
+tiers are ranked within each weather category rather than on an
+absolute density scale (Section~\ref{sec:selection-detail}). Across the
+12 videos, $S_{\text{norm}}$ correlates weakly and negatively with
+measured density (Pearson $r=-0.45$; $-0.46$ in the earlier run). With
+$n=12$ this is an observation, not an established effect, and the
+profiles do not support a density-dependent, unparallelized tracking
+stage as its cause: \code{process\_tracking\_counting} accounts for only
+1.6--4.2\% of sequential run time on every video, with no trend in
+density (2.8\% on the lightest video, 3.0\% on the densest), and
+sequential loop time does not increase with density tier (light 11.4,
+medium 8.4, heavy 8.4\,ms). The cause of the variation is undetermined.
+Category-level variation is comparatively small and shows no clean
+ordering by weather condition.
 
 \subsection{Per-Stage Profiling and the Amdahl Ceiling}
 \label{sec:results-amdahl}
 The sequential implementation's \code{cProfile} breakdown for one video
 (profiled pass, MVI\_39311, the densest of the twelve, 1504 frames,
-15.64\,s profiled wall time, with the \code{waitKey}/JPEG artifact of
-Section~\ref{sec:timingfix} removed) attributes self-time as follows:
-the seven largest native OpenCV calls (\code{dilate}, \code{GaussianBlur},
-\code{VideoCapture.read}, \code{cvtColor}, \code{absdiff}, \code{split},
-\code{VideoWriter.write}) account for \textbf{10.43\,s (66.7\% of total)};
-Python-level wrapper/bookkeeping functions (\code{process\_grid},
-\code{process\_grid\_channel}, \code{process\_hsv},
+18.62\,s profiled wall time) attributes self-time as follows: the seven
+largest native OpenCV calls (\code{dilate}, \code{GaussianBlur},
+\code{VideoCapture.read}, \code{cvtColor}, \code{absdiff},
+\code{VideoWriter.write}, \code{split}) account for \textbf{12.40\,s
+(66.6\% of total)}; Python-level wrapper/bookkeeping functions
+(\code{process\_grid}, \code{process\_grid\_channel}, \code{process\_hsv},
 \code{apply\_histogram\_equalization}, \code{density\_calculation},
-\code{process\_tracking\_counting}, \code{numpy.percentile}) account for
-0.83\,s; \code{main}'s own loop overhead is 1.28\,s. The remaining
-3.09\,s consists of other native calls in the top-15 list
-(\code{findContours} 0.45\,s, \code{putText} 0.40\,s,
-\code{numpy.asanyarray} 0.24\,s, \code{getStructuringElement} 0.23\,s,
-\code{rectangle} 0.22\,s, \code{threshold} 0.18\,s; 1.71\,s together) and
-$\approx$1.38\,s in functions below the top-15 cutoff (e.g.\
-\code{group\_cells}, \code{cluster\_to\_object}, \code{classify\_by\_grid}).
+\code{process\_tracking\_counting}, \code{numpy.percentile}) for 0.99\,s;
+and \code{main}'s own loop overhead for 1.62\,s. The remaining 3.61\,s
+consists of other native calls in the top-15 list (\code{findContours}
+0.51\,s, \code{putText} 0.42\,s, \code{numpy.asanyarray} 0.30\,s,
+\code{getStructuringElement} 0.26\,s, \code{rectangle} 0.25\,s,
+\code{threshold} 0.20\,s; 1.95\,s together) and $\approx$1.66\,s in
+functions below the top-15 cutoff (e.g.\ \code{group\_cells},
+\code{cluster\_to\_object}, \code{classify\_by\_grid}).
 
-This 66.7\% figure treats the largest native calls as parallelizable,
-which is optimistic: \code{VideoCapture.read} and
-\code{VideoWriter.write} happen once per frame regardless of lane count
-and are never dispatched to either thread pool. Restricting to time
-actually reachable through \code{\_CELL\_POOL} (the per-cell contour
-path inside \code{process\_grid\_channel}, plus
-\code{apply\_histogram\_equalization}) gives a narrower, more
-architecture-specific estimate: $p_{\text{cellpool}} = 6.11\text{s} /
-15.64\text{s} = 0.391$ (39.1\%). Repeating the computation on the
-profiled pass of all 12 videos gives $p_{\text{cellpool}} = 0.378 \pm
-0.017$ (range 0.357--0.406, i.e.\ $S(2)=1.23$) and a broad estimate of
-$0.677\pm0.010$. Table~\ref{tab:amdahl} compares both estimates' Amdahl
-ceilings with the measured figures.
+Treating the seven largest native calls as parallelizable is optimistic:
+\code{VideoCapture.read} and \code{VideoWriter.write} happen once per
+frame regardless of lane count and are never dispatched to either thread
+pool. Restricting to time reachable through \code{\_CELL\_POOL} (the
+per-cell contour path inside \code{process\_grid\_channel}, plus
+\code{apply\_histogram\_equalization}) gives $p_{\text{cellpool}} =
+6.74\text{s}/18.62\text{s} = 0.362$. Over the profiled passes of all 12
+videos, $p_{\text{cellpool}} = 0.375\pm0.019$ (range 0.349--0.400) and
+the broad estimate is $0.667\pm0.011$. Table~\ref{tab:amdahl} lists the
+resulting ceilings.
 
 \begin{table}[t]
 \centering
 \caption{Amdahl's-law ceilings (Eq.~\eqref{eq:amdahl}) from the
-MVI\_39311 profile vs.\ measured figures. $N{=}8$: logical processors;
-$N{=}4$: physical cores; $N{=}2$: \code{\_LANE\_POOL} width, the
-outer-level concurrency of a 2-lane run.}
+MVI\_39311 profile vs.\ the measured threads-only ratio. $N{=}8$: logical
+processors; $N{=}4$: physical cores; $N{=}2$: \code{\_LANE\_POOL} width.}
 \label{tab:amdahl}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -1218,30 +1220,25 @@ outer-level concurrency of a 2-lane run.}
 \toprule
 \textbf{Estimate of $p$} & \textbf{$p$} & \textbf{$S(\infty)$} & \textbf{$S(8)$} & \textbf{$S(4)$} & \textbf{$S(2)$} \\
 \midrule
-Broad (7 native calls) & 0.667 & 3.00 & 2.40 & 2.00 & 1.50 \\
-Narrow (\code{\_CELL\_POOL}) & 0.391 & 1.64 & 1.52 & 1.41 & 1.24 \\
+Broad (7 native calls) & 0.666 & 3.00 & 2.40 & 2.00 & 1.50 \\
+Narrow (\code{\_CELL\_POOL}) & 0.362 & 1.57 & 1.46 & 1.37 & 1.22 \\
 \midrule
-\multicolumn{3}{l}{Measured $S_{\text{norm}}$ (end-to-end)} & \multicolumn{3}{r}{$1.261 \pm 0.084$} \\
-\multicolumn{3}{l}{Measured $S_{\text{norm,pf}}$ (per-frame loop)} & \multicolumn{3}{r}{$1.079 \pm 0.064$} \\
+\multicolumn{3}{l}{Measured $S_{\text{same}}^{(2)}=T_C/T_D$} & \multicolumn{3}{r}{$0.860 \pm 0.077$} \\
+\multicolumn{3}{l}{Measured, per-frame loop} & \multicolumn{3}{r}{$0.842 \pm 0.081$} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-At $N{=}2$ the narrow estimate (1.24) is close to the end-to-end
-$S_{\text{norm}}$ (1.26), and the broad estimate (1.50) is further from
-both measured figures; the per-frame figure (1.08) lies below both
-ceilings. This is consistent with -- but does not establish -- the
-reading that the achievable gain in this 2-lane benchmark is governed by
-\code{\_LANE\_POOL}'s width (2) and by the fraction of work it reaches,
-rather than by \code{\_CELL\_POOL}'s larger worker budget: the outer
-dispatch (Section~\ref{sec:pools}) only has as many lane-level tasks in
-flight as there are lanes. The comparison is approximate for three
-reasons: Eq.~\eqref{eq:amdahl} describes one workload on $N$ workers,
-whereas $S_{\text{norm}}$ compares a two-lane run with a one-lane run;
-$p$ comes from self/cumulative-time attribution that does not separate
-every nested call; and $S_{\text{norm}}$ exceeds the narrow ceiling
-slightly, so the ceiling is not a strict bound here. The same-workload
-measurement of Table~\ref{tab:sameworkload} is the direct test.
+The measured threads-only ratio is below 1 and far below both ceilings,
+even the narrow one at $N=2$ (1.22). An earlier draft of this analysis
+compared the narrow ceiling with $S_{\text{norm}}$ and found close
+agreement (1.24 vs.\ 1.26); the same-workload measurement shows that
+agreement was coincidental, since $S_{\text{norm}}$ reflects shared
+per-frame work rather than threading. Eq.~\eqref{eq:amdahl} assumes that
+the parallel fraction runs on otherwise idle workers with no dispatch
+cost; Section~\ref{sec:why} discusses why neither holds here, and the
+single-fraction model cannot represent such contention
+\cite{poolla2023}.
 
 \subsection{Cross-Implementation Accuracy Check: Two Found and Fixed Divergences}
 \label{sec:crosscheck}
@@ -1306,46 +1303,53 @@ number computed between two implementations that are silently
 processing different inputs is not measuring parallelization at all.
 
 This was re-run after both fixes: \textbf{all 12 videos now produce
-bit-identical seq.py vs.\ parallel-Lane1 confusion matrices}, in both the
-clean and the profiled pass (Tables~\ref{tab:accuracy-by-cat}
-and~\ref{tab:accuracy-by-tier}), confirming the two divergences above
-were the complete set for this protocol. The same check now covers the
-two additional workloads of Section~\ref{sec:fair}: Lane~1 of the
-one-lane threaded run and of the two-lane serial run is identical to
-\code{seq.py} on all 12 videos, and Lane~2 is identical between the
-serial and threaded two-lane runs, which also shows that adding Lane~2
-does not perturb Lane~1. (This extended check was run on the shipped
-scripts in a Linux environment with OpenCV~5.0; equivalence is a
-within-environment property, and it is re-checked automatically by
-\code{orchestrate\_benchmark.py} on every run.)
+matching \code{seq.py} vs.\ parallel-Lane-1 confusion matrices} (vehicle
+and grid level, ID-count summary and per-class precision, recall and F1
+compared exactly), in both the clean and the profiled pass. The same
+check covers the two additional workloads of Section~\ref{sec:fair}:
+Lane~1 of the one-lane threaded run and of the two-lane unthreaded run
+matches \code{seq.py} on all 12 videos, and Lane~2 matches between the
+unthreaded and threaded two-lane runs, which also shows that adding
+Lane~2 does not perturb Lane~1. On the benchmark machine all 60 checks
+(12 videos $\times$ 5) were identical; the same 48 clean-pass checks were
+also identical in a separate Linux environment with OpenCV~5.0. These
+are checks on the 12 tested videos under this evaluation protocol, not a
+proof of equivalence for every input; \code{orchestrate\_benchmark.py}
+repeats them on every run.
 
-\subsection{Speedup, the Amdahl Ceiling, and Density}
-Section~\ref{sec:results-amdahl}'s profiling tests
-Section~\ref{sec:speedup-limits}'s stage-asymmetric prediction only
-approximately: restricting $p$ to time reachable through
-\code{\_CELL\_POOL} (39.1\%; $0.378\pm0.017$ over 12 videos) gives a
-ceiling at $N{=}2$ of 1.24, nearer the measured end-to-end figure (1.26)
-than the broad estimate's 1.50, while the per-frame figure (1.08) is
-below both. We read this as consistent with the pool architecture,
-not as proof of it. The density breakdown does not provide a second line
-of evidence: as shown in Section~\ref{sec:results}, the tracking stage
-is a small, density-independent share of run time, so the weak negative
-correlation between density and normalized throughput remains
-unexplained.
-
-Memory: the parallel run's peak resident memory was $313.0\pm3.3$\,MB;
-the sequential script did not record memory in this benchmark, so no
-overhead figure is reported (Section~\ref{sec:threats}).
+\subsection{Why Threading Does Not Help Here}
+\label{sec:why}
+Three properties of this pipeline plausibly explain the result; only the
+first is measured directly. (i) \textbf{The cores are already busy.}
+\code{seq.py} runs a single Python thread, yet its process CPU time is
+$4.20\pm0.61$ times its wall time (Table~\ref{tab:results-timing}): native
+code inside OpenCV is already multithreaded within individual calls, so
+the threads-only experiment adds Python-level threads on top of a
+machine whose four physical cores are largely occupied. CPU time per
+wall second does not rise with threading (3.94 cores for D vs.\ 4.52 for
+C). (ii) \textbf{The dispatched tasks are small.} Each frame dispatches
+36 per-cell tasks per lane, each a few native calls on a $73\times23$-pixel
+cell (e.g.\ \code{dilate} averages $\approx$64\,$\mu$s per call in the
+profile), so task submission, scheduling and result collection are a
+significant fraction of each task. (iii) \textbf{The GIL serializes
+everything else}: the Python wrappers, clustering, classification and
+tracking (Section~\ref{sec:speedup-limits}). Separating (ii) and (iii)
+would require experiments not done here, e.g.\ limiting OpenCV's internal
+threads or batching cells per task. The baseline paper reports a 26.55\%
+efficiency improvement for its parallel mode \cite{baseline}; its code,
+configuration, measured quantity and hardware differ from ours, so our
+results neither reproduce nor contradict that figure.
 
 \subsection{Threats to Validity and Limitations}
 \label{sec:threats}
 
-
 \textbf{Single hand-tuned scene.} ROI coordinates and every threshold in
 Table~\ref{tab:params} (blur kernels, the intensity threshold of 60 and
-the 100\,px$^2$ area threshold, the 0.75/0.55/0.45 classification breakpoints) were
-tuned for one camera geometry and are unlikely to generalize to a
-different viewpoint, height, or resolution without recalibration.
+the 100\,px$^2$ area threshold, the 0.75/0.55/0.45 classification
+breakpoints) were tuned for one camera geometry and are unlikely to
+generalize to a different viewpoint, height, or resolution without
+recalibration; illumination changes, shadows and occlusion remain known
+failure modes of such pipelines \cite{abbas2021,chen2020}.
 
 \textbf{Appearance-agnostic classification.} \code{classify\_by\_grid}
 uses only footprint geometry, not texture or appearance features, so it
@@ -1353,52 +1357,41 @@ cannot be expected to match a learned classifier on fine-grained
 distinctions, and is vulnerable to occlusion or partial ROI entry
 under/over-estimating a vehicle's grid footprint.
 
-\textbf{Grid quantization noise.} Both centroid position and speed are
-derived from a coarse grid; the \code{MIN\_SPEED\_DIST\_PX} gate
-(3$\times$ cell height) is a direct compensation for this, at the cost
-of a slower-to-respond speed estimate for slow-moving vehicles.
+\textbf{Grid quantization noise and unvalidated speed.} Both centroid
+position and speed are derived from a coarse grid; the
+\code{MIN\_SPEED\_DIST\_PX} gate (3$\times$ cell height) compensates for
+this at the cost of a slower-to-respond speed estimate. Speed estimation
+was inactive in all benchmark runs and has not been validated against
+speed ground truth \cite{kamil2024,sangsuwan2024}.
 
-\textbf{Verified and fixed code-review finding: \code{pixels\_per\_meter}
-guard inconsistency.} As noted in Section~\ref{sec:speed}, the
-sequential implementation performed the speed division unguarded, which
-under the default uncalibrated value (0) produces \code{inf} speeds. The
-guard is now present in both implementations; speed estimation was
-inactive (calibration 0) in all benchmark runs reported here.
+\textbf{Code-review findings (all fixed).} The sequential
+implementation's speed division was unguarded and produced \code{inf}
+speeds under the default uncalibrated value (Section~\ref{sec:speed});
+the parallel implementation omitted the $7\times7$ pre-differencing blur
+and grayscaled the ROI instead of equalizing only the V channel
+(Section~\ref{sec:crosscheck}). All three are fixed in the shipped
+scripts. The preprocessing divergences were found via cross-implementation
+confusion-matrix comparison (4/12 videos matched before either fix; 5/12
+after the first), which illustrates the general risk: an ``identical
+algorithm, different execution model'' claim between independently
+maintained code paths can drift silently and is only as trustworthy as
+the last time it was tested.
 
-\textbf{Verified and fixed code-review finding: two preprocessing
-divergences in the parallel implementation.} As detailed in
-Section~\ref{sec:crosscheck}, the parallel implementation's
-\code{process\_hsv}/\code{process\_grayscale} omitted the $7\times7$
-Gaussian blur that \code{seq.py} applies before differencing, \emph{and}
-its equalization helper ignored \code{channel\_choice} entirely,
-grayscaling the ROI instead of equalizing only the V channel as
-\code{seq.py} does. Both meant the two implementations were processing
-different inputs despite being documented as algorithmically identical.
-These were found via cross-implementation confusion-matrix comparison
-(4/12 benchmark videos matched before either fix; only 5/12 after the
-first fix alone, which is what surfaced the second divergence) and have
-been corrected in the parallel implementation to match \code{seq.py}
-exactly. This is listed as a threat to validity, rather than omitted now
-that it is fixed, because it is a concrete illustration of the general
-risk: an ``identical algorithm, different execution model'' claim
-between two independently maintained code paths can silently drift, is
-not guaranteed to be fully caught by a single check even when that check
-shows improvement, and is only as trustworthy as the last time it was
-actually tested, not documented.
+\textbf{Single machine, single run per video.} All timings come from one
+laptop and one run per workload and video. The reported standard
+deviations are between-video variation, not run-to-run uncertainty, and
+timing variation between runs on this machine is visible: the sequential
+loop time was $8.03\pm0.29$\,ms in the earlier run and $9.41\pm1.84$\,ms
+in the re-run reported here. Repeated runs with confidence intervals for
+each ratio \cite{kalibera2013} would be needed to bound measurement noise;
+the direction of the threads-only result (slower on all 12 videos) is
+nevertheless consistent. Results on machines with more cores, or with
+OpenCV's internal threading restricted, may differ.
 
-\textbf{GIL-bound bookkeeping stage.} As argued in
-Section~\ref{sec:speedup-limits}, thread-based parallelism is not expected to
-accelerate \code{compute\_tracking}'s pure-Python bookkeeping; extending
-speedup beyond the OpenCV-heavy stages would require a process-based
-(\code{multiprocessing}) or array-vectorized (NumPy-batched) refactor of
-that stage, which this paper does not implement or measure.
-
-\textbf{Workload confound.} The two shipped implementations differ in
-ROI count as well as execution model; Section~\ref{sec:fair}'s
-workload-normalized throughput metric and same-workload baseline address
-this, but any number reported \emph{without} that
-correction should be treated as workload-confounded and reported only as
-context, never as the paper's headline speedup figure.
+\textbf{Workload confound.} Any number reported without the
+same-workload comparison -- in particular $S_{\text{norm}}$ -- conflates
+lane count with execution model and should be reported only as context,
+never as a threading speedup.
 
 \textbf{Evaluation survivorship bias.} A track's classification is only
 scored once it has reached \code{MIN\_FRAMES\_FOR\_LABEL}~$=5$ frames of
@@ -1408,32 +1401,18 @@ accompanied by a count of excluded (never-scored) tracks so that this
 exclusion is visible rather than silently lowering the effective
 evaluation set.
 
-\textbf{No repeated-run variance reporting.} Both scripts export a
-single run's measurements; thread-scheduling and OS-level jitter can
-vary run-to-run; averaging several runs per video before reporting a
-headline figure would be preferable, which this draft does not yet do. Notably, the reported std of the normalized
-speedup (0.084 over 12 \emph{different videos}) reflects
-video-to-video variation, not run-to-run measurement noise on a fixed
-video -- the two are conflated in the current single-run-per-video
-design and should be measured separately in future work.
-
-\textbf{Memory and timer boundaries.} In the benchmark reported here,
-sequential memory was not recorded and the two per-frame timers had
-different boundaries (Section~\ref{sec:instr}); both are corrected in
-the shipped scripts, and the corresponding re-run is reported in
-Table~\ref{tab:sameworkload}.
-
 \section{Reproducibility}
 \label{sec:repro}
 Code, configuration template, benchmark orchestration and evaluation
-scripts, the per-run metrics behind every table, and this paper's source
-are in the project repository (branch
+scripts, the per-run metrics and logs behind every table (including the
+earlier run and the cross-environment equivalence run), and this paper's
+source are in the project repository (branch
 \code{paper-reproducibility-fixes}). The shipped \code{seq.py} and
 \code{rparallel\_he3.py} are the benchmarked implementations;
 \code{python benchmarking/orchestrate\_benchmark.py} re-runs the
-12-video, four-workload benchmark and writes all tables' inputs
-(including the equivalence check and per-video Amdahl estimates) to a new
-results directory.
+12-video, four-workload benchmark and writes all tables' inputs --
+including the equivalence checks, per-video Amdahl estimates and system
+record -- to a new results directory \cite{beyer2019}.
 
 \section{Conclusion}
 \label{sec:conclusion}
@@ -1443,78 +1422,115 @@ tracking and counting, and speed-estimation layer built on top of a
 prior published grid-based motion-detection baseline \cite{baseline},
 together with a thread-pool-parallelized dual-lane implementation built
 around per-lane state encapsulation and an explicit compute/draw
-separation for concurrency safety -- a substantial redesign of the
-baseline's preliminary, stateless per-frame threading, made necessary by
-this work's need for persistent per-lane tracking state -- and a
-DETRAC-grounded evaluation methodology applied identically to both
-implementations, which the baseline had none of. We identified and
-corrected for a workload confound between the two shipped
-implementations via a workload-normalized throughput metric, and
-surfaced and fixed three concrete code-review findings in the course of
-this analysis: an unguarded division in the sequential implementation's
-speed-estimation path, a missing pre-differencing Gaussian blur in the
-parallel implementation, and a histogram-equalization method in the
-parallel implementation that discarded color information the sequential
-implementation preserves. The latter two were found only because a
-cross-implementation accuracy check was run at all, and the first fix
-alone was insufficient to resolve the discrepancy it revealed --
-underscoring that ``identical algorithm, parallelized'' is an empirical
-claim requiring verification, not a property that follows from shared
-code heritage. On the resulting, verified-equivalent implementations
-(all 12 benchmark videos scoring bit-identical classification results),
-the two-lane parallel run takes longer than the one-lane sequential run
-($0.631\pm0.042$), while its workload-normalized ROI-frame throughput is
-$1.261\pm0.084$ times higher end-to-end and $1.079\pm0.064$ times higher
-over the timed processing loop. An Amdahl's-law estimate restricted to
-the fraction of work reachable through the thread pool (1.24 at the
-lane-pool width of 2) is closer to these figures than one based on the
-largest native calls (1.50). The weak negative dependence on traffic
-density is not explained by the tracking stage, which profiling shows to
-be small and density-independent. This gap between a naive, optimistic
-speedup estimate and the measured figures -- uncovered only after also
-fixing an unrelated timing-instrumentation artifact
-(Section~\ref{sec:timingfix}) behind an earlier, unarchived estimate of
-roughly $3.3\times$ -- is, together with the accuracy-equivalence
-finding, the paper's central empirical result.
+separation, and a DETRAC-grounded evaluation methodology applied
+identically to both implementations. A cross-implementation accuracy
+check found two preprocessing divergences between the supposedly
+identical implementations, and a code review found an unguarded division
+in the sequential speed path; all three are fixed, and the
+implementations now produce matching confusion matrices and F1 scores on
+all 12 tested videos.
 
-Future work includes: (a) a process-based or GPU-accelerated backend for
-the serial parts of the pipeline (full-frame preprocessing, I/O and
-tracking bookkeeping), which Section~\ref{sec:speedup-limits} argues
-are not expected to benefit from thread-based parallelism; (b)
-replacing the geometric classification heuristic with a lightweight
-learned classifier operating on the same per-cell ROIs, while retaining
-the classical detection front end -- particularly for the Bus class,
-which scored 0 F1 in four of the seven category/tier groupings
+On this verified basis, a four-workload benchmark on a 4-core/8-thread
+laptop shows that the thread pools do not reduce execution time: for the
+same two-lane workload the threaded run is slower than the unthreaded
+one ($0.860\pm0.077$, on all 12 videos). The two-lane implementation's
+$1.257\pm0.228$ higher ROI-frame throughput relative to the one-lane
+sequential script comes from sharing decoding, writing and full-frame
+preprocessing between lanes -- the unthreaded two-lane run achieves
+$1.458\pm0.216$ -- and the single-threaded script already keeps about
+four cores busy through OpenCV's internal multithreading. The gap between
+the optimistic estimates (Amdahl ceilings of 1.22--1.50 at the lane-pool
+width, an earlier unarchived $\sim$3.3$\times$ wall-clock figure caused
+by a timing artifact) and the measured result is, together with the
+accuracy-equivalence finding, the paper's central empirical result:
+``identical algorithm, parallelized'' and ``parallel is faster'' are
+claims to be measured with matched workloads, not inferred from code
+structure.
+
+Future work includes: (a) restricting OpenCV's internal threading and
+batching cells per task, to determine whether thread-level parallelism
+helps once cores are not already occupied, and process-based or
+vectorized processing of the serial stages (full-frame preprocessing,
+I/O, tracking bookkeeping); (b) replacing the geometric classification
+heuristic with a lightweight learned classifier operating on the same
+per-cell ROIs \cite{chang2025,macko2025}, while retaining the classical
+detection front end -- particularly for the Bus class, which scored 0
+F1 in four of the seven category/tier groupings
 (Table~\ref{tab:accuracy-by-cat}, Table~\ref{tab:accuracy-by-tier}); (c)
 replacing greedy nearest-centroid association with Kalman-filter-based
-tracking or a Hungarian-algorithm assignment, particularly under
-occlusion or cluster merging; (d) automatic ROI/grid calibration from a
-reference frame, replacing the hand-tuned pixel constants in
-Table~\ref{tab:params}; (e) scaling the per-lane architecture beyond two
-lanes and re-measuring whether \code{\_LANE\_POOL}'s fixed worker count
-becomes a bottleneck, which Section~\ref{sec:results-amdahl} suggests
-but does not establish; and (f) repeated-run statistical benchmarking with confidence
-intervals,
-addressing the limitation noted in Section~\ref{sec:threats}.
+tracking and Hungarian assignment \cite{bewley2016}, with
+appearance-based association for occlusion \cite{wojke2017}; (d)
+calibrated speed estimation validated against speed ground truth
+\cite{kamil2024}; (e) automatic ROI/grid calibration from a reference
+frame, replacing the hand-tuned pixel constants in
+Table~\ref{tab:params}; and (f) repeated-run benchmarking with
+confidence intervals \cite{kalibera2013} on more than one machine.
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
 
 \bibitem{baseline}
-M. Sankaranarayanan and K. SivaSai, ``Two-Tier Parallel Virtual Lattice
-Layers for Enhanced Efficiency in Video Traffic Management,''
-\emph{International Journal of Intelligent Transportation Systems
-Research}, vol.\ 23, no.\ 1, pp.\ 464--474, 2025. DOI:
-10.1007/s13177-025-00461-4.
+M. Sankaranarayanan and K. SivaSai, ``Two-tier parallel virtual lattice
+layers for enhanced efficiency in video traffic management,''
+\emph{Int.\ J. Intell.\ Transp.\ Syst.\ Res.}, vol.~23, no.~1,
+pp.~464--474, 2025, doi: 10.1007/s13177-025-00461-4.
 
 \bibitem{muthuraja2026}
-Muthuraja S and M. Sankaranarayanan, ``Robust Road Traffic Density
-Estimation Using Adaptive Scene Analysis and Occupancy Inference,''
-unpublished manuscript, 2026. \TBD{} (confirm status/venue).
+S. Muthuraja and M. Sankaranarayanan, ``Robust road traffic density
+estimation using adaptive scene analysis and occupancy inference,'' in
+\emph{Proc.\ 2026 IEEE Conf.} \TBD{} (conference name), 2026, ISBN
+979-8-3195-2457-7.
 
-\bibitem{amdahl1967}
-G. M. Amdahl, ``Validity of the single-processor approach to achieving
-large-scale computing capabilities,'' in \emph{Proc.\ AFIPS Spring Joint
-Computer Conf.}, vol.\ 30, 1967, pp.\ 483--485.
+\bibitem{crouzil2016}
+A. Crouzil, L. Khoudour, P. Valiere, and D. N. Truong Cong, ``Automatic
+vehicle counting system for traffic monitoring,'' \emph{J. Electron.\
+Imaging}, vol.~25, no.~5, art.~051207, 2016, doi:
+10.1117/1.JEI.25.5.051207.
+
+\bibitem{lian2025}
+H. Lian, M. Li, T. Li, Y. Zhang, Y. Shi, Y. Fan, W. Yang, H. Jiang,
+P. Zhou, and H. Wu, ``Vehicle speed measurement method using monocular
+cameras,'' \emph{Sci.\ Rep.}, vol.~15, art.~2755, 2025, doi:
+10.1038/s41598-025-87077-6.
+
+\bibitem{liu2025}
+Y. Liu and S. Shen, ``Vehicle detection and tracking based on improved
+YOLOv8,'' \emph{IEEE Access}, vol.~13, pp.~24793--24803, 2025, doi:
+10.1109/ACCESS.2025.3538556.
+
+\bibitem{zhai2023}
+J. Zhai, B. Li, S. Lv, and Q. Zhou, ``FPGA-based vehicle detection and
+tracking accelerator,'' \emph{Sensors}, vol.~23, no.~4, art.~2208, 2023,
+doi: 10.3390/s23042208.
+
+\bibitem{chang2025}
+L. Chang, Q. Tang, J. Xin, Y. Jiang, H. Zhang, Z. Li, Y. Zhou, and
+J. Zhou, ``Low-complexity real-time detection transformer for identifying
+bridge vehicle loads,'' \emph{Comput.-Aided Civ.\ Infrastruct.\ Eng.},
+vol.~40, no.~26, pp.~4485--4506, 2025, doi: 10.1111/mice.70061.
+
+\bibitem{macko2025}
+A. Macko, L. Gajdo\v{s}ech, and V. Kocur, ``Efficient vision-based
+vehicle speed estimation,'' \emph{J. Real-Time Image Process.}, vol.~22,
+no.~3, art.~123, 2025, doi: 10.1007/s11554-025-01704-z.
+
+\bibitem{unzueta2012}
+L. Unzueta, M. Nieto, A. Cort\'es, J. Barandiaran, O. Otaegui, and
+P. S\'anchez, ``Adaptive multicue background subtraction for robust
+vehicle counting and classification,'' \emph{IEEE Trans.\ Intell.\
+Transp.\ Syst.}, vol.~13, no.~2, pp.~527--540, 2012, doi:
+10.1109/TITS.2011.2174358.
+
+\bibitem{abbas2021}
+A. F. Abbas, U. U. Sheikh, F. T. AL-Dhief, and M. N. H. Mohd, ``A
+comprehensive review of vehicle detection using computer vision,''
+\emph{TELKOMNIKA}, vol.~19, no.~3, p.~838, 2021, doi:
+10.12928/telkomnika.v19i3.12880.
+
+\bibitem{chen2020}
+Y. Chen and W. Hu, ``Robust vehicle detection and counting algorithm
+adapted to complex traffic environments with sudden illumination changes
+and shadows,'' \emph{Sensors}, vol.~20, no.~9, art.~2686, 2020, doi:
+10.3390/s20092686.
 
 \bibitem{cheung2004}
 S.-C.\ S.\ Cheung and C.\ Kamath, ``Robust techniques for background
@@ -1523,14 +1539,65 @@ pp.\ 881--892, 2004.
 
 \bibitem{suzuki1985}
 S.\ Suzuki and K.\ Abe, ``Topological structural analysis of digitized
-binary images by border following,'' \emph{Computer Vision, Graphics,
-and Image Processing}, vol.\ 30, no.\ 1, pp.\ 32--46, 1985.
+binary images by border following,'' \emph{Comput.\ Vis.\ Graph.\ Image
+Process.}, vol.\ 30, no.\ 1, pp.\ 32--46, 1985, doi:
+10.1016/0734-189X(85)90016-7.
+
+\bibitem{bewley2016}
+A. Bewley, Z. Ge, L. Ott, F. Ramos, and B. Upcroft, ``Simple online and
+realtime tracking,'' in \emph{Proc.\ IEEE Int.\ Conf.\ Image Process.\
+(ICIP)}, 2016, pp.~3464--3468, doi: 10.1109/ICIP.2016.7533003.
+
+\bibitem{wojke2017}
+N. Wojke, A. Bewley, and D. Paulus, ``Simple online and realtime
+tracking with a deep association metric,'' in \emph{Proc.\ IEEE Int.\
+Conf.\ Image Process.\ (ICIP)}, 2017, pp.~3645--3649, doi:
+10.1109/ICIP.2017.8296962.
+
+\bibitem{kamil2024}
+D. A. Kamil, Wahyono, A. Harjoko, and K.-H. Jo, ``Vehicle speed
+estimation using consecutive frame approaches and deep image homography
+for image rectification on monocular videos,'' \emph{IEEE Access},
+vol.~12, pp.~181937--181952, 2024, doi: 10.1109/ACCESS.2024.3508135.
+
+\bibitem{sangsuwan2024}
+K. Sangsuwan and M. Ekpanyapong, ``Video-based vehicle speed estimation
+using speed measurement metrics,'' \emph{IEEE Access}, vol.~12,
+pp.~4845--4858, 2024, doi: 10.1109/ACCESS.2024.3350381.
 
 \bibitem{wen2020}
 L.\ Wen, D.\ Du, Z.\ Cai, Z.\ Lei, M.-C.\ Chang, H.\ Qi, J.\ Lim,
 M.-H.\ Yang, and S.\ Lyu, ``UA-DETRAC: A new benchmark and protocol for
-multi-object detection and tracking,'' \emph{Computer Vision and Image
-Understanding}, vol.\ 193, art.\ 102907, 2020.
+multi-object detection and tracking,'' \emph{Comput.\ Vis.\ Image
+Underst.}, vol.\ 193, art.\ 102907, 2020, doi:
+10.1016/j.cviu.2020.102907.
+
+\bibitem{amdahl1967}
+G. M. Amdahl, ``Validity of the single-processor approach to achieving
+large-scale computing capabilities,'' in \emph{Proc.\ AFIPS Spring Joint
+Computer Conf.}, vol.\ 30, 1967, pp.\ 483--485.
+
+\bibitem{alhayanni2020}
+M. A. N. Al-hayanni, F. Xia, A. Rafiev, A. Romanovsky, R. Shafik, and
+A. Yakovlev, ``Amdahl's law in the context of heterogeneous many-core
+systems -- a survey,'' \emph{IET Comput.\ Digit.\ Tech.}, vol.~14,
+no.~4, pp.~133--148, 2020, doi: 10.1049/iet-cdt.2018.5220.
+
+\bibitem{poolla2023}
+C. Poolla and R. Saxena, ``On extending Amdahl's law to learn computer
+performance,'' \emph{Microprocess.\ Microsyst.}, vol.~96, art.~104745,
+2023, doi: 10.1016/j.micpro.2022.104745.
+
+\bibitem{beyer2019}
+D. Beyer, S. L\"owe, and P. Wendler, ``Reliable benchmarking:
+requirements and solutions,'' \emph{Int.\ J. Softw.\ Tools Technol.\
+Transf.}, vol.~21, no.~1, pp.~1--29, 2019, doi:
+10.1007/s10009-017-0469-y.
+
+\bibitem{kalibera2013}
+T. Kalibera and R. Jones, ``Rigorous benchmarking in reasonable time,''
+in \emph{Proc.\ Int.\ Symp.\ Memory Management (ISMM)}, 2013,
+pp.~63--74, doi: 10.1145/2464157.2464160.
 
 \bibitem{pythongil}
 Python Software Foundation, ``Thread states and the global interpreter

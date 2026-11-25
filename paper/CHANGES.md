@@ -72,3 +72,76 @@ references, no "??".
 
 ## Remaining TBD markers (search for `\TBD`)
 Table VII (four-workload timings, S_same) and reference [2].
+
+---
+
+# Revision 2 (2026-11-25, afternoon) — v2 benchmark, citations, reference [2]
+
+## New data: `benchmark_results_v2/` (run by the author on the benchmark machine)
+Windows 11 (26300), AMD Ryzen 5 7235HS 4C/8T, Python 3.12.3, OpenCV 4.12.0,
+NumPy 1.26.4 (recorded in `system_info.json`). 12 videos × 4 workloads,
+0 failed runs, equivalence 60/60 identical, per-video F1 bit-identical to v1.
+
+| Quantity | v2 (now in paper) |
+|---|---|
+| S_naive = T_A/T_D | 0.628 ± 0.114 |
+| S_norm = 2T_A/T_D | 1.257 ± 0.228 (> 1 on 10/12) |
+| S_norm,pf | 1.097 ± 0.187 |
+| S_amort = 2T_A/T_C (two lanes, no threads) | 1.458 ± 0.216 |
+| S_same(2 lanes) = T_C/T_D | **0.860 ± 0.077 (< 1 on 12/12)** |
+| S_same(1 lane) = T_A/T_B | 0.900 ± 0.123 |
+| E(2/4/8) = S_same/N | 0.43 / 0.22 / 0.11 |
+| CPU (process CPU ÷ wall), seq.py | 4.20 ± 0.61 cores |
+| Peak memory A / D | 302.5 / 310.0 MB (+2.5 %) |
+| r(density, S_norm) | −0.45 |
+| p_narrow / p_broad (MVI_39311) | 0.362 / 0.666; 12-video 0.375±0.019 / 0.667±0.011 |
+| tracking share | 1.6–4.2 % |
+
+## Consequences for the paper
+- **Central claim changed**: threading does not reduce execution time on
+  this machine; the normalized gain comes from sharing per-frame work
+  between lanes (S_amort > S_norm). Abstract, V-B, V-C, new V-E
+  ("Why threading does not help here"), conclusion rewritten.
+- The earlier agreement between the narrow Amdahl ceiling (1.24) and
+  S_norm (1.26) is now stated to be coincidental.
+- Table V = four workloads (loop, I/O, FPS, peak memory, CPU); former
+  TBD same-workload table merged into it; Table VI adds S_same column;
+  Table VII (Amdahl) uses the v2 profile and measured S_same.
+- v1 run summarized in IV-D ("Earlier benchmark run") for consistency.
+- Threats: run-to-run variability documented (seq loop 8.03±0.29 ms v1 vs
+  9.41±1.84 ms v2); spreads labelled as between-video variation.
+
+## Baseline description corrected against the TPL2 paper
+The TPL2 paper describes a lattice-run counting heuristic (Eqs. 7–8) and
+count-based density, leaves tracking-based speed estimation to future
+work, and its Table 1 reports only execution time and memory (26.55 %
+efficiency gain, 3.72 % memory increase). Our paper previously said the
+baseline has no counting/density at all; it now distinguishes the
+baseline *paper* from the released baseline *code* (Intro, Table I,
+III-A, III-C, III-E, III-F). "A recreated pool cannot hold state" narrowed
+to "the baseline stores no persistent per-lane tracking state".
+
+## Citations added (20, all DOIs verified against Crossref)
+crouzil2016, lian2025, liu2025, zhai2023, chang2025, macko2025,
+unzueta2012, abbas2021, chen2020, bewley2016, wojke2017, kamil2024,
+sangsuwan2024, alhayanni2020, poolla2023, beyer2019, kalibera2013
+(+ DOIs added to suzuki1985, wen2020, baseline).
+Corrections vs. the Consensus list: Unzueta → 2012 (vol. 13 no. 2);
+Poolla & Saxena → 2023 (vol. 96); Beyer et al. → 2019, vol. 21 no. 1;
+Al-hayanni et al. → no. 4; "Chen and Wu-Sheng" → Y. Chen and W. Hu;
+"Suzuki and Be" → Suzuki and Abe (Crossref record typo); Abbas et al.
+page given as 838 only (end page not confirmed).
+
+## Reference [2]
+Now cited as an IEEE 2026 conference paper with ISBN 979-8-3195-2457-7
+(from the PDF eXpress-certified camera-ready, 12 Aug 2026). The
+conference name is not printed in the PDF and could not be found online:
+**one \TBD remains — insert the conference name.** The quoted sentence
+("reports execution time and memory consumption but does not provide
+detection-accuracy metrics") is verbatim in that paper.
+
+## Also addressed from the citation report
+- "Identical accuracy proves equivalence" → "matching confusion matrices
+  and F1 on all 12 tested videos … not a proof for every input".
+- Speed estimation explicitly stated as not validated.
+- Code-review findings consistently "all fixed".
