@@ -167,7 +167,7 @@ ax.bar(xs, [a for a, _ in loop], 0.55, yerr=[b for _, b in loop], color=[C[k] fo
 ax.bar(xs, [a for a, _ in io], 0.55, bottom=[a for a, _ in loop], color="#BBBBBB", label="output I/O + decode")
 for xi, (a, _), (b, _) in zip(xs, loop, io):
     ax.text(xi, a + b + 2.2, f"{a:.1f}", ha="center", va="bottom", fontsize=6)
-ax.set_ylabel("ms per frame"); ax.set_xticks(xs); ax.set_xticklabels(lab, fontsize=6)
+ax.set_ylabel("time per frame (ms)"); ax.set_xticks(xs); ax.set_xticklabels(lab, fontsize=6.5)
 ax.set_ylim(0, 27); ax.grid(axis="y", lw=0.3, alpha=0.6); ax.legend(loc="upper left", frameon=False)
 ax2 = ax.twinx()
 ax2.errorbar(xs + 0.36, [a for a, _ in cpu], yerr=[b for _, b in cpu], fmt="D", ms=3, color="k", lw=0.6, capsize=1.5)
@@ -185,8 +185,8 @@ ax.axhline(1.0, color="k", lw=0.6, ls="--")
 ax.plot(d[order], amort[order], "s-", ms=3, color=C["amort"], label=r"$S_{\mathrm{amort}}=2T_A/T_C$ (2 lanes, no threads)")
 ax.plot(d[order], norm[order], "o-", ms=3, color=C["norm"], label=r"$S_{\mathrm{norm}}=2T_A/T_D$ (2 lanes, threads)")
 ax.plot(d[order], same[order], "^-", ms=3, color=C["same"], label=r"$S_{\mathrm{same}}=T_C/T_D$ (threads only)")
-ax.set_xlabel("traffic density (mean GT vehicles / frame)"); ax.set_ylabel("ratio")
-ax.set_ylim(0.6, 2.5); ax.grid(lw=0.3, alpha=0.6); ax.legend(loc="upper right", frameon=False, fontsize=5.8, ncol=1)
+ax.set_xlabel("traffic density (mean annotated vehicles per frame)"); ax.set_ylabel("ratio (dimensionless)")
+ax.set_ylim(0.6, 2.5); ax.grid(lw=0.3, alpha=0.6); ax.legend(loc="upper right", frameon=False, fontsize=6.5, ncol=1)
 fig.savefig(os.path.join(OUT, "fig_ratios.pdf")); plt.close(fig)
 
 # Fig: Amdahl ceilings vs measured threads-only ratio
@@ -205,6 +205,45 @@ for n in (2, 4, 8):
 ax.set_xlabel("workers $N$"); ax.set_ylabel("speedup $S(N)$"); ax.set_xlim(1, 8); ax.set_ylim(0.6, 2.6)
 ax.legend(loc="upper left", frameon=False); ax.grid(lw=0.3, alpha=0.5)
 fig.savefig(os.path.join(OUT, "fig_amdahl.pdf")); plt.close(fig)
+
+# Fig: speed-estimation calibration and a qualitative calibrated run.
+# Sources (paper/assets/): a screenshot of the web UI's two-point
+# calibration step and a frame of a screen recording of seq.py running with
+# that calibration. Speeds in the frame are unvalidated (see paper).
+ASSETS = os.path.join(REPO, "paper", "assets")
+cal_p = os.path.join(ASSETS, "calibration_ui_screenshot.png")
+run_p = os.path.join(ASSETS, "speed_run_frame847.png")
+if os.path.exists(cal_p) and os.path.exists(run_p):
+    cal = cv2.imread(cal_p)[98:552, 396:1202]      # video frame area of the UI
+    run = cv2.imread(run_p)[34:440, 0:640]          # ROI region below the window title bar
+    fig, axs = plt.subplots(1, 2, figsize=(6.6, 1.95), gridspec_kw={"width_ratios": [cal.shape[1] / cal.shape[0], run.shape[1] / run.shape[0]]})
+    for ax, im, t in ((axs[0], cal, "(a) two-point calibration (web UI): 6 m reference, 8.721 px/m"),
+                      (axs[1], run, "(b) calibrated run: per-track speed in the overlay")):
+        ax.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB)); ax.set_title(t, pad=2); ax.axis("off")
+    plt.subplots_adjust(wspace=0.03)
+    fig.savefig(os.path.join(OUT, "fig_speed.jpg"), dpi=300, pil_kwargs={"quality": 90}); plt.close(fig)
+
+# ── underlying plotting data (one CSV per chart) ────────────────────────────
+DATA = os.path.join(OUT, "data"); os.makedirs(DATA, exist_ok=True)
+with open(os.path.join(DATA, "fig_f1.csv"), "w", newline="") as fh:
+    w = csv.writer(fh); w.writerow(["group_type", "group", "class", "f1_mean", "f1_std", "n_videos"])
+    for key, groups in (("category", ["Cloudy", "Night", "Rainy", "Sunny"]), ("tier", ["light", "medium", "heavy"])):
+        for g in groups:
+            for cls in ("car", "van", "bus"):
+                v = [f(r[f"{cls}_f1"]) for r in seq if r[key] == g]
+                w.writerow([key, g, cls, round(st.mean(v), 4), round(st.stdev(v), 4), len(v)])
+with open(os.path.join(DATA, "fig_workloads.csv"), "w", newline="") as fh:
+    w = csv.writer(fh); w.writerow(["workload", "loop_ms_mean", "loop_ms_std", "io_ms_mean", "io_ms_std", "cpu_cores_mean", "cpu_cores_std"])
+    for (k, _, _), a, b, c in zip(wl, loop, io, cpu):
+        w.writerow([k, round(a[0], 4), round(a[1], 4), round(b[0], 4), round(b[1], 4), round(c[0], 4), round(c[1], 4)])
+with open(os.path.join(DATA, "fig_ratios.csv"), "w", newline="") as fh:
+    w = csv.writer(fh); w.writerow(["video", "density", "S_amort_2TA_over_TC", "S_norm_2TA_over_TD", "S_same_TC_over_TD"])
+    for i in order:
+        w.writerow([sp[i]["video"], round(d[i], 4), round(amort[i], 4), round(norm[i], 4), round(same[i], 4)])
+with open(os.path.join(DATA, "fig_amdahl.csv"), "w", newline="") as fh:
+    w = csv.writer(fh); w.writerow(["N", "S_broad", "S_narrow", "p_broad", "p_narrow", "measured_TC_over_TD_mean", "measured_std"])
+    for n in range(1, 9):
+        w.writerow([n, round(A_(pb, n), 4), round(A_(pn, n), 4), round(pb, 4), round(pn, 4), round(sm, 4), round(ss, 4)])
 
 json.dump({"stage_frame_index": best, "hot_cells": int(hot.sum()), "video": "MVI_39761"},
           open(os.path.join(OUT, "figures_meta.json"), "w"), indent=2)
