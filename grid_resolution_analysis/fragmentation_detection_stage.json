@@ -1,0 +1,74 @@
+{
+ "4x6": {
+  "cell_w_px": 73,
+  "cell_h_px": 35,
+  "cell_area_px2": 2555,
+  "kernel": [
+   73,
+   17
+  ],
+  "single_pixel_contour_area_px2": 2448.0,
+  "corner_pixel_contour_area_px2": 2448.0,
+  "area_filter_100_binding": false
+ },
+ "6x6": {
+  "cell_w_px": 73,
+  "cell_h_px": 23,
+  "cell_area_px2": 1679,
+  "kernel": [
+   73,
+   11
+  ],
+  "single_pixel_contour_area_px2": 1584.0,
+  "corner_pixel_contour_area_px2": 1584.0,
+  "area_filter_100_binding": false
+ },
+ "6x8": {
+  "cell_w_px": 55,
+  "cell_h_px": 23,
+  "cell_area_px2": 1265,
+  "kernel": [
+   55,
+   11
+  ],
+  "single_pixel_contour_area_px2": 1188.0,
+  "corner_pixel_contour_area_px2": 1188.0,
+  "area_filter_100_binding": false
+ },
+ "8x8": {
+  "cell_w_px": 55,
+  "cell_h_px": 17,
+  "cell_area_px2": 935,
+  "kernel": [
+   55,
+   8
+  ],
+  "single_pixel_contour_area_px2": 864.0,
+  "corner_pixel_contour_area_px2": 864.0,
+  "area_filter_100_binding": false
+ },
+ "8x10": {
+  "cell_w_px": 44,
+  "cell_h_px": 17,
+  "cell_area_px2": 748,
+  "kernel": [
+   44,
+   8
+  ],
+  "single_pixel_contour_area_px2": 688.0,
+  "corner_pixel_contour_area_px2": 688.0,
+  "area_filter_100_binding": false
+ },
+ "10x12": {
+  "cell_w_px": 36,
+  "cell_h_px": 14,
+  "cell_area_px2": 504,
+  "kernel": [
+   36,
+   7
+  ],
+  "single_pixel_contour_area_px2": 455.0,
+  "corner_pixel_contour_area_px2": 455.0,
+  "area_filter_100_binding": false
+ }
+}

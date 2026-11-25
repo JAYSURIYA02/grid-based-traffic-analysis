@@ -1,0 +1,82 @@
+% Draft subsection -- "Grid Resolution Sensitivity and Its Impact on Vehicle
+% Classification and Counting". All numbers: grid_resolution_analysis/
+% (cross_validation_oof_summary.csv, final_numbers.json, timing_trials_summary.json).
+\subsection{Grid Resolution Sensitivity and Its Impact on Vehicle Classification and Counting}
+\label{sec:grid-sensitivity}
+
+The lattice resolution fixes the cell size from which motion, object extent
+and the span-based class label are derived. We therefore measured six
+resolutions ($4{\times}6$, $6{\times}6$, $6{\times}8$, $8{\times}8$,
+$8{\times}10$, $10{\times}12$, rows$\times$columns) on the two-lane serial
+workload. The pipeline was otherwise unchanged.
+
+\textbf{Protocol.} UA-DETRAC provides no camera-site labels. We grouped the 26
+tuning videos into 10 sites by inspecting their static backgrounds. Grid choice
+and the classification thresholds were then selected by leave-one-site-out
+cross-validation on these videos only. In each fold, thresholds were tuned per
+grid on the training sites, and a grid was chosen by a predefined objective. The
+objective combines macro-F1, the weakest class F1, counting event-F1, detection
+recall, fragmentation and unmatched detections, subject to a real-time
+throughput guard. The resulting configuration was frozen before testing. Testing
+used 44 further UA-DETRAC videos (67{,}206 frames). They had not been used
+earlier in this work, and their scenes differ from all tuning and benchmark
+sites. The 12 benchmark videos used elsewhere in this paper share sites with the
+tuning data and had informed an earlier exploratory analysis, so their grid
+results are retrospective only. Counting was evaluated against line-crossing
+events extracted from the annotated trajectories. Events were matched one-to-one
+within 1\,s and 80\,px. In the combined two-lane score, both lanes compete for
+the same ground-truth events, so no vehicle can be credited twice.
+
+\textbf{Classification.} With the original fixed thresholds, macro-F1 rose
+monotonically with resolution (cross-validated 0.12 at $4{\times}6$ to 0.31 at
+$10{\times}12$). Once thresholds were tuned per grid, the trend vanished
+(cross-validated 0.30--0.35 for all grids). On the unseen-site test set, no
+grid differed significantly from $6{\times}6$ (Table~\ref{tab:grid}; 95\%
+session-level bootstrap). The apparent resolution effect was therefore mainly a
+calibration effect of the fixed normalised-span thresholds. All tuned
+classifiers exceeded the always-Car baseline on the test set (0.40--0.43 vs.\
+0.31), but Van F1 remained at or below 0.16.
+
+\textbf{Counting.} Finer grids detected slightly more vehicles (recall 0.883 at
+$6{\times}6$ to 0.908 at $10{\times}12$) and produced more correct counts.
+However, they also produced more false and duplicate counts. At $10{\times}12$
+the system reported 1{,}728 crossings against 720 countable ground-truth
+crossings, and the per-video absolute error rose from 14.9 ($6{\times}8$) to
+23.1. Fragmentation grew from 1.5\% to 9.5\%. Diagnostic variants showed that
+fragmentation arises mostly from single empty cell rows inside a vehicle, where
+frame differencing leaves the interior unmarked; bridging such gaps removed
+about 87--89\% of it. Diagonal-only adjacency accounts for a further 35--40\%.
+Neither variant improved classification. Independently of resolution, the
+counter registers only downward crossings, which excludes 44\% of the test
+crossings.
+
+\textbf{Selected configuration.} The predefined rule selected $6{\times}8$ with
+tuned thresholds. It was the only grid whose objective improved significantly on
+$6{\times}6$ on the test set, at 92\,FPS versus 97\,FPS on the same
+two-core VM. The margin over $8{\times}8$ and $10{\times}12$ lies within
+fold-to-fold variation. We therefore do not claim that any resolution is
+universally best. We conclude that, beyond about $6{\times}8$, a finer
+lattice trades counting reliability for marginal and statistically unsupported
+classification gains. The span features and the single-direction counter limit
+performance more than the grid does. All results come from one dataset with fixed
+ROIs; external validation remains future work.
+
+\begin{table}[t]
+\centering
+\caption{Grid resolution on 44 unseen-site UA-DETRAC test videos (frozen,
+per-grid tuned thresholds; combined lanes). Count F1/MAE use downward
+trajectory crossings. FPS: median of 3 serial trials on a 2-vCPU VM.}
+\label{tab:grid}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lccccccc}
+\hline
+Grid & Macro-F1 & Recall & Frag. & Pred./GT & Count F1 & MAE & FPS\\
+\hline
+$6{\times}6$   & 0.405 & 0.883 & 1.5\% & 1377/720 & 0.314 & 16.0 & 97.2\\
+$6{\times}8$*  & 0.416 & 0.892 & 2.3\% & 1318/720 & 0.336 & 14.9 & 91.9\\
+$8{\times}8$   & 0.402 & 0.894 & 3.8\% & 1428/720 & 0.342 & 16.6 & 86.3\\
+$10{\times}12$ & 0.430 & 0.908 & 9.5\% & 1728/720 & 0.337 & 23.1 & 81.4\\
+\hline
+\multicolumn{8}{l}{\footnotesize *selected by site-grouped cross-validation; always-Car macro-F1 = 0.31.}\\
+\end{tabular}
+\end{table}

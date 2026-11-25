@@ -1,0 +1,118 @@
+[h264_v4l2m2m @ 0x63dca15e6480] Could not find a valid device
+[h264_v4l2m2m @ 0x63dca15e6480] can't configure encoder
+[ERROR:0@2.526] global cap_ffmpeg_impl.hpp:3568 open Could not open codec h264_v4l2m2m, error: Unspecified error (-22)
+[ERROR:0@2.527] global cap_ffmpeg_impl.hpp:3585 open VIDEOIO/FFMPEG: Failed to initialize VideoWriter
+[WARN] avc1 codec failed, falling back to mp4v
+Frame 100 | Lane1 passed: 1 | Lane2 passed: 1
+Frame 200 | Lane1 passed: 2 | Lane2 passed: 3
+Frame 300 | Lane1 passed: 3 | Lane2 passed: 4
+Frame 400 | Lane1 passed: 5 | Lane2 passed: 6
+Frame 500 | Lane1 passed: 5 | Lane2 passed: 6
+Frame 600 | Lane1 passed: 5 | Lane2 passed: 7
+Frame 700 | Lane1 passed: 6 | Lane2 passed: 9
+Frame 800 | Lane1 passed: 6 | Lane2 passed: 9
+Frame 900 | Lane1 passed: 9 | Lane2 passed: 9
+Frame 1000 | Lane1 passed: 9 | Lane2 passed: 11
+Frame 1100 | Lane1 passed: 9 | Lane2 passed: 12
+Frame 1200 | Lane1 passed: 10 | Lane2 passed: 12
+Execution Time: 16.27 seconds
+Memory Usage: 174.23 MB
+
+-- Lane1 Summary --
+Average Density: 0.0765
+Vehicles Passed: 11
+  Car: 23
+  Van: 10
+  Bus: 0
+
+-- Lane2 Summary --
+Average Density: 0.1202
+Vehicles Passed: 13
+  Car: 34
+  Van: 7
+  Bus: 7
+frames: 1269
+[BENCH] rpar_frame_metrics.json written.
+
+===== DETRAC Evaluation: Lane1 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 18
+Predicted vehicles (unique tracker IDs): 34
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 14
+Unmatched GT vehicles: 4
+Matched predicted tracks: 12
+Unmatched predicted tracks: 22
+
+-- DEBUG INFO --
+Total GT vehicles: 18
+Total predicted vehicles: 34
+Matched GT vehicles: 14
+Unmatched GT vehicles: 4
+Unmatched predicted vehicles: 22
+
+-- Vehicle-Level Confusion Matrix --
+[[6 8 0]
+ [0 0 0]
+ [0 0 0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 1.000
+Recall   : 0.429
+F1 Score : 0.600
+
+Class: Van
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+===== DETRAC Evaluation: Lane2 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 19
+Predicted vehicles (unique tracker IDs): 55
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 15
+Unmatched GT vehicles: 4
+Matched predicted tracks: 28
+Unmatched predicted tracks: 27
+
+-- DEBUG INFO --
+Total GT vehicles: 19
+Total predicted vehicles: 55
+Matched GT vehicles: 15
+Unmatched GT vehicles: 4
+Unmatched predicted vehicles: 27
+
+-- Vehicle-Level Confusion Matrix --
+[[ 0 10  5]
+ [ 0  0  0]
+ [ 0  0  0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Van
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+[GRID] worker done 6 6 1269 frames 16.4 s
