@@ -42,7 +42,11 @@ but not validated), in a sequential implementation and a two-lane parallel
 implementation with persistent thread pools and per-lane state. A cross-implementation check
 on UA-DETRAC found two preprocessing divergences between the supposedly
 identical implementations; after fixing them, both produce matching confusion
-matrices and F1 scores on all 12 test videos. We then time four
+matrices and F1 scores on all 12 test videos. A grid-resolution study with
+site-grouped cross-validation, trajectory-based counting ground truth and
+44 unseen-site test videos shows that, once thresholds are re-tuned per
+grid, finer lattices bring no significant classification gain, while the
+finest one ($10{\times}12$) over-counts markedly. We then time four
 workloads that separate lane count from threading on a 4-core/8-thread
 CPU. Threading does \emph{not} reduce execution time: the threaded
 two-lane run is slower than the same code without threads (time ratio
@@ -93,9 +97,11 @@ a sequential (\code{seq.py}) and a two-lane parallel
 persistent pools, per-lane \code{LaneTracker} state and a compute/draw
 split; (3) a UA-DETRAC evaluation at grid and vehicle level;
 (4) a cross-implementation check that found and fixed two preprocessing
-divergences; and (5) a four-workload benchmark that separates the effect
+divergences; (5) a four-workload benchmark that separates the effect
 of processing two lanes from the effect of threading, showing that the
-threads do not reduce execution time on the evaluated machine.
+threads do not reduce execution time on the evaluated machine; and (6) a
+grid-resolution study with site-grouped cross-validation, counting ground
+truth from annotated trajectories and an unseen-site test set.
 
 \begin{table}[t]
 \centering
@@ -249,7 +255,8 @@ and rows it spans. With spans normalized by the grid size, a cluster is
 a \textbf{Bus} if its column span exceeds 0.75 or both spans exceed
 0.55, a \textbf{Van} if its row span exceeds 0.45, and a \textbf{Car}
 otherwise. No appearance features are used, so the thresholds are tied
-to this camera geometry.
+to this camera geometry. Their dependence on the lattice resolution is
+examined in Section~\ref{sec:grid-sensitivity}.
 
 \subsection{Tracking, Counting and Density}
 \label{sec:tracking}
@@ -469,6 +476,109 @@ Bus & $0.03\pm0.08$ & $0.10\pm0.23$ & $0.04\pm0.12$ & 5 \\
 contains the class; in the other videos the class scores 0.}
 \end{table}
 
+\subsection{Grid Resolution Sensitivity and Its Impact on Vehicle Classification and Counting}
+\label{sec:grid-sensitivity}
+The lattice resolution fixes the cell size from which motion, object
+extent and the span-based label are derived. We therefore compared six
+resolutions ($4{\times}6$, $6{\times}6$, $6{\times}8$, $8{\times}8$,
+$8{\times}10$, $10{\times}12$, rows$\times$columns) on the unthreaded
+two-lane workload~C, with the pipeline otherwise unchanged.
+
+\textbf{Protocol.} UA-DETRAC provides no camera-site labels. We therefore
+grouped the 26 other annotated videos of the four weather folders into 10
+sites by inspecting their static backgrounds. Using only these videos, the
+grid and the classification thresholds were chosen by leave-one-site-out
+cross-validation. In each fold, the thresholds were tuned per grid on the
+training sites (810 candidates), and the grid was selected by a predefined
+objective. The objective combines macro-F1, the weakest class F1, counting
+event-F1, detection recall, fragmentation and unmatched detections, subject
+to a real-time throughput guard. The resulting configuration was frozen
+before testing. The test set consists of 44 further UA-DETRAC videos
+(67{,}206 frames, 25 recording sessions). These videos were not used
+elsewhere in this work, and their scenes differ from all tuning and
+benchmark sites. The 12 benchmark videos of this paper share sites with
+the tuning videos and had informed an earlier exploratory grid analysis,
+so their grid results are not used for this comparison. Counting was
+scored against line-crossing events extracted from the annotated
+trajectories. Events were matched one-to-one within 1\,s and 80\,px. In
+the combined two-lane score, both lanes compete for the same ground-truth
+events, so a vehicle cannot be credited twice. The counter's events were
+replayed from per-frame logs and reproduce its reported per-lane totals in
+every run. These runs used a separate 2-vCPU Linux VM (OpenCV 5.0), so
+their frame rates are not comparable with Section~\ref{sec:timing}.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_grid.pdf}
+\caption{Grid resolution on 44 unseen-site test videos. (a)~Vehicle-level
+macro-F1 with the original thresholds and with thresholds tuned per grid
+on the tuning videos. (b)~Combined-lane counts against trajectory
+crossings: the counter registers only downward crossings.}
+\label{fig:grid}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Grid resolution on the 44 unseen-site test videos (frozen,
+per-grid tuned thresholds; combined lanes). Count F1 and MAE (per video)
+use downward trajectory crossings (720). FPS: median of 3 serial trials
+on the VM.}
+\label{tab:grid}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{Grid} & \textbf{Macro-F1} & \textbf{Recall} & \textbf{Frag.} & \textbf{Counts} & \textbf{Count F1} & \textbf{MAE} & \textbf{FPS}\\
+\midrule
+$6{\times}6$   & 0.405 & 0.883 & 1.5\% & 1377 & 0.314 & 16.0 & 97.2\\
+$6{\times}8^{a}$ & 0.416 & 0.892 & 2.3\% & 1318 & 0.336 & 14.9 & 91.9\\
+$8{\times}8$   & 0.402 & 0.894 & 3.8\% & 1428 & 0.342 & 16.6 & 86.3\\
+$10{\times}12$ & 0.430 & 0.908 & 9.5\% & 1728 & 0.337 & 23.1 & 81.4\\
+\bottomrule
+\end{tabular}
+
+\smallskip
+\parbox{\columnwidth}{\scriptsize $^{a}$Selected by site-grouped
+cross-validation. Always-Car macro-F1: 0.31.}
+\end{table}
+
+\textbf{Classification.} With the original fixed thresholds, macro-F1
+rose monotonically with resolution (Fig.~\ref{fig:grid}a). The
+cross-validated value went from 0.12 at $4{\times}6$ to 0.31 at
+$10{\times}12$. Once the thresholds were tuned per grid, the trend
+vanished: cross-validated macro-F1 was 0.30--0.35 for every grid. On the
+test set, no grid differed significantly from $6{\times}6$
+(Table~\ref{tab:grid}; 95\% session-level paired bootstrap). The apparent
+resolution effect is therefore mainly a calibration effect of the fixed
+normalized-span thresholds. All tuned classifiers exceeded the always-Car
+baseline on the test set (0.40--0.43 vs.\ 0.31), but Van F1 stayed at or
+below 0.16.
+
+\textbf{Counting.} Finer grids found slightly more vehicles (recall
+0.883 to 0.908) and produced more correct counts (329 to 413). They also
+produced more false and duplicate counts (Fig.~\ref{fig:grid}b). At
+$10{\times}12$, the counter reported 1{,}728 crossings against 720
+countable ones, and the per-video absolute error rose to 23.1, compared
+with 14.9 at $6{\times}8$. Fragmentation grew from 1.5\% to 9.5\%. We
+tested two diagnostic clustering variants, run separately from the
+evaluated pipeline. Bridging a single empty cell row removed 87--89\% of
+the fragmentation, and 8-connectivity removed 35--40\%. Fragmentation
+thus comes mainly from vehicle interiors that frame differencing leaves
+unmarked at small cell sizes. Neither variant improved classification.
+Independently of resolution, the counter registers only downward
+crossings, so it misses 44\% of the test crossings.
+
+\textbf{Selected configuration.} The predefined rule selected
+$6{\times}8$ with tuned thresholds. It was the only grid whose objective
+improved significantly on $6{\times}6$ on the test set, at 92 vs.\
+97\,FPS. Its margin over $8{\times}8$ and $10{\times}12$ lies within
+fold-to-fold variation, so no resolution is universally best. Beyond
+about $6{\times}8$, a finer lattice trades counting reliability for
+classification gains that are small and not statistically supported. The
+span features and the single-direction counter limit performance more
+than the grid does. The benchmark experiments in this paper keep the
+original $6{\times}6$ configuration.
+
 \subsection{Timing: Four Workloads}
 \label{sec:timing}
 
@@ -601,7 +711,11 @@ measurement suggesting about $3.3\times$ speedup was caused by an
 unthrottled \code{cv2.waitKey} poll and a per-frame JPEG write in the
 sequential script; both are now disabled in benchmarks, and the figure is
 not used. Tracks younger than 5 frames are never scored, which excludes
-short-lived vehicles from evaluation.
+short-lived vehicles from evaluation. The counter registers only downward crossings of
+fixed ROIs, which misses traffic moving up the image (33--44\% of
+annotated crossings in Section~\ref{sec:grid-sensitivity}). Camera sites
+were inferred visually because UA-DETRAC has no site labels, and the
+unseen-site test set still comes from the same dataset.
 
 \section{Conclusion}
 \label{sec:conclusion}
@@ -616,7 +730,11 @@ raises ROI-frame throughput because decoding and preprocessing are shared
 ($1.46\times$ without threads, $1.26\times$ with threads), whereas the
 thread pools themselves slow the same two-lane workload down
 ($0.86\times$), on a machine where the sequential script already uses
-about four cores through OpenCV. Future work: limiting OpenCV's internal threading and
+about four cores through OpenCV. A cross-validated grid-resolution study
+with counting ground truth showed that finer lattices do not
+significantly improve the re-tuned classifier and that the finest one
+over-counts, so the span features and the single-direction counter, not
+the grid, limit accuracy. Future work: direction-aware counting; limiting OpenCV's internal threading and
 batching cells to test whether thread-level parallelism helps on idle
 cores; a lightweight learned classifier \cite{chang2025,macko2025};
 Kalman/Hungarian and appearance-based tracking \cite{bewley2016,wojke2017};

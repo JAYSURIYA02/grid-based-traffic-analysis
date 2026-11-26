@@ -145,3 +145,13 @@ detection-accuracy metrics") is verbatim in that paper.
   and F1 on all 12 tested videos … not a proof for every input".
 - Speed estimation explicitly stated as not validated.
 - Code-review findings consistently "all fixed".
+
+## Grid-resolution subsection (2026-11-26)
+* New Section V-B "Grid Resolution Sensitivity and Its Impact on Vehicle Classification and Counting"
+  (Fig. `fig_grid.pdf`, Table `tab:grid`), from `grid_resolution_analysis/` (site-grouped CV,
+  trajectory counting ground truth, 44 unseen-site test videos; see `updated_analysis_report.md`).
+* One sentence added to the abstract, contribution (6), a pointer in Sec. III-C, two sentences in
+  Threats to Validity, one sentence + "direction-aware counting" in the Conclusion.
+* Figure script: `paper/make_grid_figure.py` (reads `grid_resolution_analysis/final_numbers.json`).
+* Stand-in layout build: 0 errors, 0 undefined references; one pre-existing 2.8 pt overfull box.
+  The new material adds about one stand-in page; confirm the 8-page limit in the IEEEtran build.
