@@ -86,3 +86,12 @@ user_input_data.json
 # ══════════════════════════════════════════════════════════════════════════════
 evaluation/per_video_results.csv
 evaluation/category_results.csv
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CACHES, LOCAL NOTES & LAYOUT PREVIEWS  (regenerated / not part of the project)
+# ══════════════════════════════════════════════════════════════════════════════
+Claude outputs/
+**/cache/
+grid_resolution_analysis/counting_cache/
+paper/final/*_preview.png
+paper_revision/scripts/*.png

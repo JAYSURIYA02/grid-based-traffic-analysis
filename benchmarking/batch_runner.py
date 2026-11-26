@@ -1,13 +1,12 @@
 import json
 import os
 import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))  # root: utils.py
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "evaluation"))  # evaluation.py
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))  # root: utils.py, evaluation/ package
 
 import numpy as np
 import pandas as pd
 
-from evaluation import process_video
+from evaluation.evaluation import process_video
 from utils import (
     compute_metrics,
     flatten_metrics,
