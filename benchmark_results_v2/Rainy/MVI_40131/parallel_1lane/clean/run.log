@@ -1,0 +1,77 @@
+
+Failed to load OpenH264 library: openh264-1.8.0-win64.dll
+	Please check environment and/or download library: https://github.com/cisco/openh264/releases
+
+[libopenh264 @ 0000024ac5519bc0] Incorrect library version loaded
+[ERROR:0@0.013] global cap_ffmpeg_impl.hpp:3268 open Could not open codec libopenh264, error: Unspecified error (-22)
+[ERROR:0@0.013] global cap_ffmpeg_impl.hpp:3285 open VIDEOIO/FFMPEG: Failed to initialize VideoWriter
+Frame 100 | Lane1 passed: 3
+Frame 200 | Lane1 passed: 6
+Frame 300 | Lane1 passed: 8
+Frame 400 | Lane1 passed: 8
+Frame 500 | Lane1 passed: 10
+Frame 600 | Lane1 passed: 13
+Frame 700 | Lane1 passed: 15
+Frame 800 | Lane1 passed: 17
+Frame 900 | Lane1 passed: 18
+Frame 1000 | Lane1 passed: 20
+Frame 1100 | Lane1 passed: 23
+Frame 1200 | Lane1 passed: 25
+Frame 1300 | Lane1 passed: 27
+Frame 1400 | Lane1 passed: 27
+Frame 1500 | Lane1 passed: 29
+Frame 1600 | Lane1 passed: 29
+Execution Time: 20.28 seconds
+Memory Usage: 307.40 MB
+
+-- Lane1 Summary --
+Average Density: 0.2454
+Vehicles Passed: 29
+  Car: 51
+  Van: 7
+  Bus: 6
+frames: 1644
+[BENCH] rpar_frame_metrics.json written.
+[BENCH] BTP_PROFILE=0 — clean timing pass, no profile written.
+
+===== DETRAC Evaluation: Lane1 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 39
+Predicted vehicles (unique tracker IDs): 64
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 39
+Unmatched GT vehicles: 0
+Matched predicted tracks: 40
+Unmatched predicted tracks: 24
+
+-- DEBUG INFO --
+Total GT vehicles: 39
+Total predicted vehicles: 64
+Matched GT vehicles: 39
+Unmatched GT vehicles: 0
+Unmatched predicted vehicles: 24
+
+-- Vehicle-Level Confusion Matrix --
+[[ 6 17 11]
+ [ 0  1  2]
+ [ 1  0  1]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 0.857
+Recall   : 0.176
+F1 Score : 0.293
+
+Class: Van
+Precision: 0.056
+Recall   : 0.333
+F1 Score : 0.095
+
+Class: Bus
+Precision: 0.071
+Recall   : 0.500
+F1 Score : 0.125
+[BENCH] eval_metrics.json written (both lanes).

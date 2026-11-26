@@ -1,0 +1,25 @@
+\section{Conclusion}
+\label{sec:conclusion}
+We extended a published grid-based detector with classification,
+tracking, counting and density estimation (and an unvalidated speed
+estimator) in a sequential and a two-lane parallel implementation and
+studied it on UA-DETRAC. Measured results: after two preprocessing fixes,
+both implementations agree exactly on 12 benchmark videos; on a
+4-core/8-thread CPU, the thread pools slowed the same two-lane workload
+($0.86\times$), while processing two lanes per decoded frame raised
+ROI-frame throughput ($1.46\times$ without threads, $1.26\times$ with
+threads); on 44 videos from unseen sites, re-tuned grids from $6{\times}6$
+to $10{\times}12$ did not differ in macro-F1, $10{\times}12$ increased the
+per-video count error by 44\%, and the tuned classifier did not exceed
+always-Car in weighted-F1. Our interpretation is that, for this pipeline,
+the footprint features, the single-direction counter and the greedy
+association limit accuracy more than the lattice resolution, and that
+OpenCV's internal threading leaves little room for Python-level threads.
+Future work: direction-aware counting per lane; better association
+\cite{bewley2016,wojke2017}; perspective-aware and appearance features
+\cite{chang2025,macko2025}; limiting OpenCV's internal threads to test
+thread-level parallelism; validated speed estimation \cite{kamil2024};
+and repeated benchmarks on several machines. Code, data, metrics and
+figure scripts are available in the project repository.
+
+

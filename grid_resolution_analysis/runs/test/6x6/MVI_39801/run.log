@@ -1,0 +1,114 @@
+[h264_v4l2m2m @ 0x626179725900] Could not find a valid device
+[h264_v4l2m2m @ 0x626179725900] can't configure encoder
+[ERROR:0@2.094] global cap_ffmpeg_impl.hpp:3568 open Could not open codec h264_v4l2m2m, error: Unspecified error (-22)
+[ERROR:0@2.095] global cap_ffmpeg_impl.hpp:3585 open VIDEOIO/FFMPEG: Failed to initialize VideoWriter
+[WARN] avc1 codec failed, falling back to mp4v
+Frame 100 | Lane1 passed: 5 | Lane2 passed: 0
+Frame 200 | Lane1 passed: 7 | Lane2 passed: 4
+Frame 300 | Lane1 passed: 9 | Lane2 passed: 4
+Frame 400 | Lane1 passed: 11 | Lane2 passed: 7
+Frame 500 | Lane1 passed: 13 | Lane2 passed: 8
+Frame 600 | Lane1 passed: 13 | Lane2 passed: 9
+Frame 700 | Lane1 passed: 15 | Lane2 passed: 12
+Frame 800 | Lane1 passed: 16 | Lane2 passed: 13
+Execution Time: 12.30 seconds
+Memory Usage: 172.51 MB
+
+-- Lane1 Summary --
+Average Density: 0.1860
+Vehicles Passed: 18
+  Car: 23
+  Van: 1
+  Bus: 0
+
+-- Lane2 Summary --
+Average Density: 0.2497
+Vehicles Passed: 13
+  Car: 20
+  Van: 2
+  Bus: 2
+frames: 884
+[BENCH] rpar_frame_metrics.json written.
+
+===== DETRAC Evaluation: Lane1 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 24
+Predicted vehicles (unique tracker IDs): 38
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 17
+Unmatched GT vehicles: 7
+Matched predicted tracks: 12
+Unmatched predicted tracks: 26
+
+-- DEBUG INFO --
+Total GT vehicles: 24
+Total predicted vehicles: 38
+Matched GT vehicles: 17
+Unmatched GT vehicles: 7
+Unmatched predicted vehicles: 26
+
+-- Vehicle-Level Confusion Matrix --
+[[ 3 14  0]
+ [ 0  0  0]
+ [ 0  0  0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 1.000
+Recall   : 0.176
+F1 Score : 0.300
+
+Class: Van
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+===== DETRAC Evaluation: Lane2 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 40
+Predicted vehicles (unique tracker IDs): 35
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 40
+Unmatched GT vehicles: 0
+Matched predicted tracks: 23
+Unmatched predicted tracks: 12
+
+-- DEBUG INFO --
+Total GT vehicles: 40
+Total predicted vehicles: 35
+Matched GT vehicles: 40
+Unmatched GT vehicles: 0
+Unmatched predicted vehicles: 12
+
+-- Vehicle-Level Confusion Matrix --
+[[ 8 25  7]
+ [ 0  0  0]
+ [ 0  0  0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 1.000
+Recall   : 0.200
+F1 Score : 0.333
+
+Class: Van
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+[GRID] worker done 6 6 884 frames 12.3 s

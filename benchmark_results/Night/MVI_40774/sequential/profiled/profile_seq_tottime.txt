@@ -1,0 +1,23 @@
+         697724 function calls in 9.360 seconds
+
+   Ordered by: internal time
+   List reduced from 149 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    34164    1.980    0.000    1.980    0.000 {dilate}
+    36062    1.339    0.000    1.339    0.000 {GaussianBlur}
+      949    1.104    0.001    1.104    0.001 {method 'read' of 'cv2.VideoCapture' objects}
+     4745    0.883    0.000    0.883    0.000 {cvtColor}
+        1    0.799    0.799    9.360    9.360 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq_bench.py:918(main)
+     2847    0.399    0.000    0.399    0.000 {split}
+      949    0.396    0.000    0.396    0.000 {absdiff}
+      949    0.306    0.000    0.306    0.000 {method 'write' of 'cv2.VideoWriter' objects}
+    34164    0.255    0.000    0.255    0.000 {findContours}
+     3083    0.222    0.000    0.222    0.000 {putText}
+      949    0.204    0.000    3.223    0.003 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq_bench.py:177(process_grid)
+    34400    0.144    0.000    0.144    0.000 {rectangle}
+    34164    0.137    0.000    0.137    0.000 {getStructuringElement}
+    34164    0.110    0.000    0.110    0.000 {threshold}
+     1898    0.103    0.000    0.103    0.000 {equalizeHist}
+
+

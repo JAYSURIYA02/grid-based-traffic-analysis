@@ -1,0 +1,30 @@
+{
+ "rows": 8,
+ "cols": 8,
+ "frame_height": 540,
+ "frames": 1824,
+ "lanes": {
+  "Lane1": {
+   "roi": [
+    47,
+    202,
+    441,
+    141
+   ],
+   "grid_w": 55,
+   "grid_h": 17
+  },
+  "Lane2": {
+   "roi": [
+    500,
+    202,
+    441,
+    141
+   ],
+   "grid_w": 55,
+   "grid_h": 17
+  }
+ },
+ "main_wall_seconds": 26.206177234649658,
+ "variant": "original"
+}

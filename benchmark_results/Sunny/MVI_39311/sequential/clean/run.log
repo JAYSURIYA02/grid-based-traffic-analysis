@@ -1,0 +1,52 @@
+
+Failed to load OpenH264 library: openh264-1.8.0-win64.dll
+	Please check environment and/or download library: https://github.com/cisco/openh264/releases
+
+[libopenh264 @ 000001e041ee62c0] Incorrect library version loaded
+[ERROR:0@0.016] global cap_ffmpeg_impl.hpp:3268 open Could not open codec libopenh264, error: Unspecified error (-22)
+[ERROR:0@0.017] global cap_ffmpeg_impl.hpp:3285 open VIDEOIO/FFMPEG: Failed to initialize VideoWriter
+Execution Time: 15.19 seconds
+Total Memory Usage: 301.22 MB
+frames: 1504
+[BENCH] seq_frame_metrics.json written.
+[BENCH] BTP_PROFILE=0 — clean timing pass, no profile written.
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 24
+Predicted vehicles (unique tracker IDs): 65
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 19
+Unmatched GT vehicles: 5
+Matched predicted tracks: 30
+Unmatched predicted tracks: 35
+
+-- DEBUG INFO --
+Total GT vehicles: 24
+Total predicted vehicles: 65
+Matched GT vehicles: 19
+Unmatched GT vehicles: 5
+Unmatched predicted vehicles: 35
+
+-- Vehicle-Level Confusion Matrix --
+[[14  0  0]
+ [ 1  0  0]
+ [ 4  0  0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 0.737
+Recall   : 1.000
+F1 Score : 0.848
+
+Class: Van
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+[BENCH] eval_metrics.json written.

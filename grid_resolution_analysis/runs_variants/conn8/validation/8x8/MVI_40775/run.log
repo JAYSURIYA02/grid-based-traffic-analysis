@@ -1,0 +1,115 @@
+[h264_v4l2m2m @ 0x64b727d20c80] Could not find a valid device
+[h264_v4l2m2m @ 0x64b727d20c80] can't configure encoder
+[ERROR:0@2.191] global cap_ffmpeg_impl.hpp:3568 open Could not open codec h264_v4l2m2m, error: Unspecified error (-22)
+[ERROR:0@2.193] global cap_ffmpeg_impl.hpp:3585 open VIDEOIO/FFMPEG: Failed to initialize VideoWriter
+[WARN] avc1 codec failed, falling back to mp4v
+Frame 100 | Lane1 passed: 0 | Lane2 passed: 2
+Frame 200 | Lane1 passed: 2 | Lane2 passed: 4
+Frame 300 | Lane1 passed: 4 | Lane2 passed: 5
+Frame 400 | Lane1 passed: 4 | Lane2 passed: 6
+Frame 500 | Lane1 passed: 7 | Lane2 passed: 7
+Frame 600 | Lane1 passed: 7 | Lane2 passed: 7
+Frame 700 | Lane1 passed: 10 | Lane2 passed: 7
+Frame 800 | Lane1 passed: 12 | Lane2 passed: 7
+Frame 900 | Lane1 passed: 12 | Lane2 passed: 7
+Execution Time: 14.41 seconds
+Memory Usage: 175.15 MB
+
+-- Lane1 Summary --
+Average Density: 0.1750
+Vehicles Passed: 14
+  Car: 39
+  Van: 6
+  Bus: 1
+
+-- Lane2 Summary --
+Average Density: 0.1951
+Vehicles Passed: 7
+  Car: 22
+  Van: 4
+  Bus: 3
+frames: 974
+[BENCH] rpar_frame_metrics.json written.
+
+===== DETRAC Evaluation: Lane1 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 30
+Predicted vehicles (unique tracker IDs): 47
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 27
+Unmatched GT vehicles: 3
+Matched predicted tracks: 23
+Unmatched predicted tracks: 24
+
+-- DEBUG INFO --
+Total GT vehicles: 30
+Total predicted vehicles: 47
+Matched GT vehicles: 27
+Unmatched GT vehicles: 3
+Unmatched predicted vehicles: 24
+
+-- Vehicle-Level Confusion Matrix --
+[[4 9 5]
+ [0 1 1]
+ [1 5 1]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 0.800
+Recall   : 0.222
+F1 Score : 0.348
+
+Class: Van
+Precision: 0.067
+Recall   : 0.500
+F1 Score : 0.118
+
+Class: Bus
+Precision: 0.143
+Recall   : 0.143
+F1 Score : 0.143
+
+===== DETRAC Evaluation: Lane2 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 20
+Predicted vehicles (unique tracker IDs): 29
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 16
+Unmatched GT vehicles: 4
+Matched predicted tracks: 14
+Unmatched predicted tracks: 15
+
+-- DEBUG INFO --
+Total GT vehicles: 20
+Total predicted vehicles: 29
+Matched GT vehicles: 16
+Unmatched GT vehicles: 4
+Unmatched predicted vehicles: 15
+
+-- Vehicle-Level Confusion Matrix --
+[[2 8 5]
+ [0 0 0]
+ [0 0 1]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 1.000
+Recall   : 0.133
+F1 Score : 0.235
+
+Class: Van
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Bus
+Precision: 0.167
+Recall   : 1.000
+F1 Score : 0.286
+[GRID] worker done 8 8 974 frames 14.4 s

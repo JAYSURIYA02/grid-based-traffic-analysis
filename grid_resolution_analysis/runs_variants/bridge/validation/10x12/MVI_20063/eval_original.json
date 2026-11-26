@@ -1,0 +1,86 @@
+{
+ "Lane1": {
+  "confusion_matrix_vehicle": [
+   [
+    0,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0
+   ],
+   [
+    1,
+    0,
+    0
+   ]
+  ],
+  "unique_gt_vehicles": 1,
+  "unique_predicted_tracks": 38,
+  "matched_gt_vehicles": 1,
+  "unmatched_gt_vehicles": 0,
+  "matched_predicted_tracks": 3,
+  "unmatched_predicted_tracks": 35,
+  "metrics": {
+   "Car": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "Van": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "Bus": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ },
+ "Lane2": {
+  "confusion_matrix_vehicle": [
+   [
+    4,
+    4,
+    0
+   ],
+   [
+    1,
+    0,
+    0
+   ],
+   [
+    0,
+    0,
+    0
+   ]
+  ],
+  "unique_gt_vehicles": 16,
+  "unique_predicted_tracks": 36,
+  "matched_gt_vehicles": 9,
+  "unmatched_gt_vehicles": 7,
+  "matched_predicted_tracks": 11,
+  "unmatched_predicted_tracks": 25,
+  "metrics": {
+   "Car": [
+    0.799999840000032,
+    0.4999999375000079,
+    0.6153840473376487
+   ],
+   "Van": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "Bus": [
+    0.0,
+    0.0,
+    0.0
+   ]
+  }
+ }
+}

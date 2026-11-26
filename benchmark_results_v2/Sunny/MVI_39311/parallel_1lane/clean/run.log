@@ -1,0 +1,76 @@
+
+Failed to load OpenH264 library: openh264-1.8.0-win64.dll
+	Please check environment and/or download library: https://github.com/cisco/openh264/releases
+
+[libopenh264 @ 000001f77c71eb00] Incorrect library version loaded
+[ERROR:0@0.012] global cap_ffmpeg_impl.hpp:3268 open Could not open codec libopenh264, error: Unspecified error (-22)
+[ERROR:0@0.012] global cap_ffmpeg_impl.hpp:3285 open VIDEOIO/FFMPEG: Failed to initialize VideoWriter
+Frame 100 | Lane1 passed: 5
+Frame 200 | Lane1 passed: 7
+Frame 300 | Lane1 passed: 7
+Frame 400 | Lane1 passed: 11
+Frame 500 | Lane1 passed: 15
+Frame 600 | Lane1 passed: 17
+Frame 700 | Lane1 passed: 19
+Frame 800 | Lane1 passed: 21
+Frame 900 | Lane1 passed: 24
+Frame 1000 | Lane1 passed: 25
+Frame 1100 | Lane1 passed: 26
+Frame 1200 | Lane1 passed: 27
+Frame 1300 | Lane1 passed: 28
+Frame 1400 | Lane1 passed: 28
+Frame 1500 | Lane1 passed: 30
+Execution Time: 23.82 seconds
+Memory Usage: 306.98 MB
+
+-- Lane1 Summary --
+Average Density: 0.0898
+Vehicles Passed: 30
+  Car: 58
+  Van: 0
+  Bus: 0
+frames: 1504
+[BENCH] rpar_frame_metrics.json written.
+[BENCH] BTP_PROFILE=0 — clean timing pass, no profile written.
+
+===== DETRAC Evaluation: Lane1 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 24
+Predicted vehicles (unique tracker IDs): 65
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 19
+Unmatched GT vehicles: 5
+Matched predicted tracks: 30
+Unmatched predicted tracks: 35
+
+-- DEBUG INFO --
+Total GT vehicles: 24
+Total predicted vehicles: 65
+Matched GT vehicles: 19
+Unmatched GT vehicles: 5
+Unmatched predicted vehicles: 35
+
+-- Vehicle-Level Confusion Matrix --
+[[14  0  0]
+ [ 1  0  0]
+ [ 4  0  0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 0.737
+Recall   : 1.000
+F1 Score : 0.848
+
+Class: Van
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+[BENCH] eval_metrics.json written (both lanes).

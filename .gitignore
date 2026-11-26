@@ -1,35 +1,97 @@
-# Python
+# ── Python ──────────────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.pyo
+*.pyd
 .venv/
+venv/
+.env
+*.egg-info/
+dist/
+build/
 .ipynb_checkpoints/
 
-# OS
+# ── OS ───────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Data, outputs, and large media
+# ── IDE ──────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.code-workspace
+
+# ══════════════════════════════════════════════════════════════════════════════
+# DATASET & LARGE MEDIA  (too large for GitHub — keep locally or on a drive)
+# ══════════════════════════════════════════════════════════════════════════════
 DETRAC-Annotations/
 DETRAC_VIDEOS/
 DETRAC_VIDEOS_eval/
-combined_matrices/
-final_report_2/
-final_report_3/
-final_reports/
-heatmaps/
-plots/
-JAYSURIYA_BTP_Output Folder/
-output_MVI_40771/
-static/uploads/
 
-# Media and result artifacts
+# ── Video / image outputs ────────────────────────────────────────────────────
 **/*.mp4
 **/*.mov
 **/*.avi
 **/*.mkv
+
+# ── Large binary data files ──────────────────────────────────────────────────
 **/*.xlsx
-**/*.csv
-**/*.xml
 **/*.npy
 **/*.npz
+
+# ── XML annotation files (dataset, not code) ─────────────────────────────────
+# (Allow small config XMLs if needed; ignore all DETRAC annotation XMLs)
+static/uploads/xml/
+DETRAC-Annotations/
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OUTPUT FOLDERS  (generated — no need to commit)
+# ══════════════════════════════════════════════════════════════════════════════
+outputs/
+output_seq/
+output_MVI_40771/
+heatmaps/
+combined_matrices/
+plots/
+final_reports/
+final_report_2/
+final_report_3/
+
+# Legacy output folders (before reorganisation)
+JAYSURIYA_BTP_Output Folder/
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BENCHMARK & PROFILING OUTPUTS  (generated — reproduce locally)
+# ══════════════════════════════════════════════════════════════════════════════
+# Benchmark result folders ARE committed (small JSON/CSV/log/profile files);
+# their videos and spreadsheets stay ignored via the **/*.mp4 and **/*.xlsx
+# rules above. Large per-run evaluation plots are ignored:
+benchmark_results*/**/plots/
+verification/**/plots/
+# heatmaps / per-frame dumps written by runs
+**/output_MVI_40771/
+
+# ══════════════════════════════════════════════════════════════════════════════
+# UPLOADED FILES  (user-uploaded via the Flask UI)
+# ══════════════════════════════════════════════════════════════════════════════
+static/uploads/
+
+# ══════════════════════════════════════════════════════════════════════════════
+# RUNTIME CONFIG  (contains absolute paths — machine-specific, don't commit)
+# ══════════════════════════════════════════════════════════════════════════════
+user_input_data.json
+
+# ══════════════════════════════════════════════════════════════════════════════
+# EVALUATION CSVs  (generated outputs)
+# ══════════════════════════════════════════════════════════════════════════════
+evaluation/per_video_results.csv
+evaluation/category_results.csv
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CACHES, LOCAL NOTES & LAYOUT PREVIEWS  (regenerated / not part of the project)
+# ══════════════════════════════════════════════════════════════════════════════
+Claude outputs/
+**/cache/
+grid_resolution_analysis/counting_cache/
+paper/final/*_preview.png
+paper_revision/scripts/*.png

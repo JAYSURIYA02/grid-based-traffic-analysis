@@ -1,0 +1,23 @@
+         5597695 function calls (4775661 primitive calls) in 21.212 seconds
+
+   Ordered by: cumulative time
+   List reduced from 373 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+199606/10554    0.382    0.000  148.363    0.014 {method 'acquire' of '_thread.lock' objects}
+       34    0.000    0.000  148.136    4.357 C:\Users\jaysu\anaconda3\Lib\threading.py:1115(join)
+       34    0.001    0.000  148.136    4.357 C:\Users\jaysu\anaconda3\Lib\threading.py:1153(_wait_for_tstate_lock)
+        2    0.000    0.000   42.400   21.200 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\thread.py:219(shutdown)
+57942/25756    0.143    0.000   32.303    0.001 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:612(result_iterator)
+56376/24970    0.223    0.000   31.978    0.001 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:314(_result_or_cancel)
+        1    0.000    0.000   21.212   21.212 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3.py:936(main)
+     34/1    0.858    0.025   21.212   21.212 C:\Users\jaysu\anaconda3\Lib\threading.py:1016(_bootstrap)
+     34/1    0.001    0.000   21.212   21.212 C:\Users\jaysu\anaconda3\Lib\threading.py:1056(_bootstrap_inner)
+62640/5490    0.300    0.000   14.236    0.003 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:428(result)
+50257/4471    0.284    0.000   14.035    0.003 C:\Users\jaysu\anaconda3\Lib\threading.py:323(wait)
+62640/3921    0.335    0.000   13.127    0.003 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\thread.py:53(run)
+ 1566/783    0.039    0.000   11.841    0.015 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3.py:458(process_grid)
+56376/805    0.701    0.000    6.556    0.008 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3.py:438(process_grid_cell)
+56376/805    0.516    0.000    3.947    0.005 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3.py:144(process_grid_channel)
+
+

@@ -1,0 +1,23 @@
+         2142072 function calls (2141981 primitive calls) in 19.524 seconds
+
+   Ordered by: cumulative time
+   List reduced from 290 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    1.803    1.803   19.523   19.523 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:925(main)
+     1644    0.412    0.000    5.975    0.004 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:182(process_grid)
+     1644    0.041    0.000    5.766    0.004 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:121(process_hsv)
+    59184    0.165    0.000    5.454    0.000 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:84(process_grid_channel)
+    59184    3.460    0.000    3.460    0.000 {dilate}
+    62472    2.778    0.000    2.778    0.000 {GaussianBlur}
+     1644    2.441    0.001    2.441    0.001 {method 'read' of 'cv2.VideoCapture' objects}
+     8220    1.689    0.000    1.689    0.000 {cvtColor}
+     3288    0.105    0.000    1.352    0.000 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:99(apply_histogram_equalization)
+     1644    0.081    0.000    1.197    0.001 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:709(density_calculation)
+     1644    0.995    0.001    0.995    0.001 {absdiff}
+     3188    0.028    0.000    0.838    0.000 C:\Users\jaysu\anaconda3\Lib\site-packages\numpy\lib\function_base.py:3992(percentile)
+     1644    0.802    0.000    0.802    0.000 {method 'write' of 'cv2.VideoWriter' objects}
+     1644    0.160    0.000    0.747    0.000 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\seq.py:523(process_tracking_counting)
+     4932    0.710    0.000    0.710    0.000 {split}
+
+

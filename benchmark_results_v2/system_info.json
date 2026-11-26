@@ -1,0 +1,14 @@
+{
+  "platform": "Windows-11-10.0.26300-SP0",
+  "processor": "AMD64 Family 25 Model 68 Stepping 1, AuthenticAMD",
+  "cpu_model": "AMD Ryzen 5 7235HS",
+  "physical_cores": 4,
+  "logical_processors": 8,
+  "os_cpu_count": 8,
+  "python_version": "3.12.3",
+  "python_implementation": "CPython",
+  "opencv_version": "4.12.0",
+  "numpy_version": "1.26.4",
+  "psutil_version": "6.1.1",
+  "btp_env": {}
+}

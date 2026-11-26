@@ -1,0 +1,85 @@
+{
+ "machine": "Linux VM (device bridge), 2 vCPU; serial executor; not comparable with Windows numbers",
+ "system": {
+  "platform": "Linux-6.8.0-149-generic-x86_64-with-glibc2.35",
+  "processor": "x86_64",
+  "cpu_model": "AMD Ryzen 5 7235HS",
+  "physical_cores": 1,
+  "logical_processors": 2,
+  "os_cpu_count": 2,
+  "python_version": "3.10.12",
+  "python_implementation": "CPython",
+  "opencv_version": "5.0.0",
+  "numpy_version": "2.2.6",
+  "psutil_version": "7.2.2",
+  "btp_env": {
+   "BTP_DISPLAY": "0",
+   "BTP_EXECUTOR": "serial",
+   "BTP_LANES": "2",
+   "BTP_PROFILE": "0",
+   "BTP_SAVE_FRAMES": "0"
+  }
+ },
+ "videos": [
+  "MVI_20011",
+  "MVI_40774",
+  "MVI_63525"
+ ],
+ "trials": 3,
+ "by_grid": {
+  "4x6": {
+   "n_runs": 9,
+   "trials_complete": 3,
+   "fps_median": 98.28,
+   "fps_min": 96.62,
+   "fps_max": 106.43,
+   "peak_mem_mb_median": 169.4,
+   "mean_frame_ms_median": 9.043
+  },
+  "6x6": {
+   "n_runs": 9,
+   "trials_complete": 3,
+   "fps_median": 97.23,
+   "fps_min": 91.17,
+   "fps_max": 100.27,
+   "peak_mem_mb_median": 171.1,
+   "mean_frame_ms_median": 9.533
+  },
+  "6x8": {
+   "n_runs": 9,
+   "trials_complete": 3,
+   "fps_median": 91.89,
+   "fps_min": 89.93,
+   "fps_max": 93.23,
+   "peak_mem_mb_median": 172.3,
+   "mean_frame_ms_median": 10.155
+  },
+  "8x8": {
+   "n_runs": 9,
+   "trials_complete": 3,
+   "fps_median": 86.28,
+   "fps_min": 83.89,
+   "fps_max": 91.94,
+   "peak_mem_mb_median": 174.8,
+   "mean_frame_ms_median": 10.642
+  },
+  "8x10": {
+   "n_runs": 9,
+   "trials_complete": 3,
+   "fps_median": 84.25,
+   "fps_min": 75.52,
+   "fps_max": 84.47,
+   "peak_mem_mb_median": 177.2,
+   "mean_frame_ms_median": 11.683
+  },
+  "10x12": {
+   "n_runs": 9,
+   "trials_complete": 3,
+   "fps_median": 81.36,
+   "fps_min": 78.35,
+   "fps_max": 81.58,
+   "peak_mem_mb_median": 182.7,
+   "mean_frame_ms_median": 11.615
+  }
+ }
+}

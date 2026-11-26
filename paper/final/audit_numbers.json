@@ -1,0 +1,390 @@
+{
+ "system": {
+  "cpu_model": "AMD Ryzen 5 7235HS",
+  "physical_cores": 4,
+  "logical_processors": 8,
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python_version": "3.12.3",
+  "opencv_version": "4.12.0",
+  "numpy_version": "1.26.4"
+ },
+ "workloads": {
+  "A": {
+   "mean_frame_time_ms": [
+    9.4066,
+    1.8386,
+    12
+   ],
+   "mean_frame_io_ms": [
+    2.2581,
+    0.4551,
+    12
+   ],
+   "fps": [
+    81.0906,
+    15.694,
+    12
+   ],
+   "peak_memory_mb": [
+    302.5332,
+    1.8745,
+    12
+   ],
+   "cpu_utilization_of_one_core": [
+    4.1966,
+    0.6096,
+    12
+   ]
+  },
+  "B": {
+   "mean_frame_time_ms": [
+    11.099,
+    1.9879,
+    12
+   ],
+   "mean_frame_io_ms": [
+    2.1888,
+    0.4299,
+    12
+   ],
+   "fps": [
+    72.0314,
+    12.1722,
+    12
+   ],
+   "peak_memory_mb": [
+    306.3704,
+    1.7581,
+    12
+   ],
+   "cpu_utilization_of_one_core": [
+    4.0092,
+    0.498,
+    12
+   ]
+  },
+  "C": {
+   "mean_frame_time_ms": [
+    14.5396,
+    2.5867,
+    12
+   ],
+   "mean_frame_io_ms": [
+    2.0913,
+    0.3638,
+    12
+   ],
+   "fps": [
+    58.2124,
+    9.5809,
+    12
+   ],
+   "peak_memory_mb": [
+    306.0368,
+    3.0299,
+    12
+   ],
+   "cpu_utilization_of_one_core": [
+    4.5168,
+    0.4674,
+    12
+   ]
+  },
+  "D": {
+   "mean_frame_time_ms": [
+    17.4623,
+    3.733,
+    12
+   ],
+   "mean_frame_io_ms": [
+    2.2696,
+    0.3942,
+    12
+   ],
+   "fps": [
+    50.0801,
+    9.422,
+    12
+   ],
+   "peak_memory_mb": [
+    309.9977,
+    3.0772,
+    12
+   ],
+   "cpu_utilization_of_one_core": [
+    3.9415,
+    0.7003,
+    12
+   ]
+  }
+ },
+ "peak_mem_delta_D_minus_A_mb": 7.46,
+ "peak_mem_delta_pct": 2.47,
+ "ratios": {
+  "S_naive": {
+   "mean_std_n": [
+    0.6283,
+    0.1138,
+    12
+   ],
+   "min": 0.43,
+   "max": 0.845,
+   "n_above_1": 0
+  },
+  "S_norm": {
+   "mean_std_n": [
+    1.2567,
+    0.2277,
+    12
+   ],
+   "min": 0.861,
+   "max": 1.69,
+   "n_above_1": 10
+  },
+  "S_norm_pf": {
+   "mean_std_n": [
+    1.0969,
+    0.1871,
+    12
+   ],
+   "min": 0.744,
+   "max": 1.433,
+   "n_above_1": 9
+  },
+  "S_amort": {
+   "mean_std_n": [
+    1.4578,
+    0.216,
+    12
+   ],
+   "min": 1.172,
+   "max": 1.899,
+   "n_above_1": 12
+  },
+  "S_amort_pf": {
+   "mean_std_n": [
+    1.3009,
+    0.171,
+    12
+   ],
+   "min": 1.049,
+   "max": 1.638,
+   "n_above_1": 12
+  },
+  "S_same2": {
+   "mean_std_n": [
+    0.8603,
+    0.0767,
+    12
+   ],
+   "min": 0.688,
+   "max": 0.931,
+   "n_above_1": 0
+  },
+  "S_same2_pf": {
+   "mean_std_n": [
+    0.8416,
+    0.0805,
+    12
+   ],
+   "min": 0.666,
+   "max": 0.924,
+   "n_above_1": 0
+  },
+  "S_same1": {
+   "mean_std_n": [
+    0.9004,
+    0.1231,
+    12
+   ],
+   "min": 0.672,
+   "max": 1.14,
+   "n_above_1": 3
+  },
+  "S_same1_pf": {
+   "mean_std_n": [
+    0.8521,
+    0.1071,
+    12
+   ],
+   "min": 0.641,
+   "max": 1.042,
+   "n_above_1": 1
+  }
+ },
+ "efficiency_same2": {
+  "2": 0.43,
+  "4": 0.215,
+  "8": 0.108
+ },
+ "pearson_density_Snorm": -0.447,
+ "Snorm_by_tier": {
+  "light": [
+   1.3424,
+   0.1884,
+   4
+  ],
+  "medium": [
+   1.3492,
+   0.2282,
+   4
+  ],
+  "heavy": [
+   1.0784,
+   0.1972,
+   4
+  ]
+ },
+ "density_range": [
+  2.81,
+  14.92
+ ],
+ "seq_loop_ms_by_tier": {
+  "light": 11.38,
+  "medium": 8.44,
+  "heavy": 8.4
+ },
+ "frames_total": 14356,
+ "tracking_share_pct": {
+  "min": 1.6,
+  "max": 4.2,
+  "lightest_video": 2.8,
+  "densest_video": 3.0
+ },
+ "amdahl_MVI_39311": {
+  "total_s": 18.62,
+  "native7_s": 12.4,
+  "native7_pct": 66.6,
+  "p_narrow": 0.362,
+  "p_broad": 0.666,
+  "S_narrow": {
+   "2": 1.22,
+   "4": 1.37,
+   "8": 1.46
+  },
+  "S_broad": {
+   "2": 1.5,
+   "4": 2.0,
+   "8": 2.4
+  },
+  "S_narrow_inf": 1.57,
+  "S_broad_inf": 3.0,
+  "dilate_us_per_call": 63.7
+ },
+ "p_narrow_12": [
+  0.3747,
+  0.019,
+  12
+ ],
+ "p_broad_12": [
+  0.6672,
+  0.0107,
+  12
+ ],
+ "p_narrow_12_range": [
+  0.349,
+  0.4
+ ],
+ "equivalence": {
+  "identical": 60,
+  "total": 60,
+  "checks": [
+   "A_seq_vs_B_par1lane_Lane1",
+   "A_seq_vs_C_serial2lane_Lane1",
+   "A_seq_vs_D_par2lane_Lane1",
+   "A_seq_vs_D_par2lane_Lane1_profiledpass",
+   "C_serial_vs_D_threaded_Lane2"
+  ]
+ },
+ "per_class_mean_over_videos": {
+  "Car": {
+   "precision": [
+    0.5113,
+    0.4623,
+    12
+   ],
+   "recall": [
+    0.2354,
+    0.3171,
+    12
+   ],
+   "f1": [
+    0.2852,
+    0.3148,
+    12
+   ]
+  },
+  "Van": {
+   "precision": [
+    0.0668,
+    0.1053,
+    12
+   ],
+   "recall": [
+    0.3333,
+    0.4495,
+    12
+   ],
+   "f1": [
+    0.1078,
+    0.1624,
+    12
+   ]
+  },
+  "Bus": {
+   "precision": [
+    0.0298,
+    0.0832,
+    12
+   ],
+   "recall": [
+    0.0972,
+    0.2298,
+    12
+   ],
+   "f1": [
+    0.0437,
+    0.1178,
+    12
+   ]
+  }
+ },
+ "videos_with_zero_f1": {
+  "Car": 5,
+  "Van": 7,
+  "Bus": 10
+ },
+ "bus_f1_zero_groups": [
+  "Night",
+  "Sunny",
+  "light",
+  "medium"
+ ],
+ "unique_gt_vehicles_total": 224,
+ "v1_S_norm": [
+  1.2611,
+  0.0837,
+  12
+ ],
+ "v1_seq_loop_ms": [
+  8.0257,
+  0.2859,
+  12
+ ],
+ "v1_v2_f1_identical": true,
+ "videos_with_class_in_matched_gt": {
+  "Car": 12,
+  "Van": 7,
+  "Bus": 5
+ },
+ "matched_gt_per_class_pooled": {
+  "Car": 179,
+  "Van": 13,
+  "Bus": 11
+ },
+ "predicted_per_class_pooled": {
+  "Car": 52,
+  "Van": 127,
+  "Bus": 24
+ }
+}

@@ -1,0 +1,172 @@
+{
+  "Lane1": {
+    "implementation": "sequential_lanetracker",
+    "executor": "serial",
+    "lane": "Lane1",
+    "video": "/sessions/rcw-0125cyjxwb9bjy8y5yzk8rjk/mnt/Lattice-Layer-Vehicle-Detection-/DETRAC_VIDEOS_eval/Night/MVI_40772.mp4",
+    "grid_rows": 6,
+    "grid_cols": 6,
+    "unique_gt_vehicles": 26,
+    "unique_predicted_tracks": 23,
+    "matched_gt_vehicles": 25,
+    "unmatched_gt_vehicles": 1,
+    "matched_predicted_tracks": 18,
+    "unmatched_predicted_tracks": 5,
+    "confusion_matrix_vehicle_labels": [
+      "Car",
+      "Van",
+      "Bus"
+    ],
+    "confusion_matrix_vehicle": [
+      [
+        6,
+        19,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "confusion_matrix_grid_labels": [
+      "Empty",
+      "Car",
+      "Van",
+      "Bus"
+    ],
+    "confusion_matrix_grid": [
+      [
+        36854,
+        790,
+        3008,
+        651
+      ],
+      [
+        1223,
+        183,
+        376,
+        79
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "metrics": {
+      "Car": {
+        "precision": 0.9999998333333611,
+        "recall": 0.23999999040000036,
+        "f1": 0.3870964370449742
+      },
+      "Van": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Bus": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      }
+    }
+  },
+  "Lane2": {
+    "implementation": "sequential_lanetracker",
+    "executor": "serial",
+    "lane": "Lane2",
+    "video": "/sessions/rcw-0125cyjxwb9bjy8y5yzk8rjk/mnt/Lattice-Layer-Vehicle-Detection-/DETRAC_VIDEOS_eval/Night/MVI_40772.mp4",
+    "grid_rows": 6,
+    "grid_cols": 6,
+    "unique_gt_vehicles": 26,
+    "unique_predicted_tracks": 30,
+    "matched_gt_vehicles": 20,
+    "unmatched_gt_vehicles": 6,
+    "matched_predicted_tracks": 14,
+    "unmatched_predicted_tracks": 16,
+    "confusion_matrix_vehicle_labels": [
+      "Car",
+      "Van",
+      "Bus"
+    ],
+    "confusion_matrix_vehicle": [
+      [
+        3,
+        4,
+        12
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0
+      ]
+    ],
+    "confusion_matrix_grid_labels": [
+      "Empty",
+      "Car",
+      "Van",
+      "Bus"
+    ],
+    "confusion_matrix_grid": [
+      [
+        30878,
+        1350,
+        793,
+        5098
+      ],
+      [
+        3354,
+        210,
+        105,
+        723
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        649,
+        4,
+        0,
+        0
+      ]
+    ],
+    "metrics": {
+      "Car": {
+        "precision": 0.9999996666667778,
+        "recall": 0.15789472853185638,
+        "f1": 0.2727270123968518
+      },
+      "Van": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Bus": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      }
+    }
+  }
+}

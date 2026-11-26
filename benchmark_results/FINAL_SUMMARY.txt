@@ -1,0 +1,33 @@
+==============================================================================
+BENCHMARK COMPLETE
+==============================================================================
+
+Output root: C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\benchmark_results
+
+Videos selected (12):
+  - Cloudy/light: MVI_39761.mp4  (density=2.810, source=xml_fallback)
+  - Night/light: MVI_40774.mp4  (density=6.087, source=xml_fallback)
+  - Rainy/light: MVI_63525.mp4  (density=3.523, source=xml_fallback)
+  - Sunny/light: MVI_20033.mp4  (density=6.727, source=xml_fallback)
+  - Cloudy/medium: MVI_39771.mp4  (density=6.325, source=xml_fallback)
+  - Night/medium: MVI_40773.mp4  (density=8.029, source=xml_fallback)
+  - Rainy/medium: MVI_40141.mp4  (density=3.889, source=xml_fallback)
+  - Sunny/medium: MVI_20011.mp4  (density=11.529, source=xml_fallback)
+  - Cloudy/heavy: MVI_40963.mp4  (density=6.395, source=xml_fallback)
+  - Night/heavy: MVI_40772.mp4  (density=12.928, source=xml_fallback)
+  - Rainy/heavy: MVI_40131.mp4  (density=9.316, source=xml_fallback)
+  - Sunny/heavy: MVI_39311.mp4  (density=14.922, source=xml_fallback)
+
+Missing XML annotations (0), excluded from selection:
+
+Failed runs: 0 (see failures.csv)
+
+Overall normalized speedup (parallel vs sequential, workload-corrected, clean pass only):
+  mean = 1.261x  std = 0.084  (n=12)
+
+Per-category speedup: see speedup_summary_by_category.csv
+Per-tier (light/medium/heavy) speedup: see speedup_summary_by_tier.csv
+Per-category accuracy (F1) mean±std: see summary_by_category.csv
+Per-tier accuracy (F1) mean±std: see summary_by_tier.csv
+Full per-video, per-implementation, per-lane rows: consolidated_results.csv
+Full per-video speedup: speedup_by_video.csv

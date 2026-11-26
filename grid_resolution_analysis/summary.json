@@ -1,0 +1,2238 @@
+{
+ "verification": {
+  "runs": 72,
+  "labels_reproduced": 72,
+  "evaluation_reproduced": 72,
+  "fast_replay_equal": 72
+ },
+ "runs_per_grid": {
+  "4x6": 12,
+  "6x6": 12,
+  "6x8": 12,
+  "8x8": 12,
+  "8x10": 12,
+  "10x12": 12
+ },
+ "videos": [
+  "MVI_20011",
+  "MVI_20033",
+  "MVI_39311",
+  "MVI_39761",
+  "MVI_39771",
+  "MVI_40131",
+  "MVI_40141",
+  "MVI_40772",
+  "MVI_40773",
+  "MVI_40774",
+  "MVI_40963",
+  "MVI_63525"
+ ],
+ "summary": {
+  "4x6": {
+   "Lane1": {
+    "grid": "4x6",
+    "rows": 4,
+    "cols": 6,
+    "scope": "Lane1",
+    "car_precision": 0.8,
+    "car_recall": 0.0909,
+    "car_f1": 0.1633,
+    "van_precision": 0.0654,
+    "van_recall": 0.7692,
+    "van_f1": 0.1205,
+    "bus_precision": 0.1111,
+    "bus_recall": 0.2727,
+    "bus_f1": 0.1579,
+    "macro_f1": 0.1472,
+    "all_car_baseline_macro_f1": 0.3121,
+    "macro_f1_per_video_mean": 0.1042,
+    "macro_f1_per_video_std": 0.1174,
+    "accuracy_matched": 0.145,
+    "car_to_van_rate": 0.7841,
+    "correct": 29,
+    "misclassified": 171,
+    "gt_vehicles": 224,
+    "detected_matched_gt": 200,
+    "missed_gt": 24,
+    "pred_tracks": 457,
+    "matched_tracks": 210,
+    "unmatched_detections": 247,
+    "detection_recall": 0.8929,
+    "total_time_s": 160.58,
+    "fps": 89.4,
+    "mean_loop_ms": 10.294,
+    "peak_memory_mb": 174.0,
+    "cm": [
+     [
+      16,
+      138,
+      22
+     ],
+     [
+      1,
+      10,
+      2
+     ],
+     [
+      3,
+      5,
+      3
+     ]
+    ]
+   },
+   "Lane2": {
+    "grid": "4x6",
+    "rows": 4,
+    "cols": 6,
+    "scope": "Lane2",
+    "car_precision": 0.918,
+    "car_recall": 0.25,
+    "car_f1": 0.393,
+    "van_precision": 0.0775,
+    "van_recall": 0.6875,
+    "van_f1": 0.1392,
+    "bus_precision": 0.0,
+    "bus_recall": 0.0,
+    "bus_f1": 0.0,
+    "macro_f1": 0.1774,
+    "all_car_baseline_macro_f1": 0.3131,
+    "macro_f1_per_video_mean": 0.102,
+    "macro_f1_per_video_std": 0.0997,
+    "accuracy_matched": 0.2648,
+    "car_to_van_rate": 0.5446,
+    "correct": 67,
+    "misclassified": 186,
+    "gt_vehicles": 303,
+    "detected_matched_gt": 253,
+    "missed_gt": 50,
+    "pred_tracks": 433,
+    "matched_tracks": 237,
+    "unmatched_detections": 196,
+    "detection_recall": 0.835,
+    "total_time_s": 160.58,
+    "fps": 89.4,
+    "mean_loop_ms": 10.294,
+    "peak_memory_mb": 174.0,
+    "cm": [
+     [
+      56,
+      122,
+      46
+     ],
+     [
+      1,
+      11,
+      4
+     ],
+     [
+      4,
+      9,
+      0
+     ]
+    ]
+   },
+   "Combined": {
+    "grid": "4x6",
+    "rows": 4,
+    "cols": 6,
+    "scope": "Combined",
+    "car_precision": 0.9118,
+    "car_recall": 0.1632,
+    "car_f1": 0.2768,
+    "van_precision": 0.0739,
+    "van_recall": 0.7241,
+    "van_f1": 0.1342,
+    "bus_precision": 0.039,
+    "bus_recall": 0.15,
+    "bus_f1": 0.0619,
+    "macro_f1": 0.1576,
+    "all_car_baseline_macro_f1": 0.3131,
+    "macro_f1_per_video_mean": 0.1071,
+    "macro_f1_per_video_std": 0.1047,
+    "accuracy_matched": 0.2005,
+    "car_to_van_rate": 0.6579,
+    "correct": 86,
+    "misclassified": 343,
+    "gt_vehicles": 470,
+    "detected_matched_gt": 429,
+    "missed_gt": 41,
+    "pred_tracks": 890,
+    "matched_tracks": 447,
+    "unmatched_detections": 443,
+    "detection_recall": 0.9128,
+    "total_time_s": 160.58,
+    "fps": 89.4,
+    "mean_loop_ms": 10.294,
+    "peak_memory_mb": 174.0,
+    "cm": [
+     [
+      62,
+      250,
+      68
+     ],
+     [
+      2,
+      21,
+      6
+     ],
+     [
+      4,
+      13,
+      3
+     ]
+    ],
+    "delta_macro_f1_vs_baseline_CI95": [
+     -0.0862,
+     -0.0249
+    ],
+    "delta_macro_f1_vs_all_car_CI95": [
+     -0.251,
+     -0.0734
+    ],
+    "delta_macro_f1_vs_8x8_CI95": [
+     -0.1413,
+     -0.0475
+    ],
+    "videos_better_same_worse_vs_baseline": [
+     2,
+     1,
+     9
+    ]
+   }
+  },
+  "6x6": {
+   "Lane1": {
+    "grid": "6x6",
+    "rows": 6,
+    "cols": 6,
+    "scope": "Lane1",
+    "car_precision": 0.8462,
+    "car_recall": 0.2458,
+    "car_f1": 0.381,
+    "van_precision": 0.063,
+    "van_recall": 0.6154,
+    "van_f1": 0.1143,
+    "bus_precision": 0.125,
+    "bus_recall": 0.2727,
+    "bus_f1": 0.1714,
+    "macro_f1": 0.2222,
+    "all_car_baseline_macro_f1": 0.3124,
+    "macro_f1_per_video_mean": 0.1456,
+    "macro_f1_per_video_std": 0.0903,
+    "accuracy_matched": 0.2709,
+    "car_to_van_rate": 0.648,
+    "correct": 55,
+    "misclassified": 148,
+    "gt_vehicles": 224,
+    "detected_matched_gt": 203,
+    "missed_gt": 21,
+    "pred_tracks": 487,
+    "matched_tracks": 229,
+    "unmatched_detections": 258,
+    "detection_recall": 0.9062,
+    "total_time_s": 158.71,
+    "fps": 90.45,
+    "mean_loop_ms": 10.284,
+    "peak_memory_mb": 177.7,
+    "cm": [
+     [
+      44,
+      116,
+      19
+     ],
+     [
+      3,
+      8,
+      2
+     ],
+     [
+      5,
+      3,
+      3
+     ]
+    ]
+   },
+   "Lane2": {
+    "grid": "6x6",
+    "rows": 6,
+    "cols": 6,
+    "scope": "Lane2",
+    "car_precision": 0.8936,
+    "car_recall": 0.3621,
+    "car_f1": 0.5153,
+    "van_precision": 0.087,
+    "van_recall": 0.625,
+    "van_f1": 0.1527,
+    "bus_precision": 0.0,
+    "bus_recall": 0.0,
+    "bus_f1": 0.0,
+    "macro_f1": 0.2227,
+    "all_car_baseline_macro_f1": 0.3137,
+    "macro_f1_per_video_mean": 0.1622,
+    "macro_f1_per_video_std": 0.1171,
+    "accuracy_matched": 0.3602,
+    "car_to_van_rate": 0.431,
+    "correct": 94,
+    "misclassified": 167,
+    "gt_vehicles": 303,
+    "detected_matched_gt": 261,
+    "missed_gt": 42,
+    "pred_tracks": 479,
+    "matched_tracks": 260,
+    "unmatched_detections": 219,
+    "detection_recall": 0.8614,
+    "total_time_s": 158.71,
+    "fps": 90.45,
+    "mean_loop_ms": 10.284,
+    "peak_memory_mb": 177.7,
+    "cm": [
+     [
+      84,
+      100,
+      48
+     ],
+     [
+      2,
+      10,
+      4
+     ],
+     [
+      8,
+      5,
+      0
+     ]
+    ]
+   },
+   "Combined": {
+    "grid": "6x6",
+    "rows": 6,
+    "cols": 6,
+    "scope": "Combined",
+    "car_precision": 0.8871,
+    "car_recall": 0.2821,
+    "car_f1": 0.428,
+    "van_precision": 0.0753,
+    "van_recall": 0.6207,
+    "van_f1": 0.1343,
+    "bus_precision": 0.0395,
+    "bus_recall": 0.15,
+    "bus_f1": 0.0625,
+    "macro_f1": 0.2083,
+    "all_car_baseline_macro_f1": 0.3136,
+    "macro_f1_per_video_mean": 0.1621,
+    "macro_f1_per_video_std": 0.0778,
+    "accuracy_matched": 0.2984,
+    "car_to_van_rate": 0.5462,
+    "correct": 131,
+    "misclassified": 308,
+    "gt_vehicles": 470,
+    "detected_matched_gt": 439,
+    "missed_gt": 31,
+    "pred_tracks": 966,
+    "matched_tracks": 489,
+    "unmatched_detections": 477,
+    "detection_recall": 0.934,
+    "total_time_s": 158.71,
+    "fps": 90.45,
+    "mean_loop_ms": 10.284,
+    "peak_memory_mb": 177.7,
+    "cm": [
+     [
+      110,
+      213,
+      67
+     ],
+     [
+      5,
+      18,
+      6
+     ],
+     [
+      9,
+      8,
+      3
+     ]
+    ],
+    "delta_macro_f1_vs_baseline_CI95": [
+     0.0,
+     0.0
+    ],
+    "delta_macro_f1_vs_all_car_CI95": [
+     -0.1745,
+     -0.0429
+    ],
+    "delta_macro_f1_vs_8x8_CI95": [
+     -0.0779,
+     -0.0131
+    ],
+    "videos_better_same_worse_vs_baseline": [
+     0,
+     12,
+     0
+    ]
+   }
+  },
+  "6x8": {
+   "Lane1": {
+    "grid": "6x8",
+    "rows": 6,
+    "cols": 8,
+    "scope": "Lane1",
+    "car_precision": 0.8103,
+    "car_recall": 0.2597,
+    "car_f1": 0.3933,
+    "van_precision": 0.0534,
+    "van_recall": 0.5385,
+    "van_f1": 0.0972,
+    "bus_precision": 0.1875,
+    "bus_recall": 0.2727,
+    "bus_f1": 0.2222,
+    "macro_f1": 0.2376,
+    "all_car_baseline_macro_f1": 0.3126,
+    "macro_f1_per_video_mean": 0.1442,
+    "macro_f1_per_video_std": 0.0998,
+    "accuracy_matched": 0.278,
+    "car_to_van_rate": 0.674,
+    "correct": 57,
+    "misclassified": 148,
+    "gt_vehicles": 224,
+    "detected_matched_gt": 205,
+    "missed_gt": 19,
+    "pred_tracks": 466,
+    "matched_tracks": 211,
+    "unmatched_detections": 255,
+    "detection_recall": 0.9152,
+    "total_time_s": 165.05,
+    "fps": 86.98,
+    "mean_loop_ms": 10.674,
+    "peak_memory_mb": 180.7,
+    "cm": [
+     [
+      47,
+      122,
+      12
+     ],
+     [
+      5,
+      7,
+      1
+     ],
+     [
+      6,
+      2,
+      3
+     ]
+    ]
+   },
+   "Lane2": {
+    "grid": "6x8",
+    "rows": 6,
+    "cols": 8,
+    "scope": "Lane2",
+    "car_precision": 0.898,
+    "car_recall": 0.3729,
+    "car_f1": 0.5269,
+    "van_precision": 0.0916,
+    "van_recall": 0.75,
+    "van_f1": 0.1633,
+    "bus_precision": 0.0,
+    "bus_recall": 0.0,
+    "bus_f1": 0.0,
+    "macro_f1": 0.2301,
+    "all_car_baseline_macro_f1": 0.314,
+    "macro_f1_per_video_mean": 0.1743,
+    "macro_f1_per_video_std": 0.1077,
+    "accuracy_matched": 0.3774,
+    "car_to_van_rate": 0.4873,
+    "correct": 100,
+    "misclassified": 165,
+    "gt_vehicles": 303,
+    "detected_matched_gt": 265,
+    "missed_gt": 38,
+    "pred_tracks": 472,
+    "matched_tracks": 262,
+    "unmatched_detections": 210,
+    "detection_recall": 0.8746,
+    "total_time_s": 165.05,
+    "fps": 86.98,
+    "mean_loop_ms": 10.674,
+    "peak_memory_mb": 180.7,
+    "cm": [
+     [
+      88,
+      115,
+      33
+     ],
+     [
+      1,
+      12,
+      3
+     ],
+     [
+      9,
+      4,
+      0
+     ]
+    ]
+   },
+   "Combined": {
+    "grid": "6x8",
+    "rows": 6,
+    "cols": 8,
+    "scope": "Combined",
+    "car_precision": 0.8712,
+    "car_recall": 0.2934,
+    "car_f1": 0.4389,
+    "van_precision": 0.0739,
+    "van_recall": 0.6552,
+    "van_f1": 0.1329,
+    "bus_precision": 0.0577,
+    "bus_recall": 0.15,
+    "bus_f1": 0.0833,
+    "macro_f1": 0.2184,
+    "all_car_baseline_macro_f1": 0.3137,
+    "macro_f1_per_video_mean": 0.1654,
+    "macro_f1_per_video_std": 0.0828,
+    "accuracy_matched": 0.3107,
+    "car_to_van_rate": 0.5918,
+    "correct": 137,
+    "misclassified": 304,
+    "gt_vehicles": 470,
+    "detected_matched_gt": 441,
+    "missed_gt": 29,
+    "pred_tracks": 938,
+    "matched_tracks": 473,
+    "unmatched_detections": 465,
+    "detection_recall": 0.9383,
+    "total_time_s": 165.05,
+    "fps": 86.98,
+    "mean_loop_ms": 10.674,
+    "peak_memory_mb": 180.7,
+    "cm": [
+     [
+      115,
+      232,
+      45
+     ],
+     [
+      6,
+      19,
+      4
+     ],
+     [
+      11,
+      6,
+      3
+     ]
+    ],
+    "delta_macro_f1_vs_baseline_CI95": [
+     -0.0191,
+     0.0423
+    ],
+    "delta_macro_f1_vs_all_car_CI95": [
+     -0.1815,
+     -0.0166
+    ],
+    "delta_macro_f1_vs_8x8_CI95": [
+     -0.0644,
+     -0.0127
+    ],
+    "videos_better_same_worse_vs_baseline": [
+     6,
+     1,
+     5
+    ]
+   }
+  },
+  "8x8": {
+   "Lane1": {
+    "grid": "8x8",
+    "rows": 8,
+    "cols": 8,
+    "scope": "Lane1",
+    "car_precision": 0.85,
+    "car_recall": 0.3778,
+    "car_f1": 0.5231,
+    "van_precision": 0.0545,
+    "van_recall": 0.4615,
+    "van_f1": 0.0976,
+    "bus_precision": 0.2857,
+    "bus_recall": 0.3636,
+    "bus_f1": 0.32,
+    "macro_f1": 0.3135,
+    "all_car_baseline_macro_f1": 0.3125,
+    "macro_f1_per_video_mean": 0.1861,
+    "macro_f1_per_video_std": 0.1267,
+    "accuracy_matched": 0.3824,
+    "car_to_van_rate": 0.5667,
+    "correct": 78,
+    "misclassified": 126,
+    "gt_vehicles": 224,
+    "detected_matched_gt": 204,
+    "missed_gt": 20,
+    "pred_tracks": 516,
+    "matched_tracks": 251,
+    "unmatched_detections": 265,
+    "detection_recall": 0.9107,
+    "total_time_s": 169.78,
+    "fps": 84.56,
+    "mean_loop_ms": 11.055,
+    "peak_memory_mb": 185.3,
+    "cm": [
+     [
+      68,
+      102,
+      10
+     ],
+     [
+      7,
+      6,
+      0
+     ],
+     [
+      5,
+      2,
+      4
+     ]
+    ]
+   },
+   "Lane2": {
+    "grid": "8x8",
+    "rows": 8,
+    "cols": 8,
+    "scope": "Lane2",
+    "car_precision": 0.8689,
+    "car_recall": 0.4511,
+    "car_f1": 0.5938,
+    "van_precision": 0.0926,
+    "van_recall": 0.625,
+    "van_f1": 0.1613,
+    "bus_precision": 0.0,
+    "bus_recall": 0.0,
+    "bus_f1": 0.0,
+    "macro_f1": 0.2517,
+    "all_car_baseline_macro_f1": 0.3133,
+    "macro_f1_per_video_mean": 0.1997,
+    "macro_f1_per_video_std": 0.1212,
+    "accuracy_matched": 0.4377,
+    "car_to_van_rate": 0.4085,
+    "correct": 116,
+    "misclassified": 149,
+    "gt_vehicles": 303,
+    "detected_matched_gt": 265,
+    "missed_gt": 38,
+    "pred_tracks": 507,
+    "matched_tracks": 277,
+    "unmatched_detections": 230,
+    "detection_recall": 0.8746,
+    "total_time_s": 169.78,
+    "fps": 84.56,
+    "mean_loop_ms": 11.055,
+    "peak_memory_mb": 185.3,
+    "cm": [
+     [
+      106,
+      96,
+      33
+     ],
+     [
+      4,
+      10,
+      2
+     ],
+     [
+      12,
+      2,
+      0
+     ]
+    ]
+   },
+   "Combined": {
+    "grid": "8x8",
+    "rows": 8,
+    "cols": 8,
+    "scope": "Combined",
+    "car_precision": 0.8619,
+    "car_recall": 0.398,
+    "car_f1": 0.5445,
+    "van_precision": 0.0751,
+    "van_recall": 0.5517,
+    "van_f1": 0.1322,
+    "bus_precision": 0.0625,
+    "bus_recall": 0.1429,
+    "bus_f1": 0.087,
+    "macro_f1": 0.2546,
+    "all_car_baseline_macro_f1": 0.3133,
+    "macro_f1_per_video_mean": 0.2028,
+    "macro_f1_per_video_std": 0.0815,
+    "accuracy_matched": 0.3959,
+    "car_to_van_rate": 0.4923,
+    "correct": 175,
+    "misclassified": 267,
+    "gt_vehicles": 470,
+    "detected_matched_gt": 442,
+    "missed_gt": 28,
+    "pred_tracks": 1023,
+    "matched_tracks": 528,
+    "unmatched_detections": 495,
+    "detection_recall": 0.9404,
+    "total_time_s": 169.78,
+    "fps": 84.56,
+    "mean_loop_ms": 11.055,
+    "peak_memory_mb": 185.3,
+    "cm": [
+     [
+      156,
+      193,
+      43
+     ],
+     [
+      11,
+      16,
+      2
+     ],
+     [
+      14,
+      4,
+      3
+     ]
+    ],
+    "delta_macro_f1_vs_baseline_CI95": [
+     0.0131,
+     0.0779
+    ],
+    "delta_macro_f1_vs_all_car_CI95": [
+     -0.1263,
+     0.0001
+    ],
+    "delta_macro_f1_vs_8x8_CI95": [
+     0.0,
+     0.0
+    ],
+    "videos_better_same_worse_vs_baseline": [
+     9,
+     1,
+     2
+    ]
+   }
+  },
+  "8x10": {
+   "Lane1": {
+    "grid": "8x10",
+    "rows": 8,
+    "cols": 10,
+    "scope": "Lane1",
+    "car_precision": 0.8537,
+    "car_recall": 0.3889,
+    "car_f1": 0.5344,
+    "van_precision": 0.0609,
+    "van_recall": 0.5385,
+    "van_f1": 0.1094,
+    "bus_precision": 0.4286,
+    "bus_recall": 0.2727,
+    "bus_f1": 0.3333,
+    "macro_f1": 0.3257,
+    "all_car_baseline_macro_f1": 0.3125,
+    "macro_f1_per_video_mean": 0.2046,
+    "macro_f1_per_video_std": 0.098,
+    "accuracy_matched": 0.3922,
+    "car_to_van_rate": 0.5889,
+    "correct": 80,
+    "misclassified": 124,
+    "gt_vehicles": 224,
+    "detected_matched_gt": 204,
+    "missed_gt": 20,
+    "pred_tracks": 560,
+    "matched_tracks": 264,
+    "unmatched_detections": 296,
+    "detection_recall": 0.9107,
+    "total_time_s": 186.24,
+    "fps": 77.08,
+    "mean_loop_ms": 12.259,
+    "peak_memory_mb": 190.1,
+    "cm": [
+     [
+      70,
+      106,
+      4
+     ],
+     [
+      6,
+      7,
+      0
+     ],
+     [
+      6,
+      2,
+      3
+     ]
+    ]
+   },
+   "Lane2": {
+    "grid": "8x10",
+    "rows": 8,
+    "cols": 10,
+    "scope": "Lane2",
+    "car_precision": 0.8824,
+    "car_recall": 0.4468,
+    "car_f1": 0.5932,
+    "van_precision": 0.0932,
+    "van_recall": 0.6875,
+    "van_f1": 0.1642,
+    "bus_precision": 0.0,
+    "bus_recall": 0.0,
+    "bus_f1": 0.0,
+    "macro_f1": 0.2525,
+    "all_car_baseline_macro_f1": 0.314,
+    "macro_f1_per_video_mean": 0.2026,
+    "macro_f1_per_video_std": 0.1208,
+    "accuracy_matched": 0.4394,
+    "car_to_van_rate": 0.4426,
+    "correct": 116,
+    "misclassified": 148,
+    "gt_vehicles": 303,
+    "detected_matched_gt": 264,
+    "missed_gt": 39,
+    "pred_tracks": 566,
+    "matched_tracks": 293,
+    "unmatched_detections": 273,
+    "detection_recall": 0.8713,
+    "total_time_s": 186.24,
+    "fps": 77.08,
+    "mean_loop_ms": 12.259,
+    "peak_memory_mb": 190.1,
+    "cm": [
+     [
+      105,
+      104,
+      26
+     ],
+     [
+      4,
+      11,
+      1
+     ],
+     [
+      10,
+      3,
+      0
+     ]
+    ]
+   },
+   "Combined": {
+    "grid": "8x10",
+    "rows": 8,
+    "cols": 10,
+    "scope": "Combined",
+    "car_precision": 0.8757,
+    "car_recall": 0.3964,
+    "car_f1": 0.5458,
+    "van_precision": 0.0786,
+    "van_recall": 0.6207,
+    "van_f1": 0.1395,
+    "bus_precision": 0.0882,
+    "bus_recall": 0.15,
+    "bus_f1": 0.1111,
+    "macro_f1": 0.2655,
+    "all_car_baseline_macro_f1": 0.3137,
+    "macro_f1_per_video_mean": 0.211,
+    "macro_f1_per_video_std": 0.0922,
+    "accuracy_matched": 0.4,
+    "car_to_van_rate": 0.5269,
+    "correct": 176,
+    "misclassified": 264,
+    "gt_vehicles": 470,
+    "detected_matched_gt": 440,
+    "missed_gt": 30,
+    "pred_tracks": 1126,
+    "matched_tracks": 557,
+    "unmatched_detections": 569,
+    "detection_recall": 0.9362,
+    "total_time_s": 186.24,
+    "fps": 77.08,
+    "mean_loop_ms": 12.259,
+    "peak_memory_mb": 190.1,
+    "cm": [
+     [
+      155,
+      206,
+      30
+     ],
+     [
+      10,
+      18,
+      1
+     ],
+     [
+      12,
+      5,
+      3
+     ]
+    ],
+    "delta_macro_f1_vs_baseline_CI95": [
+     0.0126,
+     0.1035
+    ],
+    "delta_macro_f1_vs_all_car_CI95": [
+     -0.1284,
+     0.0282
+    ],
+    "delta_macro_f1_vs_8x8_CI95": [
+     -0.0069,
+     0.0316
+    ],
+    "videos_better_same_worse_vs_baseline": [
+     10,
+     1,
+     1
+    ]
+   }
+  },
+  "10x12": {
+   "Lane1": {
+    "grid": "10x12",
+    "rows": 10,
+    "cols": 12,
+    "scope": "Lane1",
+    "car_precision": 0.8957,
+    "car_recall": 0.5754,
+    "car_f1": 0.7007,
+    "van_precision": 0.0854,
+    "van_recall": 0.5385,
+    "van_f1": 0.1474,
+    "bus_precision": 0.2,
+    "bus_recall": 0.1,
+    "bus_f1": 0.1333,
+    "macro_f1": 0.3271,
+    "all_car_baseline_macro_f1": 0.3132,
+    "macro_f1_per_video_mean": 0.2496,
+    "macro_f1_per_video_std": 0.0853,
+    "accuracy_matched": 0.5495,
+    "car_to_van_rate": 0.4022,
+    "correct": 111,
+    "misclassified": 91,
+    "gt_vehicles": 224,
+    "detected_matched_gt": 202,
+    "missed_gt": 22,
+    "pred_tracks": 712,
+    "matched_tracks": 307,
+    "unmatched_detections": 405,
+    "detection_recall": 0.9018,
+    "total_time_s": 179.2,
+    "fps": 80.11,
+    "mean_loop_ms": 11.823,
+    "peak_memory_mb": 200.5,
+    "cm": [
+     [
+      103,
+      72,
+      4
+     ],
+     [
+      6,
+      7,
+      0
+     ],
+     [
+      6,
+      3,
+      1
+     ]
+    ]
+   },
+   "Lane2": {
+    "grid": "10x12",
+    "rows": 10,
+    "cols": 12,
+    "scope": "Lane2",
+    "car_precision": 0.873,
+    "car_recall": 0.4846,
+    "car_f1": 0.6232,
+    "van_precision": 0.0804,
+    "van_recall": 0.5625,
+    "van_f1": 0.1406,
+    "bus_precision": 0.0,
+    "bus_recall": 0.0,
+    "bus_f1": 0.0,
+    "macro_f1": 0.2546,
+    "all_car_baseline_macro_f1": 0.3133,
+    "macro_f1_per_video_mean": 0.1992,
+    "macro_f1_per_video_std": 0.0957,
+    "accuracy_matched": 0.4648,
+    "car_to_van_rate": 0.4449,
+    "correct": 119,
+    "misclassified": 137,
+    "gt_vehicles": 303,
+    "detected_matched_gt": 256,
+    "missed_gt": 47,
+    "pred_tracks": 687,
+    "matched_tracks": 335,
+    "unmatched_detections": 352,
+    "detection_recall": 0.8449,
+    "total_time_s": 179.2,
+    "fps": 80.11,
+    "mean_loop_ms": 11.823,
+    "peak_memory_mb": 200.5,
+    "cm": [
+     [
+      110,
+      101,
+      16
+     ],
+     [
+      5,
+      9,
+      2
+     ],
+     [
+      11,
+      2,
+      0
+     ]
+    ]
+   },
+   "Combined": {
+    "grid": "10x12",
+    "rows": 10,
+    "cols": 12,
+    "scope": "Combined",
+    "car_precision": 0.8858,
+    "car_recall": 0.5065,
+    "car_f1": 0.6445,
+    "van_precision": 0.0842,
+    "van_recall": 0.5517,
+    "van_f1": 0.1461,
+    "bus_precision": 0.0435,
+    "bus_recall": 0.05,
+    "bus_f1": 0.0465,
+    "macro_f1": 0.279,
+    "all_car_baseline_macro_f1": 0.3133,
+    "macro_f1_per_video_mean": 0.2351,
+    "macro_f1_per_video_std": 0.081,
+    "accuracy_matched": 0.4884,
+    "car_to_van_rate": 0.4413,
+    "correct": 211,
+    "misclassified": 221,
+    "gt_vehicles": 470,
+    "detected_matched_gt": 432,
+    "missed_gt": 38,
+    "pred_tracks": 1399,
+    "matched_tracks": 642,
+    "unmatched_detections": 757,
+    "detection_recall": 0.9191,
+    "total_time_s": 179.2,
+    "fps": 80.11,
+    "mean_loop_ms": 11.823,
+    "peak_memory_mb": 200.5,
+    "cm": [
+     [
+      194,
+      169,
+      20
+     ],
+     [
+      11,
+      16,
+      2
+     ],
+     [
+      14,
+      5,
+      1
+     ]
+    ],
+    "delta_macro_f1_vs_baseline_CI95": [
+     0.0304,
+     0.1202
+    ],
+    "delta_macro_f1_vs_all_car_CI95": [
+     -0.0828,
+     0.0055
+    ],
+    "delta_macro_f1_vs_8x8_CI95": [
+     -0.0133,
+     0.0659
+    ],
+    "videos_better_same_worse_vs_baseline": [
+     11,
+     0,
+     1
+    ]
+   }
+  }
+ },
+ "diagnostics": {
+  "4x6": {
+   "merge_rate": 0.1023,
+   "fragmentation_rate": 0.0097,
+   "pred_boxes": 23161,
+   "gt_observations": 23926,
+   "mean_iou_matched": 0.2837,
+   "median_w_ratio": 1.675,
+   "median_h_ratio": 0.96,
+   "feature_means": {
+    "Car": {
+     "nrow": [
+      0.651,
+      0.274,
+      10365
+     ],
+     "ncol": [
+      0.403,
+      0.199,
+      10365
+     ]
+    },
+    "Van": {
+     "nrow": [
+      0.723,
+      0.262,
+      767
+     ],
+     "ncol": [
+      0.434,
+      0.182,
+      767
+     ]
+    },
+    "Bus": {
+     "nrow": [
+      0.699,
+      0.272,
+      1288
+     ],
+     "ncol": [
+      0.43,
+      0.247,
+      1288
+     ]
+    }
+   },
+   "auc_van_vs_car_nrow": 0.573,
+   "auc_bus_vs_rest_ncol": 0.508,
+   "car_frac_nrow_gt_0.45": 0.801
+  },
+  "6x6": {
+   "merge_rate": 0.0826,
+   "fragmentation_rate": 0.017,
+   "pred_boxes": 25110,
+   "gt_observations": 23805,
+   "mean_iou_matched": 0.2907,
+   "median_w_ratio": 1.679,
+   "median_h_ratio": 0.848,
+   "feature_means": {
+    "Car": {
+     "nrow": [
+      0.574,
+      0.279,
+      10848
+     ],
+     "ncol": [
+      0.395,
+      0.195,
+      10848
+     ]
+    },
+    "Van": {
+     "nrow": [
+      0.64,
+      0.276,
+      789
+     ],
+     "ncol": [
+      0.425,
+      0.183,
+      789
+     ]
+    },
+    "Bus": {
+     "nrow": [
+      0.609,
+      0.284,
+      1140
+     ],
+     "ncol": [
+      0.424,
+      0.237,
+      1140
+     ]
+    }
+   },
+   "auc_van_vs_car_nrow": 0.566,
+   "auc_bus_vs_rest_ncol": 0.514,
+   "car_frac_nrow_gt_0.45": 0.659
+  },
+  "6x8": {
+   "merge_rate": 0.0676,
+   "fragmentation_rate": 0.0213,
+   "pred_boxes": 26954,
+   "gt_observations": 23825,
+   "mean_iou_matched": 0.3172,
+   "median_w_ratio": 1.468,
+   "median_h_ratio": 0.846,
+   "feature_means": {
+    "Car": {
+     "nrow": [
+      0.563,
+      0.273,
+      11514
+     ],
+     "ncol": [
+      0.341,
+      0.174,
+      11514
+     ]
+    },
+    "Van": {
+     "nrow": [
+      0.632,
+      0.273,
+      856
+     ],
+     "ncol": [
+      0.371,
+      0.166,
+      856
+     ]
+    },
+    "Bus": {
+     "nrow": [
+      0.602,
+      0.285,
+      1116
+     ],
+     "ncol": [
+      0.379,
+      0.216,
+      1116
+     ]
+    }
+   },
+   "auc_van_vs_car_nrow": 0.571,
+   "auc_bus_vs_rest_ncol": 0.533,
+   "car_frac_nrow_gt_0.45": 0.651
+  },
+  "8x8": {
+   "merge_rate": 0.055,
+   "fragmentation_rate": 0.0353,
+   "pred_boxes": 28785,
+   "gt_observations": 23776,
+   "mean_iou_matched": 0.3186,
+   "median_w_ratio": 1.466,
+   "median_h_ratio": 0.754,
+   "feature_means": {
+    "Car": {
+     "nrow": [
+      0.517,
+      0.275,
+      11821
+     ],
+     "ncol": [
+      0.335,
+      0.172,
+      11821
+     ]
+    },
+    "Van": {
+     "nrow": [
+      0.581,
+      0.283,
+      849
+     ],
+     "ncol": [
+      0.363,
+      0.161,
+      849
+     ]
+    },
+    "Bus": {
+     "nrow": [
+      0.556,
+      0.298,
+      1009
+     ],
+     "ncol": [
+      0.373,
+      0.212,
+      1009
+     ]
+    }
+   },
+   "auc_van_vs_car_nrow": 0.565,
+   "auc_bus_vs_rest_ncol": 0.535,
+   "car_frac_nrow_gt_0.45": 0.56
+  },
+  "8x10": {
+   "merge_rate": 0.0441,
+   "fragmentation_rate": 0.0426,
+   "pred_boxes": 30527,
+   "gt_observations": 23752,
+   "mean_iou_matched": 0.3357,
+   "median_w_ratio": 1.328,
+   "median_h_ratio": 0.749,
+   "feature_means": {
+    "Car": {
+     "nrow": [
+      0.511,
+      0.272,
+      12194
+     ],
+     "ncol": [
+      0.299,
+      0.156,
+      12194
+     ]
+    },
+    "Van": {
+     "nrow": [
+      0.578,
+      0.28,
+      852
+     ],
+     "ncol": [
+      0.323,
+      0.152,
+      852
+     ]
+    },
+    "Bus": {
+     "nrow": [
+      0.565,
+      0.3,
+      930
+     ],
+     "ncol": [
+      0.354,
+      0.206,
+      930
+     ]
+    }
+   },
+   "auc_van_vs_car_nrow": 0.568,
+   "auc_bus_vs_rest_ncol": 0.564,
+   "car_frac_nrow_gt_0.45": 0.554
+  },
+  "10x12": {
+   "merge_rate": 0.0302,
+   "fragmentation_rate": 0.0738,
+   "pred_boxes": 34808,
+   "gt_observations": 24080,
+   "mean_iou_matched": 0.3471,
+   "median_w_ratio": 1.251,
+   "median_h_ratio": 0.69,
+   "feature_means": {
+    "Car": {
+     "nrow": [
+      0.466,
+      0.263,
+      12765
+     ],
+     "ncol": [
+      0.278,
+      0.144,
+      12765
+     ]
+    },
+    "Van": {
+     "nrow": [
+      0.522,
+      0.281,
+      904
+     ],
+     "ncol": [
+      0.302,
+      0.139,
+      904
+     ]
+    },
+    "Bus": {
+     "nrow": [
+      0.538,
+      0.301,
+      786
+     ],
+     "ncol": [
+      0.355,
+      0.206,
+      786
+     ]
+    }
+   },
+   "auc_van_vs_car_nrow": 0.557,
+   "auc_bus_vs_rest_ncol": 0.602,
+   "car_frac_nrow_gt_0.45": 0.474
+  }
+ },
+ "tuning": {
+  "6x6": {
+   "n_validation_videos": 26,
+   "n_test_videos": 12,
+   "objective": "pooled macro-F1, both lanes, validation videos",
+   "original": {
+    "thresholds": {
+     "bus_col": 0.75,
+     "bus_both": 0.55,
+     "van_row": 0.45,
+     "van_max_aspect": null
+    },
+    "validation_macro_f1": 0.1812,
+    "validation_per_class_f1": {
+     "Car": 0.3199,
+     "Van": 0.1558,
+     "Bus": 0.0679
+    },
+    "test_macro_f1": 0.2083,
+    "test_per_class_f1": {
+     "Car": 0.428,
+     "Van": 0.1343,
+     "Bus": 0.0625
+    },
+    "test_accuracy": 0.2984,
+    "test_car_to_van": 0.5462,
+    "test_macro_f1_by_lane": {
+     "Lane1": 0.2222,
+     "Lane2": 0.2227
+    },
+    "test_cm": [
+     [
+      110,
+      213,
+      67
+     ],
+     [
+      5,
+      18,
+      6
+     ],
+     [
+      9,
+      8,
+      3
+     ]
+    ],
+    "validation_cm": [
+     [
+      270,
+      772,
+      346
+     ],
+     [
+      16,
+      80,
+      56
+     ],
+     [
+      14,
+      23,
+      16
+     ]
+    ]
+   },
+   "A_spans": {
+    "thresholds": {
+     "bus_col": 0.9,
+     "bus_both": 1.01,
+     "van_row": 0.7,
+     "van_max_aspect": null
+    },
+    "validation_macro_f1": 0.3575,
+    "validation_per_class_f1": {
+     "Car": 0.7843,
+     "Van": 0.202,
+     "Bus": 0.0862
+    },
+    "test_macro_f1": 0.3093,
+    "test_per_class_f1": {
+     "Car": 0.7994,
+     "Van": 0.1286,
+     "Bus": 0.0
+    },
+    "test_accuracy": 0.6651,
+    "test_car_to_van": 0.2487,
+    "test_macro_f1_by_lane": {
+     "Lane1": 0.2969,
+     "Lane2": 0.3241
+    },
+    "test_cm": [
+     [
+      283,
+      97,
+      10
+     ],
+     [
+      20,
+      9,
+      0
+     ],
+     [
+      15,
+      5,
+      0
+     ]
+    ],
+    "validation_cm": [
+     [
+      971,
+      366,
+      51
+     ],
+     [
+      85,
+      60,
+      7
+     ],
+     [
+      32,
+      16,
+      5
+     ]
+    ],
+    "n_candidates": 330,
+    "validation_top5": [
+     [
+      0.3575,
+      {
+       "bus_col": 0.9,
+       "bus_both": 1.01,
+       "van_row": 0.7,
+       "van_max_aspect": null
+      }
+     ],
+     [
+      0.3575,
+      {
+       "bus_col": 0.9,
+       "bus_both": 1.01,
+       "van_row": 0.8,
+       "van_max_aspect": null
+      }
+     ],
+     [
+      0.3377,
+      {
+       "bus_col": 0.9,
+       "bus_both": 0.75,
+       "van_row": 0.7,
+       "van_max_aspect": null
+      }
+     ],
+     [
+      0.3377,
+      {
+       "bus_col": 0.9,
+       "bus_both": 0.75,
+       "van_row": 0.8,
+       "van_max_aspect": null
+      }
+     ],
+     [
+      0.3363,
+      {
+       "bus_col": 1.01,
+       "bus_both": 0.75,
+       "van_row": 0.7,
+       "van_max_aspect": null
+      }
+     ]
+    ]
+   },
+   "B_spans_plus_aspect": {
+    "thresholds": {
+     "bus_col": 0.9,
+     "bus_both": 1.01,
+     "van_row": 0.7,
+     "van_max_aspect": 3.0
+    },
+    "validation_macro_f1": 0.3548,
+    "validation_per_class_f1": {
+     "Car": 0.7951,
+     "Van": 0.1831,
+     "Bus": 0.0862
+    },
+    "test_macro_f1": 0.3101,
+    "test_per_class_f1": {
+     "Car": 0.8,
+     "Van": 0.1304,
+     "Bus": 0.0
+    },
+    "test_accuracy": 0.6674,
+    "test_car_to_van": 0.2462,
+    "test_macro_f1_by_lane": {
+     "Lane1": 0.2981,
+     "Lane2": 0.3241
+    },
+    "test_cm": [
+     [
+      284,
+      96,
+      10
+     ],
+     [
+      20,
+      9,
+      0
+     ],
+     [
+      16,
+      4,
+      0
+     ]
+    ],
+    "validation_cm": [
+     [
+      999,
+      338,
+      51
+     ],
+     [
+      94,
+      51,
+      7
+     ],
+     [
+      32,
+      16,
+      5
+     ]
+    ],
+    "n_candidates": 480,
+    "validation_top5": [
+     [
+      0.3548,
+      {
+       "bus_col": 0.9,
+       "bus_both": 1.01,
+       "van_row": 0.7,
+       "van_max_aspect": 3.0
+      }
+     ],
+     [
+      0.3548,
+      {
+       "bus_col": 0.9,
+       "bus_both": 1.01,
+       "van_row": 0.8,
+       "van_max_aspect": 3.0
+      }
+     ],
+     [
+      0.3502,
+      {
+       "bus_col": 0.9,
+       "bus_both": 0.75,
+       "van_row": 0.7,
+       "van_max_aspect": 2.0
+      }
+     ],
+     [
+      0.3502,
+      {
+       "bus_col": 0.9,
+       "bus_both": 0.75,
+       "van_row": 0.8,
+       "van_max_aspect": 2.0
+      }
+     ],
+     [
+      0.3478,
+      {
+       "bus_col": 1.01,
+       "bus_both": 0.75,
+       "van_row": 0.7,
+       "van_max_aspect": 2.0
+      }
+     ]
+    ]
+   },
+   "test_CI95_tuned_minus_original": [
+    0.0431,
+    0.1729
+   ],
+   "test_CI95_tuned_minus_all_car": [
+    -0.0343,
+    0.0238
+   ],
+   "test_all_car_macro_f1": 0.3136
+  },
+  "8x8": {
+   "n_validation_videos": 26,
+   "n_test_videos": 12,
+   "objective": "pooled macro-F1, both lanes, validation videos",
+   "original": {
+    "thresholds": {
+     "bus_col": 0.75,
+     "bus_both": 0.55,
+     "van_row": 0.45,
+     "van_max_aspect": null
+    },
+    "validation_macro_f1": 0.2414,
+    "validation_per_class_f1": {
+     "Car": 0.4927,
+     "Van": 0.1622,
+     "Bus": 0.0694
+    },
+    "test_macro_f1": 0.2546,
+    "test_per_class_f1": {
+     "Car": 0.5445,
+     "Van": 0.1322,
+     "Bus": 0.087
+    },
+    "test_accuracy": 0.3959,
+    "test_car_to_van": 0.4923,
+    "test_macro_f1_by_lane": {
+     "Lane1": 0.3135,
+     "Lane2": 0.2517
+    },
+    "test_cm": [
+     [
+      156,
+      193,
+      43
+     ],
+     [
+      11,
+      16,
+      2
+     ],
+     [
+      14,
+      4,
+      3
+     ]
+    ],
+    "validation_cm": [
+     [
+      489,
+      722,
+      219
+     ],
+     [
+      42,
+      79,
+      35
+     ],
+     [
+      24,
+      17,
+      11
+     ]
+    ]
+   },
+   "A_spans": {
+    "thresholds": {
+     "bus_col": 0.9,
+     "bus_both": 0.75,
+     "van_row": 0.8,
+     "van_max_aspect": null
+    },
+    "validation_macro_f1": 0.3655,
+    "validation_per_class_f1": {
+     "Car": 0.8782,
+     "Van": 0.1313,
+     "Bus": 0.087
+    },
+    "test_macro_f1": 0.3227,
+    "test_per_class_f1": {
+     "Car": 0.8716,
+     "Van": 0.0964,
+     "Bus": 0.0
+    },
+    "test_accuracy": 0.7692,
+    "test_car_to_van": 0.1199,
+    "test_macro_f1_by_lane": {
+     "Lane1": 0.3487,
+     "Lane2": 0.3493
+    },
+    "test_cm": [
+     [
+      336,
+      47,
+      9
+     ],
+     [
+      25,
+      4,
+      0
+     ],
+     [
+      18,
+      3,
+      0
+     ]
+    ],
+    "validation_cm": [
+     [
+      1251,
+      148,
+      31
+     ],
+     [
+      129,
+      22,
+      5
+     ],
+     [
+      39,
+      9,
+      4
+     ]
+    ],
+    "n_candidates": 330,
+    "validation_top5": [
+     [
+      0.3655,
+      {
+       "bus_col": 0.9,
+       "bus_both": 0.75,
+       "van_row": 0.8,
+       "van_max_aspect": null
+      }
+     ],
+     [
+      0.3649,
+      {
+       "bus_col": 0.75,
+       "bus_both": 0.75,
+       "van_row": 0.8,
+       "van_max_aspect": null
+      }
+     ],
+     [
+      0.3649,
+      {
+       "bus_col": 0.75,
+       "bus_both": 1.01,
+       "van_row": 0.8,
+       "van_max_aspect": null
+      }
+     ],
+     [
+      0.3649,
+      {
+       "bus_col": 0.8,
+       "bus_both": 0.75,
+       "van_row": 0.8,
+       "van_max_aspect": null
+      }
+     ],
+     [
+      0.3649,
+      {
+       "bus_col": 0.8,
+       "bus_both": 1.01,
+       "van_row": 0.8,
+       "van_max_aspect": null
+      }
+     ]
+    ]
+   },
+   "B_spans_plus_aspect": {
+    "thresholds": {
+     "bus_col": 0.9,
+     "bus_both": 0.75,
+     "van_row": 0.8,
+     "van_max_aspect": 3.0
+    },
+    "validation_macro_f1": 0.3655,
+    "validation_per_class_f1": {
+     "Car": 0.8782,
+     "Van": 0.1313,
+     "Bus": 0.087
+    },
+    "test_macro_f1": 0.3227,
+    "test_per_class_f1": {
+     "Car": 0.8716,
+     "Van": 0.0964,
+     "Bus": 0.0
+    },
+    "test_accuracy": 0.7692,
+    "test_car_to_van": 0.1199,
+    "test_macro_f1_by_lane": {
+     "Lane1": 0.3487,
+     "Lane2": 0.3493
+    },
+    "test_cm": [
+     [
+      336,
+      47,
+      9
+     ],
+     [
+      25,
+      4,
+      0
+     ],
+     [
+      18,
+      3,
+      0
+     ]
+    ],
+    "validation_cm": [
+     [
+      1251,
+      148,
+      31
+     ],
+     [
+      129,
+      22,
+      5
+     ],
+     [
+      39,
+      9,
+      4
+     ]
+    ],
+    "n_candidates": 480,
+    "validation_top5": [
+     [
+      0.3655,
+      {
+       "bus_col": 0.9,
+       "bus_both": 0.75,
+       "van_row": 0.8,
+       "van_max_aspect": 3.0
+      }
+     ],
+     [
+      0.3649,
+      {
+       "bus_col": 0.75,
+       "bus_both": 0.75,
+       "van_row": 0.8,
+       "van_max_aspect": 3.0
+      }
+     ],
+     [
+      0.3649,
+      {
+       "bus_col": 0.75,
+       "bus_both": 1.01,
+       "van_row": 0.8,
+       "van_max_aspect": 3.0
+      }
+     ],
+     [
+      0.3638,
+      {
+       "bus_col": 0.9,
+       "bus_both": 0.75,
+       "van_row": 0.8,
+       "van_max_aspect": 2.5
+      }
+     ],
+     [
+      0.3612,
+      {
+       "bus_col": 0.75,
+       "bus_both": 0.75,
+       "van_row": 0.8,
+       "van_max_aspect": 2.5
+      }
+     ]
+    ]
+   },
+   "test_CI95_tuned_minus_original": [
+    0.0049,
+    0.1477
+   ],
+   "test_CI95_tuned_minus_all_car": [
+    -0.0179,
+    0.0386
+   ],
+   "test_all_car_macro_f1": 0.3133
+  },
+  "10x12": {
+   "n_validation_videos": 26,
+   "n_test_videos": 12,
+   "objective": "pooled macro-F1, both lanes, validation videos",
+   "original": {
+    "thresholds": {
+     "bus_col": 0.75,
+     "bus_both": 0.55,
+     "van_row": 0.45,
+     "van_max_aspect": null
+    },
+    "validation_macro_f1": 0.3096,
+    "validation_per_class_f1": {
+     "Car": 0.6541,
+     "Van": 0.1857,
+     "Bus": 0.0889
+    },
+    "test_macro_f1": 0.279,
+    "test_per_class_f1": {
+     "Car": 0.6445,
+     "Van": 0.1461,
+     "Bus": 0.0465
+    },
+    "test_accuracy": 0.4884,
+    "test_car_to_van": 0.4413,
+    "test_macro_f1_by_lane": {
+     "Lane1": 0.3271,
+     "Lane2": 0.2546
+    },
+    "test_cm": [
+     [
+      194,
+      169,
+      20
+     ],
+     [
+      11,
+      16,
+      2
+     ],
+     [
+      14,
+      5,
+      1
+     ]
+    ],
+    "validation_cm": [
+     [
+      747,
+      632,
+      67
+     ],
+     [
+      61,
+      82,
+      12
+     ],
+     [
+      30,
+      14,
+      6
+     ]
+    ]
+   },
+   "A_spans": {
+    "thresholds": {
+     "bus_col": 0.6,
+     "bus_both": 0.55,
+     "van_row": 0.7,
+     "van_max_aspect": null
+    },
+    "validation_macro_f1": 0.361,
+    "validation_per_class_f1": {
+     "Car": 0.888,
+     "Van": 0.1181,
+     "Bus": 0.0769
+    },
+    "test_macro_f1": 0.3644,
+    "test_per_class_f1": {
+     "Car": 0.8694,
+     "Van": 0.175,
+     "Bus": 0.0488
+    },
+    "test_accuracy": 0.7662,
+    "test_car_to_van": 0.1097,
+    "test_macro_f1_by_lane": {
+     "Lane1": 0.385,
+     "Lane2": 0.3626
+    },
+    "test_cm": [
+     [
+      323,
+      42,
+      18
+     ],
+     [
+      20,
+      7,
+      2
+     ],
+     [
+      17,
+      2,
+      1
+     ]
+    ],
+    "validation_cm": [
+     [
+      1288,
+      95,
+      63
+     ],
+     [
+      127,
+      16,
+      12
+     ],
+     [
+      40,
+      5,
+      5
+     ]
+    ],
+    "n_candidates": 330,
+    "validation_top5": [
+     [
+      0.361,
+      {
+       "bus_col": 0.6,
+       "bus_both": 0.55,
+       "van_row": 0.7,
+       "van_max_aspect": null
+      }
+     ],
+     [
+      0.3602,
+      {
+       "bus_col": 0.9,
+       "bus_both": 0.45,
+       "van_row": 0.7,
+       "van_max_aspect": null
+      }
+     ],
+     [
+      0.3602,
+      {
+       "bus_col": 1.01,
+       "bus_both": 0.45,
+       "van_row": 0.7,
+       "van_max_aspect": null
+      }
+     ],
+     [
+      0.3599,
+      {
+       "bus_col": 0.75,
+       "bus_both": 0.45,
+       "van_row": 0.7,
+       "van_max_aspect": null
+      }
+     ],
+     [
+      0.3599,
+      {
+       "bus_col": 0.8,
+       "bus_both": 0.45,
+       "van_row": 0.7,
+       "van_max_aspect": null
+      }
+     ]
+    ]
+   },
+   "B_spans_plus_aspect": {
+    "thresholds": {
+     "bus_col": 0.9,
+     "bus_both": 0.55,
+     "van_row": 0.7,
+     "van_max_aspect": 2.0
+    },
+    "validation_macro_f1": 0.3592,
+    "validation_per_class_f1": {
+     "Car": 0.8919,
+     "Van": 0.1185,
+     "Bus": 0.0672
+    },
+    "test_macro_f1": 0.3644,
+    "test_per_class_f1": {
+     "Car": 0.8694,
+     "Van": 0.175,
+     "Bus": 0.0488
+    },
+    "test_accuracy": 0.7662,
+    "test_car_to_van": 0.1097,
+    "test_macro_f1_by_lane": {
+     "Lane1": 0.385,
+     "Lane2": 0.3626
+    },
+    "test_cm": [
+     [
+      323,
+      42,
+      18
+     ],
+     [
+      20,
+      7,
+      2
+     ],
+     [
+      17,
+      2,
+      1
+     ]
+    ],
+    "validation_cm": [
+     [
+      1299,
+      94,
+      53
+     ],
+     [
+      127,
+      16,
+      12
+     ],
+     [
+      41,
+      5,
+      4
+     ]
+    ],
+    "n_candidates": 480,
+    "validation_top5": [
+     [
+      0.3592,
+      {
+       "bus_col": 0.9,
+       "bus_both": 0.55,
+       "van_row": 0.7,
+       "van_max_aspect": 2.0
+      }
+     ],
+     [
+      0.3592,
+      {
+       "bus_col": 0.9,
+       "bus_both": 0.55,
+       "van_row": 0.7,
+       "van_max_aspect": 2.5
+      }
+     ],
+     [
+      0.3592,
+      {
+       "bus_col": 0.9,
+       "bus_both": 0.55,
+       "van_row": 0.7,
+       "van_max_aspect": 3.0
+      }
+     ],
+     [
+      0.3592,
+      {
+       "bus_col": 1.01,
+       "bus_both": 0.55,
+       "van_row": 0.7,
+       "van_max_aspect": 2.0
+      }
+     ],
+     [
+      0.3592,
+      {
+       "bus_col": 1.01,
+       "bus_both": 0.55,
+       "van_row": 0.7,
+       "van_max_aspect": 2.5
+      }
+     ]
+    ]
+   },
+   "test_CI95_tuned_minus_original": [
+    0.0277,
+    0.1296
+   ],
+   "test_CI95_tuned_minus_all_car": [
+    -0.0109,
+    0.084
+   ],
+   "test_all_car_macro_f1": 0.3133
+  }
+ }
+}

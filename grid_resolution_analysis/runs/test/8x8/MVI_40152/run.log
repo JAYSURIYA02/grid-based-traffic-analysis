@@ -1,0 +1,123 @@
+[h264_v4l2m2m @ 0x6053b25c4f40] Could not find a valid device
+[h264_v4l2m2m @ 0x6053b25c4f40] can't configure encoder
+[ERROR:0@2.476] global cap_ffmpeg_impl.hpp:3568 open Could not open codec h264_v4l2m2m, error: Unspecified error (-22)
+[ERROR:0@2.477] global cap_ffmpeg_impl.hpp:3585 open VIDEOIO/FFMPEG: Failed to initialize VideoWriter
+[WARN] avc1 codec failed, falling back to mp4v
+Frame 100 | Lane1 passed: 2 | Lane2 passed: 1
+Frame 200 | Lane1 passed: 3 | Lane2 passed: 2
+Frame 300 | Lane1 passed: 3 | Lane2 passed: 2
+Frame 400 | Lane1 passed: 3 | Lane2 passed: 4
+Frame 500 | Lane1 passed: 6 | Lane2 passed: 5
+Frame 600 | Lane1 passed: 6 | Lane2 passed: 6
+Frame 700 | Lane1 passed: 8 | Lane2 passed: 7
+Frame 800 | Lane1 passed: 10 | Lane2 passed: 7
+Frame 900 | Lane1 passed: 10 | Lane2 passed: 9
+Frame 1000 | Lane1 passed: 10 | Lane2 passed: 9
+Frame 1100 | Lane1 passed: 10 | Lane2 passed: 9
+Frame 1200 | Lane1 passed: 10 | Lane2 passed: 9
+Frame 1300 | Lane1 passed: 10 | Lane2 passed: 10
+Frame 1400 | Lane1 passed: 10 | Lane2 passed: 12
+Frame 1500 | Lane1 passed: 10 | Lane2 passed: 13
+Frame 1600 | Lane1 passed: 10 | Lane2 passed: 13
+Frame 1700 | Lane1 passed: 11 | Lane2 passed: 13
+Execution Time: 24.94 seconds
+Memory Usage: 185.91 MB
+
+-- Lane1 Summary --
+Average Density: 0.0532
+Vehicles Passed: 12
+  Car: 28
+  Van: 4
+  Bus: 0
+
+-- Lane2 Summary --
+Average Density: 0.1330
+Vehicles Passed: 13
+  Car: 46
+  Van: 8
+  Bus: 3
+frames: 1749
+[BENCH] rpar_frame_metrics.json written.
+
+===== DETRAC Evaluation: Lane1 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 38
+Predicted vehicles (unique tracker IDs): 34
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 15
+Unmatched GT vehicles: 23
+Matched predicted tracks: 18
+Unmatched predicted tracks: 16
+
+-- DEBUG INFO --
+Total GT vehicles: 38
+Total predicted vehicles: 34
+Matched GT vehicles: 15
+Unmatched GT vehicles: 23
+Unmatched predicted vehicles: 16
+
+-- Vehicle-Level Confusion Matrix --
+[[4 8 1]
+ [1 1 0]
+ [0 0 0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 0.800
+Recall   : 0.308
+F1 Score : 0.444
+
+Class: Van
+Precision: 0.111
+Recall   : 0.500
+F1 Score : 0.182
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+===== DETRAC Evaluation: Lane2 =====
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 48
+Predicted vehicles (unique tracker IDs): 60
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 47
+Unmatched GT vehicles: 1
+Matched predicted tracks: 50
+Unmatched predicted tracks: 10
+
+-- DEBUG INFO --
+Total GT vehicles: 48
+Total predicted vehicles: 60
+Matched GT vehicles: 47
+Unmatched GT vehicles: 1
+Unmatched predicted vehicles: 10
+
+-- Vehicle-Level Confusion Matrix --
+[[23 15  2]
+ [ 2  4  0]
+ [ 1  0  0]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 0.885
+Recall   : 0.575
+F1 Score : 0.697
+
+Class: Van
+Precision: 0.211
+Recall   : 0.667
+F1 Score : 0.320
+
+Class: Bus
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+[GRID] worker done 8 8 1749 frames 25.0 s

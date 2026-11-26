@@ -1,0 +1,83 @@
+{
+  "implementation": "sequential",
+  "video": "/sessions/rcw-0125cyjxwb9bjy8y5yzk8rjk/mnt/Lattice-Layer-Vehicle-Detection-/DETRAC_VIDEOS_eval/Cloudy/MVI_39771.mp4",
+  "grid_rows": 6,
+  "grid_cols": 6,
+  "unique_gt_vehicles": 19,
+  "unique_predicted_tracks": 31,
+  "matched_gt_vehicles": 17,
+  "unmatched_gt_vehicles": 2,
+  "matched_predicted_tracks": 18,
+  "unmatched_predicted_tracks": 13,
+  "confusion_matrix_vehicle_labels": [
+    "Car",
+    "Van",
+    "Bus"
+  ],
+  "confusion_matrix_vehicle": [
+    [
+      7,
+      8,
+      1
+    ],
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "confusion_matrix_grid_labels": [
+    "Empty",
+    "Car",
+    "Van",
+    "Bus"
+  ],
+  "confusion_matrix_grid": [
+    [
+      16487,
+      1172,
+      1408,
+      554
+    ],
+    [
+      168,
+      252,
+      304,
+      83
+    ],
+    [
+      13,
+      19,
+      24,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0
+    ]
+  ],
+  "metrics": {
+    "Car": {
+      "precision": 0.8749998906250137,
+      "recall": 0.4374999726562517,
+      "f1": 0.5833328402781112
+    },
+    "Van": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "Bus": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    }
+  }
+}

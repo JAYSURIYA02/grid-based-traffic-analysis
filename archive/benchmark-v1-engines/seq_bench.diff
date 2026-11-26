@@ -1,0 +1,146 @@
+--- seq.py	2026-09-09 19:05:26.087896051 +0000
++++ seq_bench.py	2026-09-10 07:25:10.584818236 +0000
+@@ -558,7 +558,13 @@
+                     dist_px = np.hypot(dx, dy)
+                     if dist_px >= MIN_SPEED_DIST_PX:
+                         dt = (frame_count - v.get("last_speed_frame", frame_count)) / FPS
+-                        if dt > 0:
++                        # ── BENCH FIX: guard on PIXELS_PER_METER > 0, matching
++                        # the guard already present in rparallel_he3.py. Without
++                        # this, any uncalibrated video (PIXELS_PER_METER == 0,
++                        # the default) crashes with ZeroDivisionError as soon as
++                        # any track accumulates enough displacement. Formula is
++                        # unchanged; this only prevents the crash.
++                        if dt > 0 and PIXELS_PER_METER > 0:
+                             speed_kmph = (dist_px / PIXELS_PER_METER) / dt * 3.6
+                             hist = v.setdefault("speed_history", [])
+                             hist.append(speed_kmph)
+@@ -1021,10 +1027,14 @@
+ 
+             output_filename = f'output_seq/frame_{frame_count:04d}.jpg'
+             cv2.imwrite(output_filename, frame1)
+-            try:
+-                cv2.imshow('Frame', frame1)
+-            except cv2.error:
+-                pass
++            # ── BENCH PATCH: BTP_DISPLAY=0 suppresses the live preview window
++            # for unattended batch runs. Default (unset/"1") preserves the
++            # original behavior when run standalone.
++            if os.environ.get("BTP_DISPLAY", "1") != "0":
++                try:
++                    cv2.imshow('Frame', frame1)
++                except cv2.error:
++                    pass
+             frame1 = frame2
+             ret, frame2 = cap.read()
+ 
+@@ -1060,37 +1070,47 @@
+     print("[BENCH] seq_frame_metrics.json written.")
+ 
+ if __name__ == '__main__':
++    # ── BENCH PATCH (orchestration infra, not an algorithm change) ─────────
++    # Set BTP_PROFILE=0 in the environment to run without cProfile, for a
++    # clean timing pass uncontaminated by profiler overhead. Default (unset
++    # or "1") preserves the script's original always-profiled behavior.
++    _PROFILE_ON = os.environ.get("BTP_PROFILE", "1") != "0"
+     profiler = cProfile.Profile()
+-    profiler.enable()
++    if _PROFILE_ON:
++        profiler.enable()
+     main()
+-    profiler.disable()
++    if _PROFILE_ON:
++        profiler.disable()
+ 
+     # ── Save binary profile for external analysis ─────────────────────────────
+-    profiler.dump_stats('profile_seq.prof')
+-    print("[BENCH] profile_seq.prof saved.")
+-
+-    # ── Readable cumtime report (top 15) ──────────────────────────────────────
+-    import io as _io
+-    _buf = _io.StringIO()
+-    _stats_cum = pstats.Stats(profiler, stream=_buf).sort_stats('cumulative')
+-    _stats_cum.print_stats(15)
+-    _cum_text = _buf.getvalue()
+-    with open('profile_seq_cumtime.txt', 'w') as _f:
+-        _f.write(_cum_text)
+-    print("[BENCH] profile_seq_cumtime.txt saved.")
+-    print("\n=== seq.py — Top 15 by CUMULATIVE time ===")
+-    print(_cum_text)
+-
+-    # ── Readable tottime report (top 15) ──────────────────────────────────────
+-    _buf2 = _io.StringIO()
+-    _stats_tot = pstats.Stats(profiler, stream=_buf2).sort_stats('tottime')
+-    _stats_tot.print_stats(15)
+-    _tot_text = _buf2.getvalue()
+-    with open('profile_seq_tottime.txt', 'w') as _f:
+-        _f.write(_tot_text)
+-    print("[BENCH] profile_seq_tottime.txt saved.")
+-    print("\n=== seq.py — Top 15 by SELF (tot) time ===")
+-    print(_tot_text)
++    if _PROFILE_ON:
++        profiler.dump_stats('profile_seq.prof')
++        print("[BENCH] profile_seq.prof saved.")
++
++        # ── Readable cumtime report (top 15) ────────────────────────────────
++        import io as _io
++        _buf = _io.StringIO()
++        _stats_cum = pstats.Stats(profiler, stream=_buf).sort_stats('cumulative')
++        _stats_cum.print_stats(15)
++        _cum_text = _buf.getvalue()
++        with open('profile_seq_cumtime.txt', 'w') as _f:
++            _f.write(_cum_text)
++        print("[BENCH] profile_seq_cumtime.txt saved.")
++        print("\n=== seq.py — Top 15 by CUMULATIVE time ===")
++        print(_cum_text)
++
++        # ── Readable tottime report (top 15) ────────────────────────────────
++        _buf2 = _io.StringIO()
++        _stats_tot = pstats.Stats(profiler, stream=_buf2).sort_stats('tottime')
++        _stats_tot.print_stats(15)
++        _tot_text = _buf2.getvalue()
++        with open('profile_seq_tottime.txt', 'w') as _f:
++            _f.write(_tot_text)
++        print("[BENCH] profile_seq_tottime.txt saved.")
++        print("\n=== seq.py — Top 15 by SELF (tot) time ===")
++        print(_tot_text)
++    else:
++        print("[BENCH] BTP_PROFILE=0 — clean timing pass, no profile written.")
+ 
+     # Evaluation runs only after processing has completed.
+     XML_PATH = xml_path.strip()
+@@ -1257,6 +1277,34 @@
+         os.makedirs("plots", exist_ok=True)
+         plt.savefig("plots/seq_evaluation_heatmaps.png")
+         plt.close('all')
++
++        # ── BENCH PATCH: structured evaluation export ───────────────────────
++        # The block above only prints these values. For batch aggregation we
++        # also need them as machine-readable data; this is purely additive
++        # (no computation above is changed).
++        _eval_metrics = {
++            "implementation": "sequential",
++            "video": video_path,
++            "grid_rows": num_rows,
++            "grid_cols": num_cols,
++            "unique_gt_vehicles": len(unique_gt_ids),
++            "unique_predicted_tracks": len(unique_pred_track_ids),
++            "matched_gt_vehicles": len(matched_gt_ids),
++            "unmatched_gt_vehicles": len(unmatched_gt_ids),
++            "matched_predicted_tracks": len(matched_pred_track_ids),
++            "unmatched_predicted_tracks": len(unmatched_pred_track_ids),
++            "confusion_matrix_vehicle_labels": ["Car", "Van", "Bus"],
++            "confusion_matrix_vehicle": conf_matrix_vehicle.tolist(),
++            "confusion_matrix_grid_labels": classes if conf_matrix is not None else None,
++            "confusion_matrix_grid": conf_matrix.tolist() if conf_matrix is not None else None,
++            "metrics": {
++                cls: {"precision": metrics[cls][0], "recall": metrics[cls][1], "f1": metrics[cls][2]}
++                for cls in ["Car", "Van", "Bus"]
++            },
++        }
++        with open("eval_metrics.json", "w") as _f:
++            json.dump(_eval_metrics, _f, indent=2)
++        print("[BENCH] eval_metrics.json written.")
+     elif XML_PATH:
+         print(f"Skipping evaluation: XML file not found at {XML_PATH}")
+     else:

@@ -1,0 +1,11 @@
+variant,set,grid,n_videos,gt_observations,fragmented_observations,fragmentation_rate,fragment_pairs,pairs_vertical_gap,pairs_vertical_gap_gt1,pairs_horizontal_gap,pairs_horizontal_gap_gt1,pairs_corner_touch,pairs_diagonal_gap,pairs_overlapping_boxes,gt_vehicles_tracked,mean_tracks_per_gt_vehicle,share_gt_vehicles_with_id_switch,id_switches_total
+original,validation,4x6,26,52338,242,0.0046,286,120,25,29,4,47,0,61,1709,2.039,0.6624,4101
+original,validation,6x6,26,52329,555,0.0106,745,280,165,34,5,62,22,177,1742,2.174,0.6854,4738
+original,validation,6x8,26,52344,845,0.0161,1198,374,207,110,11,111,51,334,1774,2.13,0.6674,4908
+original,validation,8x8,26,52332,1452,0.0277,2301,724,562,152,17,130,111,605,1794,2.274,0.6884,5709
+original,validation,8x10,26,52328,1890,0.0361,3165,814,607,201,104,222,236,981,1811,2.355,0.6952,6217
+original,validation,10x12,26,52358,3739,0.0714,6891,1643,1378,465,288,399,607,2111,1810,2.582,0.7348,8034
+conn8,validation,8x8,26,52332,943,0.018,1355,594,385,102,11,6,66,191,1779,2.076,0.6487,4499
+conn8,validation,10x12,26,52358,2259,0.0431,3874,1367,918,363,177,31,350,668,1797,2.277,0.67,6025
+bridge,validation,8x8,26,52332,164,0.0031,180,6,95,43,5,2,9,20,1729,1.728,0.5356,2937
+bridge,validation,10x12,26,52358,474,0.0091,589,13,204,190,56,3,52,71,1765,1.844,0.5433,3443

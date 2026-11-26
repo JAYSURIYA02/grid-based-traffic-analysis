@@ -1,0 +1,18 @@
+{
+ "method": "UA-DETRAC XML files contain no location field (only camera_state, sence_weather and ignored_region). Sites were inferred by inspecting median-background thumbnails of all 100 videos (site_grouping_all_sheet.png, site_grouping/zoom_eval.png) together with an automatic gradient-correlation clustering (site_grouping.py, site_groups.json). Where two videos plausibly show the same road from the same or a nearby camera, they were MERGED (conservative: over-merging only reduces the number of folds, under-merging would leak scene information across folds).",
+ "groups": {
+  "A_bus_stop_boulevard": ["MVI_20011","MVI_20012","MVI_20032","MVI_20033","MVI_20034","MVI_20035","MVI_20051","MVI_20052","MVI_20061","MVI_20062","MVI_20063","MVI_20064","MVI_20065"],
+  "B_hedged_divider_road": ["MVI_39761","MVI_39771","MVI_40141"],
+  "C_wet_post_divider_road": ["MVI_40131","MVI_63521","MVI_63525","MVI_63544"],
+  "D_barrier_highway_dusk": ["MVI_40962","MVI_40963"],
+  "E_night_intersection": ["MVI_40771","MVI_40772","MVI_40773","MVI_40774","MVI_40775"],
+  "F_night_yellow_line_road": ["MVI_39851"],
+  "G_tree_lined_road": ["MVI_39031","MVI_39211"],
+  "H_plaza_roundabout": ["MVI_39311"],
+  "I_wide_junction_overpass": ["MVI_39401"],
+  "J_brt_station_road": ["MVI_39501","MVI_39511"],
+  "K_green_median_road": ["MVI_40191","MVI_40192"],
+  "L_hedge_diagonal_road": ["MVI_40201","MVI_40204"]
+ },
+ "uncertain_merges": "A: 20051/20052 and 20032-35 are wider/shifted views of the same boulevard as 20011/20061-65 (bus shelter, railing). B: 40141 resembles 39761/39771 (hedged divider) but is not certainly the same camera. C: 63544 shows a different framing but was recorded in the same rainy session (6352x-6354x) as 63521/63525 and resembles 40131. All were merged."
+}

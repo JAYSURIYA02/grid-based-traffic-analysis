@@ -1,0 +1,87 @@
+{
+  "Lane1": {
+    "implementation": "parallel_threaded",
+    "executor": "threaded",
+    "lane": "Lane1",
+    "video": "/sessions/rcw-0125cyjxwb9bjy8y5yzk8rjk/mnt/Lattice-Layer-Vehicle-Detection-/DETRAC_VIDEOS_eval/Sunny/MVI_20011.mp4",
+    "grid_rows": 6,
+    "grid_cols": 6,
+    "unique_gt_vehicles": 4,
+    "unique_predicted_tracks": 32,
+    "matched_gt_vehicles": 3,
+    "unmatched_gt_vehicles": 1,
+    "matched_predicted_tracks": 3,
+    "unmatched_predicted_tracks": 29,
+    "confusion_matrix_vehicle_labels": [
+      "Car",
+      "Van",
+      "Bus"
+    ],
+    "confusion_matrix_vehicle": [
+      [
+        0,
+        3,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "confusion_matrix_grid_labels": [
+      "Empty",
+      "Car",
+      "Van",
+      "Bus"
+    ],
+    "confusion_matrix_grid": [
+      [
+        22262,
+        704,
+        794,
+        104
+      ],
+      [
+        0,
+        0,
+        4,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "metrics": {
+      "Car": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Van": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      },
+      "Bus": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0
+      }
+    }
+  }
+}

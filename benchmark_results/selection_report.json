@@ -1,0 +1,150 @@
+{
+  "selection": [
+    {
+      "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Cloudy\\MVI_39761.mp4",
+      "category": "Cloudy",
+      "tier": "light",
+      "density": 2.8102796674225248,
+      "density_source": "xml_fallback",
+      "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_39761.xml"
+    },
+    {
+      "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Night\\MVI_40774.mp4",
+      "category": "Night",
+      "tier": "light",
+      "density": 6.0873684210526315,
+      "density_source": "xml_fallback",
+      "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_40774.xml"
+    },
+    {
+      "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Rainy\\MVI_63525.mp4",
+      "category": "Rainy",
+      "tier": "light",
+      "density": 3.5228426395939088,
+      "density_source": "xml_fallback",
+      "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_63525.xml"
+    },
+    {
+      "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Sunny\\MVI_20033.mp4",
+      "category": "Sunny",
+      "tier": "light",
+      "density": 6.7270408163265305,
+      "density_source": "xml_fallback",
+      "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_20033.xml"
+    },
+    {
+      "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Cloudy\\MVI_39771.mp4",
+      "category": "Cloudy",
+      "tier": "medium",
+      "density": 6.324561403508772,
+      "density_source": "xml_fallback",
+      "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_39771.xml"
+    },
+    {
+      "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Night\\MVI_40773.mp4",
+      "category": "Night",
+      "tier": "medium",
+      "density": 8.029441624365482,
+      "density_source": "xml_fallback",
+      "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_40773.xml"
+    },
+    {
+      "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Rainy\\MVI_40141.mp4",
+      "category": "Rainy",
+      "tier": "medium",
+      "density": 3.88875,
+      "density_source": "xml_fallback",
+      "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_40141.xml"
+    },
+    {
+      "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Sunny\\MVI_20011.mp4",
+      "category": "Sunny",
+      "tier": "medium",
+      "density": 11.528614457831326,
+      "density_source": "xml_fallback",
+      "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_20011.xml"
+    },
+    {
+      "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Cloudy\\MVI_40963.mp4",
+      "category": "Cloudy",
+      "tier": "heavy",
+      "density": 6.395054945054945,
+      "density_source": "xml_fallback",
+      "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_40963.xml"
+    },
+    {
+      "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Night\\MVI_40772.mp4",
+      "category": "Night",
+      "tier": "heavy",
+      "density": 12.928333333333333,
+      "density_source": "xml_fallback",
+      "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_40772.xml"
+    },
+    {
+      "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Rainy\\MVI_40131.mp4",
+      "category": "Rainy",
+      "tier": "heavy",
+      "density": 9.31550151975684,
+      "density_source": "xml_fallback",
+      "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_40131.xml"
+    },
+    {
+      "video": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC_VIDEOS_eval\\Sunny\\MVI_39311.mp4",
+      "category": "Sunny",
+      "tier": "heavy",
+      "density": 14.921594684385383,
+      "density_source": "xml_fallback",
+      "xml_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\DETRAC-Annotations\\MVI_39311.xml"
+    }
+  ],
+  "missing_xml_annotations": [],
+  "density_report": {
+    "csv_info": {
+      "csv_path": "C:\\Users\\jaysu\\OneDrive\\Desktop\\PROJECTS\\BTP\\Lattice-Layer-Vehicle-Detection-\\per_video_results.csv",
+      "used": false,
+      "reason": "Could not confidently identify a video-name column and a density/vehicle-count column among: ['video', 'category', 'grid', 'frames', 'conf_matrix', 'vehicle_conf_matrix', 'precision_Empty', 'recall_Empty', 'f1_Empty', 'precision_Car', 'recall_Car', 'f1_Car', 'precision_Van', 'recall_Van', 'f1_Van', 'precision_Bus', 'recall_Bus', 'f1_Bus']. Falling back to XML-derived density for all videos.",
+      "columns_found": [
+        "video",
+        "category",
+        "grid",
+        "frames",
+        "conf_matrix",
+        "vehicle_conf_matrix",
+        "precision_Empty",
+        "recall_Empty",
+        "f1_Empty",
+        "precision_Car",
+        "recall_Car",
+        "f1_Car",
+        "precision_Van",
+        "recall_Van",
+        "f1_Van",
+        "precision_Bus",
+        "recall_Bus",
+        "f1_Bus"
+      ],
+      "video_col": "video",
+      "density_col": null,
+      "grid_row_col": null,
+      "grid_col_col": null,
+      "grid_combo_col": "grid"
+    },
+    "videos_using_csv_density": 0,
+    "videos_using_xml_fallback_density": 38,
+    "xml_fallback_errors": []
+  },
+  "selection_log": [
+    "[SELECT] Cloudy/light: MVI_39761.mp4  (density=2.810, source=xml_fallback, n_eligible_in_category=4)",
+    "[SELECT] Cloudy/medium: MVI_39771.mp4  (density=6.325, source=xml_fallback, n_eligible_in_category=4)",
+    "[SELECT] Cloudy/heavy: MVI_40963.mp4  (density=6.395, source=xml_fallback, n_eligible_in_category=4)",
+    "[SELECT] Night/light: MVI_40774.mp4  (density=6.087, source=xml_fallback, n_eligible_in_category=6)",
+    "[SELECT] Night/medium: MVI_40773.mp4  (density=8.029, source=xml_fallback, n_eligible_in_category=6)",
+    "[SELECT] Night/heavy: MVI_40772.mp4  (density=12.928, source=xml_fallback, n_eligible_in_category=6)",
+    "[SELECT] Rainy/light: MVI_63525.mp4  (density=3.523, source=xml_fallback, n_eligible_in_category=5)",
+    "[SELECT] Rainy/medium: MVI_40141.mp4  (density=3.889, source=xml_fallback, n_eligible_in_category=5)",
+    "[SELECT] Rainy/heavy: MVI_40131.mp4  (density=9.316, source=xml_fallback, n_eligible_in_category=5)",
+    "[SELECT] Sunny/light: MVI_20033.mp4  (density=6.727, source=xml_fallback, n_eligible_in_category=23)",
+    "[SELECT] Sunny/medium: MVI_20011.mp4  (density=11.529, source=xml_fallback, n_eligible_in_category=23)",
+    "[SELECT] Sunny/heavy: MVI_39311.mp4  (density=14.922, source=xml_fallback, n_eligible_in_category=23)"
+  ]
+}

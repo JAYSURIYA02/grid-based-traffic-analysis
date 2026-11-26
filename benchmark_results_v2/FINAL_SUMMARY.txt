@@ -1,0 +1,53 @@
+==============================================================================
+BENCHMARK COMPLETE
+==============================================================================
+
+Output root: C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\benchmark_results_v2
+
+System: AMD Ryzen 5 7235HS | physical cores 4 | logical 8 | Windows-11-10.0.26300-SP0 | Python 3.12.3 | OpenCV 4.12.0
+
+Videos (12):
+  - Cloudy/light: MVI_39761.mp4  (density=2.810)
+  - Night/light: MVI_40774.mp4  (density=6.087)
+  - Rainy/light: MVI_63525.mp4  (density=3.523)
+  - Sunny/light: MVI_20033.mp4  (density=6.727)
+  - Cloudy/medium: MVI_39771.mp4  (density=6.325)
+  - Night/medium: MVI_40773.mp4  (density=8.029)
+  - Rainy/medium: MVI_40141.mp4  (density=3.889)
+  - Sunny/medium: MVI_20011.mp4  (density=11.529)
+  - Cloudy/heavy: MVI_40963.mp4  (density=6.395)
+  - Night/heavy: MVI_40772.mp4  (density=12.928)
+  - Rainy/heavy: MVI_40131.mp4  (density=9.316)
+  - Sunny/heavy: MVI_39311.mp4  (density=14.922)
+
+Failed runs: 0 (see failures.csv)
+
+Equivalence checks identical: 60/60 (see equivalence.csv)
+
+Per-workload means over videos (clean pass, Lane-1 rows):
+  sequential      mean_frame_time_ms=9.4066 ± 1.8386 (n=12)  mean_frame_io_ms=2.2581 ± 0.4551 (n=12)  fps=81.0906 ± 15.6940 (n=12)  total_time_seconds=14.7768 ± 4.4376 (n=12)  peak_memory_mb=302.5332 ± 1.8745 (n=12)  cpu_utilization_of_one_core=4.1966 ± 0.6096 (n=12)
+  parallel_1lane  mean_frame_time_ms=11.0990 ± 1.9879 (n=12)  mean_frame_io_ms=2.1888 ± 0.4299 (n=12)  fps=72.0314 ± 12.1722 (n=12)  total_time_seconds=17.0176 ± 6.6403 (n=12)  peak_memory_mb=306.3704 ± 1.7581 (n=12)  cpu_utilization_of_one_core=4.0092 ± 0.4980 (n=12)
+  serial_2lane    mean_frame_time_ms=14.5396 ± 2.5867 (n=12)  mean_frame_io_ms=2.0913 ± 0.3638 (n=12)  fps=58.2124 ± 9.5809 (n=12)  total_time_seconds=21.0981 ± 8.2807 (n=12)  peak_memory_mb=306.0368 ± 3.0299 (n=12)  cpu_utilization_of_one_core=4.5168 ± 0.4674 (n=12)
+  parallel        mean_frame_time_ms=17.4623 ± 3.7330 (n=12)  mean_frame_io_ms=2.2696 ± 0.3942 (n=12)  fps=50.0801 ± 9.4220 (n=12)  total_time_seconds=24.9447 ± 10.7531 (n=12)  peak_memory_mb=309.9977 ± 3.0772 (n=12)  cpu_utilization_of_one_core=3.9415 ± 0.7003 (n=12)
+
+Speedups (mean ± sample std over videos):
+  naive_speedup                            0.6283 ± 0.1138 (n=12)
+  normalized_speedup                       1.2567 ± 0.2277 (n=12)
+  normalized_speedup_per_frame             1.0969 ± 0.1871 (n=12)
+  same_workload_speedup_2lane              0.8603 ± 0.0767 (n=12)
+  same_workload_speedup_2lane_per_frame    0.8416 ± 0.0805 (n=12)
+  same_workload_speedup_1lane              0.9004 ± 0.1231 (n=12)
+  same_workload_speedup_1lane_per_frame    0.8521 ± 0.1071 (n=12)
+  efficiency_N2_lanepool                   0.4302 ± 0.0383 (n=12)
+  efficiency_N_physical                    0.2151 ± 0.0192 (n=12)
+  efficiency_N_logical                     0.1075 ± 0.0096 (n=12)
+
+Pearson r(density, normalized_speedup) = -0.447
+
+Amdahl (seq.py profiled pass, per-video then averaged):
+  p_narrow             0.3747 ± 0.0190 (n=12)
+  p_broad              0.6672 ± 0.0107 (n=12)
+  S_narrow_N2          1.2307 ± 0.0144 (n=12)
+  S_broad_N2           1.5007 ± 0.0121 (n=12)
+  S_narrow_Nphys       1.3914 ± 0.0275 (n=12)
+  S_broad_Nphys        2.0022 ± 0.0323 (n=12)

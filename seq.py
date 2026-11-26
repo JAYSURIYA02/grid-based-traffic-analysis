@@ -14,6 +14,21 @@ import json
 import xml.etree.ElementTree as ET
 from collections import Counter
 
+# ── BENCH PATCH: computed once. BTP_DISPLAY=0 disables the live preview
+# AND the waitKey() quit-key poll below -- waitKey() runs its own internal
+# wait/event-processing regardless of whether a window exists, and was
+# measured consuming the majority of wall-clock time in headless batch runs
+# even though gating only cv2.imshow (an earlier, incomplete patch) left it
+# running unconditionally. The orchestrator's own subprocess timeout is the
+# abort mechanism for unattended runs, so no quit-key polling is needed then.
+_BENCH_DISPLAY_ON = os.environ.get("BTP_DISPLAY", "1") != "0"
+# BTP_SAVE_FRAMES=0 disables the per-frame JPEG dump to output_seq/, which
+# has no equivalent in rparallel_he3.py and was adding a large, asymmetric,
+# untimed disk-I/O cost that inflated seq.py's total_time_seconds relative
+# to the parallel implementation without appearing in either script's
+# per-frame timing array. Default preserves original standalone behavior.
+_BENCH_SAVE_FRAMES = os.environ.get("BTP_SAVE_FRAMES", "1") != "0"
+
 
 
 # Load configuration from JSON file
@@ -54,7 +69,10 @@ if not out.isOpened():
 
 if not os.path.exists('output_MVI_40771'):
     os.makedirs('output_MVI_40771')
-if not os.path.exists('output_seq'):
+
+# Per-frame JPEG dump directory (original seq.py behaviour). Only created when
+# frame saving is enabled (BTP_SAVE_FRAMES != "0").
+if _BENCH_SAVE_FRAMES and not os.path.exists('output_seq'):
     os.makedirs('output_seq')
 
 
@@ -560,7 +578,14 @@ def process_tracking_counting(frame1, roi_x, roi_y, frame_count, cell_contours):
                     dist_px = np.hypot(dx, dy)
                     if dist_px >= MIN_SPEED_DIST_PX:
                         dt = (frame_count - v.get("last_speed_frame", frame_count)) / FPS
-                        if dt > 0:
+                        # ── FIX: guard on PIXELS_PER_METER > 0, matching the
+                        # guard already present in rparallel_he3.py. Without it,
+                        # an uncalibrated video (PIXELS_PER_METER == 0) divides a
+                        # numpy.float64 distance by 0, which yields inf (with a
+                        # RuntimeWarning) rather than raising -- i.e. spurious
+                        # "inf km/h" speeds in the overlay and exports. Formula
+                        # is unchanged; this only skips the uncalibrated case.
+                        if dt > 0 and PIXELS_PER_METER > 0:
                             speed_kmph = (dist_px / PIXELS_PER_METER) / dt * 3.6
                             hist = v.setdefault("speed_history", [])
                             hist.append(speed_kmph)
@@ -735,6 +760,7 @@ choices = {
 
 channels = choices[user_choice]
 frame_times = []
+frame_io_times = []
 memory_usages = []
 density_values = []
 vehicle_count_history =[]
@@ -750,7 +776,7 @@ _raw_fps = cap.get(cv2.CAP_PROP_FPS)
 FPS = _raw_fps if _raw_fps and _raw_fps > 0 else 30
 PIXELS_PER_METER = pixels_per_meter
 # Minimum displacement (pixels) before a speed sample is computed.
-# Uses 2× grid cell height so the measurement baseline spans multiple
+# Uses 3× grid cell height so the measurement baseline spans multiple
 # grid jumps, reducing noise from grid-quantized centroids.
 MIN_SPEED_GRID_CELLS = 3
 MIN_SPEED_DIST_PX = MIN_SPEED_GRID_CELLS * grid_height1
@@ -1011,6 +1037,15 @@ def main():
             #             grid_y = roi2_y + row * grid_height2
             #             cv2.rectangle(frame1, (grid_x, grid_y), (grid_x + grid_width2, grid_y + grid_height2), (0, 255, 0), 2)
 
+            cv2.putText(frame1, "Frame: {}".format(frame_count), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+
+            # ── TIMING BOUNDARY (identical in rparallel_he3.py) ──────────────
+            # frame_times_seconds covers: preprocessing (HE, blur, diff,
+            # channel split), per-cell detection, clustering, classification,
+            # tracking/counting/speed, density, and ALL overlay drawing.
+            # It EXCLUDES output I/O, which is timed separately below in
+            # frame_io_times_seconds: VideoWriter.write, optional JPEG dump,
+            # optional preview, and decoding the next frame.
             frame_end_time = time.time()
             frame_time = frame_end_time - frame_start_time
             frame_times.append(frame_time)
@@ -1018,20 +1053,24 @@ def main():
             memory_usage = psutil.Process().memory_info().rss / (1024 * 1024)
             memory_usages.append(memory_usage)
 
-            cv2.putText(frame1, "Frame: {}".format(frame_count), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+            io_start_time = time.time()
             out.write(frame1)
 
             output_filename = f'output_seq/frame_{frame_count:04d}.jpg'
-            cv2.imwrite(output_filename, frame1)
-            try:
-                cv2.imshow('Frame', frame1)
-            except cv2.error:
-                pass
+            if _BENCH_SAVE_FRAMES:
+                cv2.imwrite(output_filename, frame1)
+            if _BENCH_DISPLAY_ON:
+                try:
+                    cv2.imshow('Frame', frame1)
+                except cv2.error:
+                    pass
             frame1 = frame2
             ret, frame2 = cap.read()
+            frame_io_times.append(time.time() - io_start_time)
 
-        if (cv2.waitKey(1) & 0xFF == ord('q')) or (cv2.waitKey(1) & 0xFF == ord('Q')):  # Reduce delay
-            break
+        if _BENCH_DISPLAY_ON:
+            if (cv2.waitKey(1) & 0xFF == ord('q')) or (cv2.waitKey(1) & 0xFF == ord('Q')):  # Reduce delay
+                break
 
     end_time = time.time()
     execution_time = end_time - start_time
@@ -1042,57 +1081,91 @@ def main():
 
     cap.release()
     out.release()
-    cv2.destroyAllWindows()
+    try:  # headless OpenCV builds have no HighGUI backend
+        cv2.destroyAllWindows()
+    except cv2.error:
+        pass
     print("frames: "f"{frame_count}")
 
     # ── Benchmark instrumentation: export per-frame timing for harness ────────
     import json as _json
+    try:
+        from bench_sysinfo import collect_system_info
+        _sysinfo = collect_system_info()
+    except Exception as _e:  # never let provenance collection kill a run
+        _sysinfo = {"error": f"{type(_e).__name__}: {_e}"}
+    _cpu = psutil.Process().cpu_times()
     _metrics = {
+        "schema_version": 2,
         "implementation": "sequential",
+        "executor": "none",
         "video": video_path,
         "frames": frame_count,
+        "lanes": 1,
+        "active_lanes": ["Lane1(ROI1)"],
         "grid_rows": num_rows,
         "grid_cols": num_cols,
         "color_channel": color_channel,
+        "he_choice": he_choice,
         "total_time_seconds": execution_time,
+        "total_time_definition": "module import (after config load) to end of main loop; includes video open, writer setup, all frames",
         "frame_times_seconds": frame_times,
+        "frame_time_definition": "per-frame processing + overlay drawing; excludes output write, preview and next-frame decode",
+        "frame_io_times_seconds": frame_io_times,
+        "memory_usages_mb": memory_usages,
+        "peak_memory_mb": max(memory_usages) if memory_usages else None,
+        "process_cpu_user_seconds": _cpu.user,
+        "process_cpu_system_seconds": _cpu.system,
+        "cpu_utilization_of_one_core": ((_cpu.user + _cpu.system) / execution_time) if execution_time else None,
+        "lane_vehicle_counts": {"Lane1(ROI1)": vechicle_count},
+        "system": _sysinfo,
     }
     with open("seq_frame_metrics.json", "w") as _f:
         _json.dump(_metrics, _f, indent=2)
     print("[BENCH] seq_frame_metrics.json written.")
 
 if __name__ == '__main__':
+    # ── BENCH PATCH (orchestration infra, not an algorithm change) ─────────
+    # Set BTP_PROFILE=0 in the environment to run without cProfile, for a
+    # clean timing pass uncontaminated by profiler overhead. Default (unset
+    # or "1") preserves the script's original always-profiled behavior.
+    _PROFILE_ON = os.environ.get("BTP_PROFILE", "1") != "0"
     profiler = cProfile.Profile()
-    profiler.enable()
+    if _PROFILE_ON:
+        profiler.enable()
     main()
-    profiler.disable()
+    if _PROFILE_ON:
+        profiler.disable()
 
     # ── Save binary profile for external analysis ─────────────────────────────
-    profiler.dump_stats('profile_seq.prof')
-    print("[BENCH] profile_seq.prof saved.")
+    if _PROFILE_ON:
+        profiler.dump_stats('profile_seq.prof')
+        print("[BENCH] profile_seq.prof saved.")
 
-    # ── Readable cumtime report (top 15) ──────────────────────────────────────
-    import io as _io
-    _buf = _io.StringIO()
-    _stats_cum = pstats.Stats(profiler, stream=_buf).sort_stats('cumulative')
-    _stats_cum.print_stats(15)
-    _cum_text = _buf.getvalue()
-    with open('profile_seq_cumtime.txt', 'w') as _f:
-        _f.write(_cum_text)
-    print("[BENCH] profile_seq_cumtime.txt saved.")
-    print("\n=== seq.py — Top 15 by CUMULATIVE time ===")
-    print(_cum_text)
+        # ── Readable cumtime report (top 15) ────────────────────────────────
+        import io as _io
+        _buf = _io.StringIO()
+        _stats_cum = pstats.Stats(profiler, stream=_buf).sort_stats('cumulative')
+        _stats_cum.print_stats(15)
+        _cum_text = _buf.getvalue()
+        with open('profile_seq_cumtime.txt', 'w') as _f:
+            _f.write(_cum_text)
+        print("[BENCH] profile_seq_cumtime.txt saved.")
+        print("\n=== seq.py — Top 15 by CUMULATIVE time ===")
+        print(_cum_text)
 
-    # ── Readable tottime report (top 15) ──────────────────────────────────────
-    _buf2 = _io.StringIO()
-    _stats_tot = pstats.Stats(profiler, stream=_buf2).sort_stats('tottime')
-    _stats_tot.print_stats(15)
-    _tot_text = _buf2.getvalue()
-    with open('profile_seq_tottime.txt', 'w') as _f:
-        _f.write(_tot_text)
-    print("[BENCH] profile_seq_tottime.txt saved.")
-    print("\n=== seq.py — Top 15 by SELF (tot) time ===")
-    print(_tot_text)
+        # ── Readable tottime report (top 15) ────────────────────────────────
+        _buf2 = _io.StringIO()
+        _stats_tot = pstats.Stats(profiler, stream=_buf2).sort_stats('tottime')
+        _stats_tot.print_stats(15)
+        _tot_text = _buf2.getvalue()
+        with open('profile_seq_tottime.txt', 'w') as _f:
+            _f.write(_tot_text)
+        print("[BENCH] profile_seq_tottime.txt saved.")
+        print("\n=== seq.py — Top 15 by SELF (tot) time ===")
+        print(_tot_text)
+    else:
+        print("[BENCH] BTP_PROFILE=0 — clean timing pass, no profile written.")
 
     # Evaluation runs only after processing has completed.
     XML_PATH = xml_path.strip()
@@ -1259,6 +1332,34 @@ if __name__ == '__main__':
         os.makedirs("plots", exist_ok=True)
         plt.savefig("plots/seq_evaluation_heatmaps.png")
         plt.close('all')
+
+        # ── BENCH PATCH: structured evaluation export ───────────────────────
+        # The block above only prints these values. For batch aggregation we
+        # also need them as machine-readable data; this is purely additive
+        # (no computation above is changed).
+        _eval_metrics = {
+            "implementation": "sequential",
+            "video": video_path,
+            "grid_rows": num_rows,
+            "grid_cols": num_cols,
+            "unique_gt_vehicles": len(unique_gt_ids),
+            "unique_predicted_tracks": len(unique_pred_track_ids),
+            "matched_gt_vehicles": len(matched_gt_ids),
+            "unmatched_gt_vehicles": len(unmatched_gt_ids),
+            "matched_predicted_tracks": len(matched_pred_track_ids),
+            "unmatched_predicted_tracks": len(unmatched_pred_track_ids),
+            "confusion_matrix_vehicle_labels": ["Car", "Van", "Bus"],
+            "confusion_matrix_vehicle": conf_matrix_vehicle.tolist(),
+            "confusion_matrix_grid_labels": classes if conf_matrix is not None else None,
+            "confusion_matrix_grid": conf_matrix.tolist() if conf_matrix is not None else None,
+            "metrics": {
+                cls: {"precision": metrics[cls][0], "recall": metrics[cls][1], "f1": metrics[cls][2]}
+                for cls in ["Car", "Van", "Bus"]
+            },
+        }
+        with open("eval_metrics.json", "w") as _f:
+            json.dump(_eval_metrics, _f, indent=2)
+        print("[BENCH] eval_metrics.json written.")
     elif XML_PATH:
         print(f"Skipping evaluation: XML file not found at {XML_PATH}")
     else:

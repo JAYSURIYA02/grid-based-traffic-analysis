@@ -1,0 +1,38 @@
+{
+ "4x6": {
+  "bus_col": 1.01,
+  "bus_both": 0.75,
+  "van_row": 0.8,
+  "van_max_aspect": 2.0
+ },
+ "6x6": {
+  "bus_col": 0.9,
+  "bus_both": 1.01,
+  "van_row": 0.7,
+  "van_max_aspect": null
+ },
+ "6x8": {
+  "bus_col": 0.9,
+  "bus_both": 0.75,
+  "van_row": 0.7,
+  "van_max_aspect": 2.5
+ },
+ "8x8": {
+  "bus_col": 0.9,
+  "bus_both": 0.75,
+  "van_row": 0.8,
+  "van_max_aspect": null
+ },
+ "8x10": {
+  "bus_col": 0.8,
+  "bus_both": 1.01,
+  "van_row": 0.8,
+  "van_max_aspect": null
+ },
+ "10x12": {
+  "bus_col": 0.6,
+  "bus_both": 0.55,
+  "van_row": 0.7,
+  "van_max_aspect": null
+ }
+}

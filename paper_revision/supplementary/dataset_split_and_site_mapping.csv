@@ -1,0 +1,101 @@
+video_id,site_id,partition,frames,annotation_xml,annotated_frames,weather_attr,camera_state_attr,recording_session_prefix,automatic_cluster_id_th0.4,grouping_uncertainty
+MVI_20011,A_bus_stop_boulevard,benchmark_12 (retrospective; site shared with validation for 8/12),664,1,664,sunny,unstable,2001,S01,20051/20052 and 20032-35 are wider/shifted views; merged with 20011/2006x
+MVI_20012,A_bus_stop_boulevard,validation_26 (CV selection and tuning),936,1,936,sunny,unstable,2001,S01,20051/20052 and 20032-35 are wider/shifted views; merged with 20011/2006x
+MVI_20032,A_bus_stop_boulevard,validation_26 (CV selection and tuning),437,1,437,sunny,unstable,2003,S02,20051/20052 and 20032-35 are wider/shifted views; merged with 20011/2006x
+MVI_20033,A_bus_stop_boulevard,benchmark_12 (retrospective; site shared with validation for 8/12),784,1,784,sunny,unstable,2003,S02,20051/20052 and 20032-35 are wider/shifted views; merged with 20011/2006x
+MVI_20034,A_bus_stop_boulevard,validation_26 (CV selection and tuning),800,1,800,sunny,unstable,2003,S02,20051/20052 and 20032-35 are wider/shifted views; merged with 20011/2006x
+MVI_20035,A_bus_stop_boulevard,validation_26 (CV selection and tuning),800,1,800,sunny,unstable,2003,S02,20051/20052 and 20032-35 are wider/shifted views; merged with 20011/2006x
+MVI_20051,A_bus_stop_boulevard,validation_26 (CV selection and tuning),906,1,906,sunny,unstable,2005,S03,20051/20052 and 20032-35 are wider/shifted views; merged with 20011/2006x
+MVI_20052,A_bus_stop_boulevard,validation_26 (CV selection and tuning),694,1,694,sunny,unstable,2005,S03,20051/20052 and 20032-35 are wider/shifted views; merged with 20011/2006x
+MVI_20061,A_bus_stop_boulevard,validation_26 (CV selection and tuning),800,1,800,sunny,unstable,2006,S01,20051/20052 and 20032-35 are wider/shifted views; merged with 20011/2006x
+MVI_20062,A_bus_stop_boulevard,validation_26 (CV selection and tuning),800,1,800,sunny,unstable,2006,S01,20051/20052 and 20032-35 are wider/shifted views; merged with 20011/2006x
+MVI_20063,A_bus_stop_boulevard,validation_26 (CV selection and tuning),800,1,800,sunny,unstable,2006,S01,20051/20052 and 20032-35 are wider/shifted views; merged with 20011/2006x
+MVI_20064,A_bus_stop_boulevard,validation_26 (CV selection and tuning),800,1,800,sunny,unstable,2006,S01,20051/20052 and 20032-35 are wider/shifted views; merged with 20011/2006x
+MVI_20065,A_bus_stop_boulevard,validation_26 (CV selection and tuning),1200,1,1200,sunny,unstable,2006,S01,20051/20052 and 20032-35 are wider/shifted views; merged with 20011/2006x
+MVI_39031,G_tree_lined_road,validation_26 (CV selection and tuning),1470,1,1470,sunny,unstable,3903,S04,
+MVI_39051,T01_park_road,test_44 (unseen-site final evaluation),1120,1,1051,sunny,stable,3905,S05,
+MVI_39211,G_tree_lined_road,validation_26 (CV selection and tuning),1660,1,1566,sunny,stable,3921,S06,
+MVI_39271,T02_bus_terminal_plaza,test_44 (unseen-site final evaluation),1570,1,1566,sunny,stable,3927,S07,
+MVI_39311,H_plaza_roundabout,benchmark_12 (retrospective; site shared with validation for 8/12),1505,1,1505,sunny,unstable,3931,S08,
+MVI_39361,T03_wide_grey_road,test_44 (unseen-site final evaluation),2030,1,2030,sunny,unstable,3936,S09,39361 and 39371 recorded in adjacent sessions; kept separate (different framing)
+MVI_39371,T04_fenced_road_buildings,test_44 (unseen-site final evaluation),1390,1,1390,sunny,stable,3937,S10,see T03
+MVI_39401,I_wide_junction_overpass,validation_26 (CV selection and tuning),1385,1,1385,sunny,unstable,3940,S11,
+MVI_39501,J_brt_station_road,validation_26 (CV selection and tuning),540,1,540,cloudy,stable,3950,S12,
+MVI_39511,J_brt_station_road,validation_26 (CV selection and tuning),380,1,380,cloudy,stable,3951,S12,
+MVI_39761,B_hedged_divider_road,benchmark_12 (retrospective; site shared with validation for 8/12),1660,1,1323,night,stable,3976,S13,40141 not certainly the same camera as 39761/39771; merged
+MVI_39771,B_hedged_divider_road,benchmark_12 (retrospective; site shared with validation for 8/12),570,1,570,night,stable,3977,S14,40141 not certainly the same camera as 39761/39771; merged
+MVI_39781,T05_diagonal_fenced_road,test_44 (unseen-site final evaluation),1865,1,1861,night,stable,3978,S15,merged on visual similarity (diagonal carriageway with white fence); may be 2-3 nearby cameras
+MVI_39801,T05_diagonal_fenced_road,test_44 (unseen-site final evaluation),885,1,885,night,unstable,3980,S16,merged on visual similarity (diagonal carriageway with white fence); may be 2-3 nearby cameras
+MVI_39811,T05_diagonal_fenced_road,test_44 (unseen-site final evaluation),1070,1,500,night,unstable,3981,S16,merged on visual similarity (diagonal carriageway with white fence); may be 2-3 nearby cameras
+MVI_39821,T05_diagonal_fenced_road,test_44 (unseen-site final evaluation),880,1,880,night,unstable,3982,S17,merged on visual similarity (diagonal carriageway with white fence); may be 2-3 nearby cameras
+MVI_39851,F_night_yellow_line_road,validation_26 (CV selection and tuning),1420,1,1286,night,unstable,3985,S18,
+MVI_39861,resembles_eval_site,excluded (unused; resembles an eval site),745,1,745,night,unstable,3986,S19,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_39931,T06_diagonal_hedge_road,test_44 (unseen-site final evaluation),1270,1,1082,cloudy,unstable,3993,S20,hedge strip resembles eval site L (40201/40204) but road geometry differs; kept in test
+MVI_40131,C_wet_post_divider_road,benchmark_12 (retrospective; site shared with validation for 8/12),1645,1,1645,cloudy,unstable,4013,S21,63544 framed differently; merged (same rainy session as 63521/63525)
+MVI_40141,B_hedged_divider_road,benchmark_12 (retrospective; site shared with validation for 8/12),1600,1,1600,cloudy,stable,4014,S22,40141 not certainly the same camera as 39761/39771; merged
+MVI_40152,T05_diagonal_fenced_road,test_44 (unseen-site final evaluation),1750,1,1746,cloudy,unstable,4015,S23,merged on visual similarity (diagonal carriageway with white fence); may be 2-3 nearby cameras
+MVI_40161,T05_diagonal_fenced_road,test_44 (unseen-site final evaluation),1490,1,1490,cloudy,unstable,4016,S15,merged on visual similarity (diagonal carriageway with white fence); may be 2-3 nearby cameras
+MVI_40162,T05_diagonal_fenced_road,test_44 (unseen-site final evaluation),1765,1,1726,cloudy,unstable,4016,S15,merged on visual similarity (diagonal carriageway with white fence); may be 2-3 nearby cameras
+MVI_40171,T05_diagonal_fenced_road,test_44 (unseen-site final evaluation),1150,1,1150,cloudy,unstable,4017,S24,merged on visual similarity (diagonal carriageway with white fence); may be 2-3 nearby cameras
+MVI_40172,T05_diagonal_fenced_road,test_44 (unseen-site final evaluation),2635,1,2635,cloudy,unstable,4017,S25,merged on visual similarity (diagonal carriageway with white fence); may be 2-3 nearby cameras
+MVI_40181,T05_diagonal_fenced_road,test_44 (unseen-site final evaluation),1700,1,1700,cloudy,stable,4018,S26,merged on visual similarity (diagonal carriageway with white fence); may be 2-3 nearby cameras
+MVI_40191,K_green_median_road,validation_26 (CV selection and tuning),2495,1,2495,cloudy,unstable,4019,S27,
+MVI_40192,K_green_median_road,validation_26 (CV selection and tuning),2195,1,2195,cloudy,unstable,4019,S27,
+MVI_40201,L_hedge_diagonal_road,validation_26 (CV selection and tuning),925,1,925,cloudy,stable,4020,S28,
+MVI_40204,L_hedge_diagonal_road,validation_26 (CV selection and tuning),1225,1,1225,cloudy,stable,4020,S28,
+MVI_40211,resembles_eval_site,excluded (unused; resembles an eval site),1950,1,1923,cloudy,unstable,4021,S29,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_40212,resembles_eval_site,excluded (unused; resembles an eval site),1690,1,1690,cloudy,unstable,4021,S29,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_40213,resembles_eval_site,excluded (unused; resembles an eval site),1790,1,1782,cloudy,unstable,4021,S29,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_40241,resembles_eval_site,excluded (unused; resembles an eval site),2320,1,2320,cloudy,stable,4024,S30,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_40243,resembles_eval_site,excluded (unused; resembles an eval site),1265,1,1265,cloudy,stable,4024,S30,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_40244,resembles_eval_site,excluded (unused; resembles an eval site),1345,1,1345,cloudy,stable,4024,S30,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_40701,T07_turning_junction,test_44 (unseen-site final evaluation),1130,1,1130,cloudy,stable,4070,S31,40701 is hazy; merged on lane markings
+MVI_40711,T07_turning_junction,test_44 (unseen-site final evaluation),1030,1,1030,cloudy,stable,4071,S32,40701 is hazy; merged on lane markings
+MVI_40712,T07_turning_junction,test_44 (unseen-site final evaluation),2400,1,2400,cloudy,stable,4071,S32,40701 is hazy; merged on lane markings
+MVI_40714,T07_turning_junction,test_44 (unseen-site final evaluation),1180,1,1180,cloudy,stable,4071,S33,40701 is hazy; merged on lane markings
+MVI_40732,T08_bus_corridor_signboards,test_44 (unseen-site final evaluation),2120,1,2120,night,stable,4073,S34,40742/40743 framed tighter than 40732/40751/40752; merged
+MVI_40742,T08_bus_corridor_signboards,test_44 (unseen-site final evaluation),1655,1,1655,night,stable,4074,S35,40742/40743 framed tighter than 40732/40751/40752; merged
+MVI_40743,T08_bus_corridor_signboards,test_44 (unseen-site final evaluation),1630,1,1629,night,stable,4074,S36,40742/40743 framed tighter than 40732/40751/40752; merged
+MVI_40751,T08_bus_corridor_signboards,test_44 (unseen-site final evaluation),1145,1,1145,night,stable,4075,S37,40742/40743 framed tighter than 40732/40751/40752; merged
+MVI_40752,T08_bus_corridor_signboards,test_44 (unseen-site final evaluation),2025,1,2025,night,stable,4075,S38,40742/40743 framed tighter than 40732/40751/40752; merged
+MVI_40761,T09_night_red_barrier,test_44 (unseen-site final evaluation),2030,1,2030,night,unstable,4076,S39,
+MVI_40762,T09_night_red_barrier,test_44 (unseen-site final evaluation),1825,1,1825,night,unstable,4076,S39,
+MVI_40763,T09_night_red_barrier,test_44 (unseen-site final evaluation),1745,1,1741,night,unstable,4076,S39,
+MVI_40771,E_night_intersection,validation_26 (CV selection and tuning),1720,1,1720,night,unstable,4077,S40,
+MVI_40772,E_night_intersection,benchmark_12 (retrospective; site shared with validation for 8/12),1200,1,1200,night,stable,4077,S40,
+MVI_40773,E_night_intersection,benchmark_12 (retrospective; site shared with validation for 8/12),985,1,985,night,stable,4077,S40,
+MVI_40774,E_night_intersection,benchmark_12 (retrospective; site shared with validation for 8/12),950,1,950,night,stable,4077,S40,
+MVI_40775,E_night_intersection,validation_26 (CV selection and tuning),975,1,975,night,stable,4077,S40,
+MVI_40792,resembles_eval_site,excluded (unused; resembles an eval site),1810,1,1810,night,stable,4079,S41,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_40793,resembles_eval_site,excluded (unused; resembles an eval site),1960,1,1959,night,stable,4079,S41,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_40851,T10_crosswalk_intersection,test_44 (unseen-site final evaluation),1140,1,1140,cloudy,stable,4085,S42,4085x/4089x/4090x merged (same crosswalk layout; automatic clustering also merged 4085x+4089x)
+MVI_40852,T10_crosswalk_intersection,test_44 (unseen-site final evaluation),1150,1,1150,cloudy,stable,4085,S42,4085x/4089x/4090x merged (same crosswalk layout; automatic clustering also merged 4085x+4089x)
+MVI_40853,T10_crosswalk_intersection,test_44 (unseen-site final evaluation),1590,1,1590,cloudy,stable,4085,S42,4085x/4089x/4090x merged (same crosswalk layout; automatic clustering also merged 4085x+4089x)
+MVI_40854,T10_crosswalk_intersection,test_44 (unseen-site final evaluation),1195,1,1195,cloudy,stable,4085,S42,4085x/4089x/4090x merged (same crosswalk layout; automatic clustering also merged 4085x+4089x)
+MVI_40855,T10_crosswalk_intersection,test_44 (unseen-site final evaluation),1090,1,1090,cloudy,stable,4085,S42,4085x/4089x/4090x merged (same crosswalk layout; automatic clustering also merged 4085x+4089x)
+MVI_40863,T11_rainy_bus_road,test_44 (unseen-site final evaluation),1670,1,1670,rainy,stable,4086,S43,40871 merged with 40863/40864 on scene similarity
+MVI_40864,T11_rainy_bus_road,test_44 (unseen-site final evaluation),1515,1,1515,rainy,stable,4086,S44,40871 merged with 40863/40864 on scene similarity
+MVI_40871,T11_rainy_bus_road,test_44 (unseen-site final evaluation),1720,1,1720,rainy,unstable,4087,S45,40871 merged with 40863/40864 on scene similarity
+MVI_40891,T10_crosswalk_intersection,test_44 (unseen-site final evaluation),1545,1,1545,rainy,stable,4089,S42,4085x/4089x/4090x merged (same crosswalk layout; automatic clustering also merged 4085x+4089x)
+MVI_40892,T10_crosswalk_intersection,test_44 (unseen-site final evaluation),1790,1,1790,rainy,stable,4089,S42,4085x/4089x/4090x merged (same crosswalk layout; automatic clustering also merged 4085x+4089x)
+MVI_40901,T10_crosswalk_intersection,test_44 (unseen-site final evaluation),1335,1,1335,rainy,stable,4090,S46,4085x/4089x/4090x merged (same crosswalk layout; automatic clustering also merged 4085x+4089x)
+MVI_40902,T10_crosswalk_intersection,test_44 (unseen-site final evaluation),1005,1,1005,rainy,stable,4090,S46,4085x/4089x/4090x merged (same crosswalk layout; automatic clustering also merged 4085x+4089x)
+MVI_40903,T10_crosswalk_intersection,test_44 (unseen-site final evaluation),1060,1,1060,rainy,unstable,4090,S46,4085x/4089x/4090x merged (same crosswalk layout; automatic clustering also merged 4085x+4089x)
+MVI_40904,T10_crosswalk_intersection,test_44 (unseen-site final evaluation),1270,1,1270,rainy,stable,4090,S46,4085x/4089x/4090x merged (same crosswalk layout; automatic clustering also merged 4085x+4089x)
+MVI_40905,T10_crosswalk_intersection,test_44 (unseen-site final evaluation),1710,1,1710,rainy,stable,4090,S46,4085x/4089x/4090x merged (same crosswalk layout; automatic clustering also merged 4085x+4089x)
+MVI_40962,D_barrier_highway_dusk,validation_26 (CV selection and tuning),1875,1,1875,night,stable,4096,S47,
+MVI_40963,D_barrier_highway_dusk,benchmark_12 (retrospective; site shared with validation for 8/12),1820,1,1820,night,stable,4096,S47,
+MVI_40981,resembles_eval_site,excluded (unused; resembles an eval site),1995,1,1995,night,stable,4098,S48,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_40991,T12_overpass_pillar,test_44 (unseen-site final evaluation),1820,1,1667,night,unstable,4099,S49,
+MVI_40992,T12_overpass_pillar,test_44 (unseen-site final evaluation),2160,1,2122,night,stable,4099,S50,
+MVI_41063,resembles_eval_site,excluded (unused; resembles an eval site),1505,1,1505,sunny,stable,4106,S51,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_41073,resembles_eval_site,excluded (unused; resembles an eval site),1825,1,1825,sunny,stable,4107,S52,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_63521,C_wet_post_divider_road,validation_26 (CV selection and tuning),2055,1,2055,rainy,stable,6352,S53,63544 framed differently; merged (same rainy session as 63521/63525)
+MVI_63525,C_wet_post_divider_road,benchmark_12 (retrospective; site shared with validation for 8/12),985,1,985,rainy,stable,6352,S54,63544 framed differently; merged (same rainy session as 63521/63525)
+MVI_63544,C_wet_post_divider_road,validation_26 (CV selection and tuning),1160,1,956,rainy,stable,6354,S55,63544 framed differently; merged (same rainy session as 63521/63525)
+MVI_63552,resembles_eval_site,excluded (unused; resembles an eval site),1150,1,1150,rainy,unstable,6355,S56,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_63553,resembles_eval_site,excluded (unused; resembles an eval site),1405,1,1405,rainy,unstable,6355,S56,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_63554,resembles_eval_site,excluded (unused; resembles an eval site),1445,1,1445,rainy,unstable,6355,S56,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_63561,resembles_eval_site,excluded (unused; resembles an eval site),1285,1,1285,rainy,unstable,6356,S52,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_63562,resembles_eval_site,excluded (unused; resembles an eval site),1185,1,1185,rainy,unstable,6356,S52,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"
+MVI_63563,resembles_eval_site,excluded (unused; resembles an eval site),1390,1,1390,rainy,unstable,6356,S52,"similar scene to an eval site (hedge diagonal road like 40201/40204, night intersection like 4077x, night/dark straight road like 39851/40962)"

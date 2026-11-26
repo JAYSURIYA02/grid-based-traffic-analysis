@@ -1,0 +1,16 @@
+{
+  "platform": "Linux-6.8.0-149-generic-x86_64-with-glibc2.35",
+  "processor": "x86_64",
+  "cpu_model": "AMD Ryzen 5 7235HS",
+  "physical_cores": 1,
+  "logical_processors": 2,
+  "os_cpu_count": 2,
+  "python_version": "3.10.12",
+  "python_implementation": "CPython",
+  "opencv_version": "5.0.0",
+  "numpy_version": "2.2.6",
+  "psutil_version": "7.2.2",
+  "btp_env": {
+    "BTP_OUTPUT_ROOT": "/sessions/rcw-0125cyjxwb9bjy8y5yzk8rjk/mnt/Lattice-Layer-Vehicle-Detection-/verification/vm_linux_2vcpu_20261125"
+  }
+}

@@ -1,0 +1,50 @@
+[h264_v4l2m2m @ 0x5830d2dfe780] Could not find a valid device
+[h264_v4l2m2m @ 0x5830d2dfe780] can't configure encoder
+[ERROR:0@2.659] global cap_ffmpeg_impl.hpp:3568 open Could not open codec h264_v4l2m2m, error: Unspecified error (-22)
+[ERROR:0@2.660] global cap_ffmpeg_impl.hpp:3585 open VIDEOIO/FFMPEG: Failed to initialize VideoWriter
+[WARN] avc1 codec failed, falling back to mp4v
+Execution Time: 29.49 seconds
+Total Memory Usage: 174.64 MB
+frames: 1819
+[BENCH] seq_frame_metrics.json written.
+[BENCH] BTP_PROFILE=0 — clean timing pass, no profile written.
+
+-- Vehicle Count Summary (Grid-Independent) --
+Actual vehicles (unique GT IDs): 51
+Predicted vehicles (unique tracker IDs): 85
+
+-- Vehicle Matching Summary (Unique IDs) --
+Matched GT vehicles: 41
+Unmatched GT vehicles: 10
+Matched predicted tracks: 48
+Unmatched predicted tracks: 37
+
+-- DEBUG INFO --
+Total GT vehicles: 51
+Total predicted vehicles: 85
+Matched GT vehicles: 41
+Unmatched GT vehicles: 10
+Unmatched predicted vehicles: 37
+
+-- Vehicle-Level Confusion Matrix --
+[[ 0 30  5]
+ [ 0  3  0]
+ [ 0  1  2]]
+
+-- Vehicle-Level Metrics --
+
+Class: Car
+Precision: 0.000
+Recall   : 0.000
+F1 Score : 0.000
+
+Class: Van
+Precision: 0.088
+Recall   : 1.000
+F1 Score : 0.162
+
+Class: Bus
+Precision: 0.286
+Recall   : 0.667
+F1 Score : 0.400
+[BENCH] eval_metrics.json written.

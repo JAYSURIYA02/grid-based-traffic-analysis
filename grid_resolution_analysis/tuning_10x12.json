@@ -1,0 +1,281 @@
+{
+ "n_validation_videos": 26,
+ "n_test_videos": 12,
+ "objective": "pooled macro-F1, both lanes, validation videos",
+ "original": {
+  "thresholds": {
+   "bus_col": 0.75,
+   "bus_both": 0.55,
+   "van_row": 0.45,
+   "van_max_aspect": null
+  },
+  "validation_macro_f1": 0.3096,
+  "validation_per_class_f1": {
+   "Car": 0.6541,
+   "Van": 0.1857,
+   "Bus": 0.0889
+  },
+  "test_macro_f1": 0.279,
+  "test_per_class_f1": {
+   "Car": 0.6445,
+   "Van": 0.1461,
+   "Bus": 0.0465
+  },
+  "test_accuracy": 0.4884,
+  "test_car_to_van": 0.4413,
+  "test_macro_f1_by_lane": {
+   "Lane1": 0.3271,
+   "Lane2": 0.2546
+  },
+  "test_cm": [
+   [
+    194,
+    169,
+    20
+   ],
+   [
+    11,
+    16,
+    2
+   ],
+   [
+    14,
+    5,
+    1
+   ]
+  ],
+  "validation_cm": [
+   [
+    747,
+    632,
+    67
+   ],
+   [
+    61,
+    82,
+    12
+   ],
+   [
+    30,
+    14,
+    6
+   ]
+  ]
+ },
+ "A_spans": {
+  "thresholds": {
+   "bus_col": 0.6,
+   "bus_both": 0.55,
+   "van_row": 0.7,
+   "van_max_aspect": null
+  },
+  "validation_macro_f1": 0.361,
+  "validation_per_class_f1": {
+   "Car": 0.888,
+   "Van": 0.1181,
+   "Bus": 0.0769
+  },
+  "test_macro_f1": 0.3644,
+  "test_per_class_f1": {
+   "Car": 0.8694,
+   "Van": 0.175,
+   "Bus": 0.0488
+  },
+  "test_accuracy": 0.7662,
+  "test_car_to_van": 0.1097,
+  "test_macro_f1_by_lane": {
+   "Lane1": 0.385,
+   "Lane2": 0.3626
+  },
+  "test_cm": [
+   [
+    323,
+    42,
+    18
+   ],
+   [
+    20,
+    7,
+    2
+   ],
+   [
+    17,
+    2,
+    1
+   ]
+  ],
+  "validation_cm": [
+   [
+    1288,
+    95,
+    63
+   ],
+   [
+    127,
+    16,
+    12
+   ],
+   [
+    40,
+    5,
+    5
+   ]
+  ],
+  "n_candidates": 330,
+  "validation_top5": [
+   [
+    0.361,
+    {
+     "bus_col": 0.6,
+     "bus_both": 0.55,
+     "van_row": 0.7,
+     "van_max_aspect": null
+    }
+   ],
+   [
+    0.3602,
+    {
+     "bus_col": 0.9,
+     "bus_both": 0.45,
+     "van_row": 0.7,
+     "van_max_aspect": null
+    }
+   ],
+   [
+    0.3602,
+    {
+     "bus_col": 1.01,
+     "bus_both": 0.45,
+     "van_row": 0.7,
+     "van_max_aspect": null
+    }
+   ],
+   [
+    0.3599,
+    {
+     "bus_col": 0.75,
+     "bus_both": 0.45,
+     "van_row": 0.7,
+     "van_max_aspect": null
+    }
+   ],
+   [
+    0.3599,
+    {
+     "bus_col": 0.8,
+     "bus_both": 0.45,
+     "van_row": 0.7,
+     "van_max_aspect": null
+    }
+   ]
+  ]
+ },
+ "B_spans_plus_aspect": {
+  "thresholds": {
+   "bus_col": 0.9,
+   "bus_both": 0.55,
+   "van_row": 0.7,
+   "van_max_aspect": 2.0
+  },
+  "validation_macro_f1": 0.3592,
+  "validation_per_class_f1": {
+   "Car": 0.8919,
+   "Van": 0.1185,
+   "Bus": 0.0672
+  },
+  "test_macro_f1": 0.3644,
+  "test_per_class_f1": {
+   "Car": 0.8694,
+   "Van": 0.175,
+   "Bus": 0.0488
+  },
+  "test_accuracy": 0.7662,
+  "test_car_to_van": 0.1097,
+  "test_macro_f1_by_lane": {
+   "Lane1": 0.385,
+   "Lane2": 0.3626
+  },
+  "test_cm": [
+   [
+    323,
+    42,
+    18
+   ],
+   [
+    20,
+    7,
+    2
+   ],
+   [
+    17,
+    2,
+    1
+   ]
+  ],
+  "validation_cm": [
+   [
+    1299,
+    94,
+    53
+   ],
+   [
+    127,
+    16,
+    12
+   ],
+   [
+    41,
+    5,
+    4
+   ]
+  ],
+  "n_candidates": 480,
+  "validation_top5": [
+   [
+    0.3592,
+    {
+     "bus_col": 0.9,
+     "bus_both": 0.55,
+     "van_row": 0.7,
+     "van_max_aspect": 2.0
+    }
+   ],
+   [
+    0.3592,
+    {
+     "bus_col": 0.9,
+     "bus_both": 0.55,
+     "van_row": 0.7,
+     "van_max_aspect": 2.5
+    }
+   ],
+   [
+    0.3592,
+    {
+     "bus_col": 0.9,
+     "bus_both": 0.55,
+     "van_row": 0.7,
+     "van_max_aspect": 3.0
+    }
+   ],
+   [
+    0.3592,
+    {
+     "bus_col": 1.01,
+     "bus_both": 0.55,
+     "van_row": 0.7,
+     "van_max_aspect": 2.0
+    }
+   ],
+   [
+    0.3592,
+    {
+     "bus_col": 1.01,
+     "bus_both": 0.55,
+     "van_row": 0.7,
+     "van_max_aspect": 2.5
+    }
+   ]
+  ]
+ }
+}

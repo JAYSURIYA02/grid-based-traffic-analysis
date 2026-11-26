@@ -1,0 +1,23 @@
+         52768817 function calls (45310651 primitive calls) in 116.334 seconds
+
+   Ordered by: cumulative time
+   List reduced from 236 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+1921720/33150    1.257    0.000 1047.278    0.032 {method 'acquire' of '_thread.lock' objects}
+       34    0.000    0.000 1046.900   30.791 C:\Users\jaysu\anaconda3\Lib\threading.py:1115(join)
+       34    0.000    0.000 1046.899   30.791 C:\Users\jaysu\anaconda3\Lib\threading.py:1153(_wait_for_tstate_lock)
+503788/233683    0.965    0.000  264.171    0.001 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:612(result_iterator)
+498800/231189    1.442    0.000  237.215    0.001 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:314(_result_or_cancel)
+        2    0.000    0.000  232.659  116.329 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\thread.py:219(shutdown)
+        1    0.000    0.000  116.334  116.334 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3_instrumented.py:832(main)
+     34/1    1.179    0.035  116.333  116.333 C:\Users\jaysu\anaconda3\Lib\threading.py:1016(_bootstrap)
+     34/1    0.001    0.000  116.333  116.333 C:\Users\jaysu\anaconda3\Lib\threading.py:1056(_bootstrap_inner)
+518752/17459    1.402    0.000   75.273    0.004 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:428(result)
+490718/14063    1.339    0.000   74.801    0.005 C:\Users\jaysu\anaconda3\Lib\threading.py:323(wait)
+518752/12468    2.109    0.000   73.704    0.006 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\thread.py:53(run)
+4988/2494    0.202    0.000   70.579    0.028 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3_instrumented.py:355(process_grid)
+498800/2496    4.312    0.000   40.277    0.016 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3_instrumented.py:335(process_grid_cell)
+498800/2496    2.967    0.000   25.592    0.010 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3_instrumented.py:99(process_grid_channel)
+
+

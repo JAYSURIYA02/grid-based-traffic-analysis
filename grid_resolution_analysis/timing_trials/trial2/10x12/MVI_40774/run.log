@@ -1,0 +1,33 @@
+[h264_v4l2m2m @ 0x5cbca923e840] Could not find a valid device
+[h264_v4l2m2m @ 0x5cbca923e840] can't configure encoder
+[ERROR:0@2.052] global cap_ffmpeg_impl.hpp:3568 open Could not open codec h264_v4l2m2m, error: Unspecified error (-22)
+[ERROR:0@2.053] global cap_ffmpeg_impl.hpp:3585 open VIDEOIO/FFMPEG: Failed to initialize VideoWriter
+[WARN] avc1 codec failed, falling back to mp4v
+Frame 100 | Lane1 passed: 0 | Lane2 passed: 2
+Frame 200 | Lane1 passed: 0 | Lane2 passed: 2
+Frame 300 | Lane1 passed: 0 | Lane2 passed: 3
+Frame 400 | Lane1 passed: 0 | Lane2 passed: 3
+Frame 500 | Lane1 passed: 0 | Lane2 passed: 3
+Frame 600 | Lane1 passed: 1 | Lane2 passed: 3
+Frame 700 | Lane1 passed: 3 | Lane2 passed: 3
+Frame 800 | Lane1 passed: 3 | Lane2 passed: 3
+Frame 900 | Lane1 passed: 3 | Lane2 passed: 3
+Execution Time: 10.67 seconds
+Memory Usage: 182.86 MB
+
+-- Lane1 Summary --
+Average Density: 0.0222
+Vehicles Passed: 3
+  Car: 9
+  Van: 1
+  Bus: 0
+
+-- Lane2 Summary --
+Average Density: 0.0216
+Vehicles Passed: 3
+  Car: 21
+  Van: 1
+  Bus: 0
+frames: 949
+[BENCH] rpar_frame_metrics.json written.
+[GRID] timing-only run done 10.69 s

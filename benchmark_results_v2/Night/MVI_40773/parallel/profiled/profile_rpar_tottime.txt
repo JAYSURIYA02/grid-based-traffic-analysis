@@ -1,0 +1,23 @@
+         6845449 function calls (5809552 primitive calls) in 19.170 seconds
+
+   Ordered by: internal time
+   List reduced from 373 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+72816/9740    1.950    0.000    1.153    0.000 {GaussianBlur}
+      984    1.141    0.001    1.141    0.001 {method 'read' of 'cv2.VideoCapture' objects}
+70848/2189    1.137    0.000    0.033    0.000 {getStructuringElement}
+70848/5313    1.055    0.000    0.083    0.000 {threshold}
+8856/4953    0.932    0.000    0.918    0.000 {cvtColor}
+70848/2240    0.909    0.000    0.028    0.000 {dilate}
+70848/8416    0.881    0.000    0.107    0.000 {findContours}
+     34/1    0.759    0.022   19.169   19.169 C:\Users\jaysu\anaconda3\Lib\threading.py:1016(_bootstrap)
+  33242/7    0.736    0.000   19.169    2.738 {method 'get' of '_queue.SimpleQueue' objects}
+70848/988    0.650    0.000    6.221    0.006 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3.py:438(process_grid_cell)
+4920/3041    0.485    0.000    0.383    0.000 {split}
+70848/988    0.484    0.000    3.822    0.004 C:\Users\jaysu\OneDrive\Desktop\PROJECTS\BTP\Lattice-Layer-Vehicle-Detection-\rparallel_he3.py:144(process_grid_channel)
+      984    0.450    0.000    0.450    0.000 {absdiff}
+      984    0.381    0.000    0.381    0.000 {method 'write' of 'cv2.VideoWriter' objects}
+    78720    0.306    0.000    0.762    0.000 C:\Users\jaysu\anaconda3\Lib\concurrent\futures\_base.py:537(set_result)
+
+
