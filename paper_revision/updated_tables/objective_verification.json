@@ -1,0 +1,119 @@
+{
+ "weights": {
+  "macro_f1": 0.3,
+  "min_class_f1": 0.1,
+  "count_f1": 0.25,
+  "det_recall": 0.15,
+  "frag": 0.1,
+  "unmatched": 0.1
+ },
+ "tie_rule": 0.005,
+ "guard": {
+  "4x6": true,
+  "6x6": true,
+  "6x8": true,
+  "8x8": true,
+  "8x10": true,
+  "10x12": true
+ },
+ "recomputed_selection": "6x8",
+ "frozen_selection": "6x8",
+ "match": true,
+ "per_grid": {
+  "4x6": {
+   "macro_f1": 0.3598,
+   "min_class_f1": 0.1132,
+   "det_recall": 0.8708,
+   "frag": 0.0046,
+   "unmatched": 0.4558,
+   "count_f1": 0.5029,
+   "J": 0.5296,
+   "thresholds": {
+    "bus_col": 1.01,
+    "bus_both": 0.75,
+    "van_row": 0.8,
+    "van_max_aspect": 2.0
+   }
+  },
+  "6x6": {
+   "macro_f1": 0.3575,
+   "min_class_f1": 0.0862,
+   "det_recall": 0.8835,
+   "frag": 0.0106,
+   "unmatched": 0.4395,
+   "count_f1": 0.5333,
+   "J": 0.5367,
+   "thresholds": {
+    "bus_col": 0.9,
+    "bus_both": 1.01,
+    "van_row": 0.7,
+    "van_max_aspect": null
+   }
+  },
+  "6x8": {
+   "macro_f1": 0.3478,
+   "min_class_f1": 0.0583,
+   "det_recall": 0.8968,
+   "frag": 0.0161,
+   "unmatched": 0.4289,
+   "count_f1": 0.5697,
+   "J": 0.5426,
+   "thresholds": {
+    "bus_col": 0.9,
+    "bus_both": 0.75,
+    "van_row": 0.7,
+    "van_max_aspect": 2.5
+   }
+  },
+  "8x8": {
+   "macro_f1": 0.3655,
+   "min_class_f1": 0.087,
+   "det_recall": 0.9085,
+   "frag": 0.0277,
+   "unmatched": 0.4315,
+   "count_f1": 0.5484,
+   "J": 0.5458,
+   "thresholds": {
+    "bus_col": 0.9,
+    "bus_both": 0.75,
+    "van_row": 0.8,
+    "van_max_aspect": null
+   }
+  },
+  "8x10": {
+   "macro_f1": 0.3541,
+   "min_class_f1": 0.0312,
+   "det_recall": 0.9151,
+   "frag": 0.0361,
+   "unmatched": 0.4617,
+   "count_f1": 0.5774,
+   "J": 0.5412,
+   "thresholds": {
+    "bus_col": 0.8,
+    "bus_both": 1.01,
+    "van_row": 0.8,
+    "van_max_aspect": null
+   }
+  },
+  "10x12": {
+   "macro_f1": 0.361,
+   "min_class_f1": 0.0769,
+   "det_recall": 0.9157,
+   "frag": 0.0714,
+   "unmatched": 0.4817,
+   "count_f1": 0.5787,
+   "J": 0.5427,
+   "thresholds": {
+    "bus_col": 0.6,
+    "bus_both": 0.55,
+    "van_row": 0.7,
+    "van_max_aspect": null
+   }
+  }
+ },
+ "frozen_at": "2026-11-25 21:50:57",
+ "selected_configuration_mtime": 1795643457.9689932,
+ "test_set_json_mtime": 1795643484.242604,
+ "earliest_test_run_mtime": 1795643505.04324,
+ "timing_summary_mtime": 1795643386.1293693
+}
