@@ -93,5 +93,3 @@ evaluation/category_results.csv
 Claude outputs/
 **/cache/
 grid_resolution_analysis/counting_cache/
-paper/final/*_preview.png
-paper_revision/scripts/*.png

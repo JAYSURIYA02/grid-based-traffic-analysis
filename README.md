@@ -11,7 +11,7 @@ Two execution strategies are implemented and benchmarked against each other:
 - **Sequential** (`seq.py`): one lane (ROI 1), single-threaded.
 - **Parallel** (`rparallel_he3.py`): two lanes (ROI 1 + ROI 2) processed by persistent `ThreadPoolExecutor` pools, with histogram equalisation.
 
-The repository also contains the benchmark data, a grid-resolution sensitivity study, and the LaTeX source of the paper with its full revision and audit trail.
+The repository also contains the benchmark data, a grid-resolution sensitivity study, and the final paper (`paper/Paper.pdf`) with its LaTeX source.
 
 ## Requirements
 
@@ -214,18 +214,9 @@ python grid_resolution_analysis/verify_corrected.py
 
 ### Paper
 
-- `paper/`: original manuscript (`paper_final.tex`) and its figure scripts (`make_figures.py`, `make_grid_figure.py`).
-- `paper_revision/`: revised manuscript, audit trail and every regenerated table and figure. See [`paper_revision/README.md`](paper_revision/README.md). To rebuild it:
+The final paper is [`paper/Paper.pdf`](paper/Paper.pdf): *Lightweight Grid-Based Vehicle Classification, Counting and Speed Estimation Using Resolution Sensitivity Analysis and Sequential–Parallel Benchmarking* (IEEE conference format, 8 pages).
 
-```bash
-python paper_revision/scripts/revision_analysis.py all
-python paper_revision/figure_sources/make_figures_revised.py
-python paper_revision/figure_sources/make_grid_figures.py
-python paper_revision/scripts/build_revised_tex.py
-python paper_revision/scripts/verify_revision.py
-```
-
-Then compile `revised_paper.tex` with IEEEtran, or upload `revised_paper_overleaf.zip` to Overleaf. The bundled `revised_paper.pdf` is a layout preview built with a stand-in class, not an IEEE build.
+Its LaTeX source is in `paper/latex/`: `paper.tex` and `figures/`. To rebuild the PDF, compile `paper.tex` with the IEEEtran class, or upload `paper/latex/paper_overleaf.zip` to Overleaf.
 
 ## Project Structure
 
@@ -260,8 +251,9 @@ Then compile `revised_paper.tex` with IEEEtran, or upload `revised_paper_overlea
 ├── benchmark_results_v2/          # v2 four-workload benchmark data (used by the paper)
 ├── verification/                  # Equivalence/smoke runs on other machines (not paper timings)
 ├── grid_resolution_analysis/      # Grid-resolution sensitivity study (scripts, runs, results)
-├── paper/                         # Original paper LaTeX source, figures, audit
-├── paper_revision/                # Revised paper, audit trail, tables, figure scripts
+├── paper/
+│   ├── Paper.pdf                  # Final paper
+│   └── latex/                     # Its LaTeX source, figures and Overleaf zip
 └── archive/                       # Superseded scripts and data (see archive/README.md)
 ```
 
