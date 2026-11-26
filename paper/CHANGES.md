@@ -155,3 +155,6 @@ detection-accuracy metrics") is verbatim in that paper.
 * Figure script: `paper/make_grid_figure.py` (reads `grid_resolution_analysis/final_numbers.json`).
 * Stand-in layout build: 0 errors, 0 undefined references; one pre-existing 2.8 pt overfull box.
   The new material adds about one stand-in page; confirm the 8-page limit in the IEEEtran build.
+
+## Title (2026-11-26)
+* Title changed to "Lightweight Vehicle Classification, Tracking and Counting Using Grid-Based Motion Detection and Parallel Lane Processing" (format of the Muthuraja & Sankaranarayanan paper: task + "Using" + two methods, no colon).
