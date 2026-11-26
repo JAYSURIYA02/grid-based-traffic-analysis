@@ -7,7 +7,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 T = os.path.join(REPO, "paper_revision", "updated_tables"); OUT = os.path.join(REPO, "paper_revision", "figures")
 plt.rcParams.update({"font.family": "serif", "font.serif": ["STIXGeneral", "DejaVu Serif"], "mathtext.fontset": "stix",
                      "font.size": 8, "axes.titlesize": 8, "axes.labelsize": 8, "legend.fontsize": 6.8, "xtick.labelsize": 7,
-                     "ytick.labelsize": 7, "axes.linewidth": 0.6, "lines.linewidth": 1.2, "savefig.bbox": "tight",
+                     "ytick.labelsize": 7, "axes.linewidth": 0.6, "lines.linewidth": 1.2, "savefig.bbox": "tight", "pdf.fonttype": 42, "ps.fonttype": 42,
                      "savefig.pad_inches": 0.02, "axes.spines.top": False, "axes.spines.right": False})
 G = ["6x6", "6x8", "8x8", "10x12"]; L = [g.replace("x", "×") for g in G]; x = range(4)
 cl = {(r["grid"], r["thresholds"]): r for r in csv.DictReader(open(os.path.join(T, "classification_test_set.csv")))}

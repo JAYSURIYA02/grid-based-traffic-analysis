@@ -29,7 +29,7 @@ plt.rcParams.update({
     "mathtext.fontset": "stix", "font.size": 8, "axes.titlesize": 8,
     "axes.labelsize": 8, "legend.fontsize": 7, "xtick.labelsize": 7,
     "ytick.labelsize": 7, "axes.linewidth": 0.6, "lines.linewidth": 1.0,
-    "savefig.bbox": "tight", "savefig.pad_inches": 0.02,
+    "savefig.bbox": "tight", "pdf.fonttype": 42, "ps.fonttype": 42, "savefig.pad_inches": 0.02,
 })
 COL = 3.45  # IEEE column width (in)
 C = {"A": "#4C72B0", "B": "#55A868", "C": "#DD8452", "D": "#C44E52",
