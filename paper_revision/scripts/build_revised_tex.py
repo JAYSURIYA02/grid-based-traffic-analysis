@@ -17,7 +17,7 @@ def rep_between(start, end, new, keep_end=True):
     s = s[:i] + new + (s[j:] if keep_end else s[j + len(end):])
 
 # ---------------- title ----------------
-rep_between("\\title{", "}\n\n\\author{", "\\title{Evaluating Lightweight Grid-Based Vehicle Classification and Counting\nUsing Resolution Sensitivity Analysis and Sequential--Parallel Benchmarking", keep_end=True)
+rep_between("\\title{", "}\n\n\\author{", "\\title{Lightweight Grid-Based Vehicle Classification, Counting and Speed\nEstimation Using Resolution Sensitivity Analysis and Sequential--Parallel\nBenchmarking", keep_end=True)
 
 # ---------------- abstract ----------------
 rep_between("\\begin{abstract}\n", "\\end{abstract}", r"""\begin{abstract}
